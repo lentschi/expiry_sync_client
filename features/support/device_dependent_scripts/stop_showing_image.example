@@ -1,0 +1,3 @@
+#!/bin/bash
+
+killall gst-launch-0.10

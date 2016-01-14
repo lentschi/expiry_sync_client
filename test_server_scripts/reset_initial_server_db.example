@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'open3'
+require 'bundler'	
+
+cmd = <<-END_CMD.gsub(/\n/,"; ")
+cd /path-to-rails-server
+RAILS_ENV=test
+export RAILS_ENV
+rvm `cat .ruby-version`@`cat .ruby-gemset` do bundle exec rake db:reset
+END_CMD
+	
+exit_status = nil
+Bundler.with_clean_env do
+  Open3.popen3(cmd) do |stdin, stdout, stderr, waith_thr|
+  	exit_status = waith_thr.value
+  end
+end
+
+puts exit_status == 0 ? "Initial db reset" : "Error resetting initial db"

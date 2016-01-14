@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sorting_options">
+        <item>@string/sorting_last_added_option</item>
+        <item>@string/sorting_expiration_date_option</item>
+        <item>@string/sorting_name_option</item>
+    </string-array>
+    
+</resources>

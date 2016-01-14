@@ -1,0 +1,8 @@
+/gen/*
+/bin/*
+/test_servers/*
+/screenshot_*.png
+/.project
+/project.properties
+/.classpath
+/.settings
