@@ -47,6 +47,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 	public static final String KEY_ALERT_TIME = "pref_key_alert_time";
 	public static final String KEY_LAST_ENTRY_RETRIEVAL = "pref_key_last_entry_retrieval";
 	public static final String KEY_OFFLINE_MODE = "pref_key_offline_mode";
+	public static final String KEY_SERVER_CHOSEN = "pref_key_server_chosen";
 
 	private EditTextPreference hostPreference = null, daysBeforeMediumPreference = null,
 			daysBeforeBadPreference = null;

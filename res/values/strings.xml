@@ -75,4 +75,5 @@
     <string name="saving_entry_failed">Saving the product entry failed</string>
     <string name="name_may_not_be_empty">Name may not be empty</string>
     <string name="amount_invalid">Amount must be an integer >= 1</string>
+    <string name="choose_server">Choose a server</string>
 </resources>

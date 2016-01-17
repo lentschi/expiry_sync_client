@@ -106,6 +106,32 @@ public class ServerProxy {
 	public void setHostStr(String hostStr) throws URISyntaxException {
 		this.caller = new JsonCaller(hostStr);
 	}
+	
+	public void getAlternateServers(final AlternateServerListCallback callback) {
+		final JsonCallOptions jsonCallParam = new JsonCallOptions();
+		jsonCallParam.method = JsonCaller.METHOD_GET;
+		jsonCallParam.path = "alternate_servers";
+		jsonCallParam.callback = new JsonCallback() {
+			@Override
+			public void onReceive(JSONObject receivedObj) {
+				List<AlternateServer> receivedList = new ArrayList<AlternateServer>();
+				try {
+					JSONArray jsonServers = receivedObj.getJSONArray("alternate_servers");
+					for (int i = 0; i < jsonServers.length(); i++) {
+						JSONObject serverObj = jsonServers.getJSONObject(i);
+						AlternateServer receivedEntry = new AlternateServer(serverObj.getString("url"), serverObj.getString("name"), serverObj.getString("description"));
+						receivedList.add(receivedEntry);
+					}
+				} catch (Exception e) {
+					receivedList = null;
+					e.printStackTrace();
+				}
+
+				callback.onReceive(receivedList);
+			}
+		};
+		new JsonCallTask().execute(jsonCallParam);
+	}
 
 	public void login(String accountName, String password, final UserCallback callback) {
 		// clear cookies to make the client forget it, if it was already logged
@@ -574,6 +600,10 @@ public class ServerProxy {
 		}
 
 		return receivedEntry;
+	}
+	
+	public abstract class AlternateServerListCallback {
+		public abstract void onReceive(List<AlternateServer> receivedServers);
 	}
 
 	public abstract class LocationCallback {

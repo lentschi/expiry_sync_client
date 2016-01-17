@@ -17,14 +17,18 @@
 
 package at.florian_lentsch.expirysync;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -35,6 +39,7 @@ import android.widget.EditText;
 import at.florian_lentsch.expirysync.auth.User;
 import at.florian_lentsch.expirysync.db.DatabaseManager;
 import at.florian_lentsch.expirysync.model.Location;
+import at.florian_lentsch.expirysync.net.AlternateServer;
 import at.florian_lentsch.expirysync.net.ServerProxy;
 import at.florian_lentsch.expirysync.util.Util;
 
@@ -51,11 +56,45 @@ public class LoginActivity extends Activity {
 
 		// Retrieve login data from the shared preferences (stored at previous
 		// logins), if there is any:
-		SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences("main", Context.MODE_PRIVATE);
+		final SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences("main",
+				Context.MODE_PRIVATE);
 		String accountName = sharedPref.getString(SettingsActivity.KEY_ACCOUNT_NAME, "");
 		String password = sharedPref.getString(SettingsActivity.KEY_PASSWORD, "");
+		Boolean serverChosen = sharedPref.getBoolean(SettingsActivity.KEY_SERVER_CHOSEN, false);
 
-		if (accountName.length() > 0) {
+		if (!serverChosen) {
+			ServerProxy serverProxy = ServerProxy.getInstanceFromConfig(this);
+			Util.showProgress(this);
+			ServerProxy.AlternateServerListCallback serverListCallback = serverProxy.new AlternateServerListCallback() {
+
+				@Override
+				public void onReceive(List<AlternateServer> receivedServers) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+					builder.setTitle("Choose");
+
+					ArrayList<String> urls = new ArrayList<String>();
+					urls.add(sharedPref.getString(SettingsActivity.KEY_HOST, "") + "\n" + "Default Server");
+					for (AlternateServer server : receivedServers) {
+						urls.add(server.url.toString() + "\n" + server.name + ": " + server.description);
+					}
+
+					final CharSequence[] choiceList = urls.toArray(new CharSequence[urls.size()]);
+					builder.setSingleChoiceItems(choiceList, -1, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							Editor editor = sharedPref.edit();
+							editor.putString(SettingsActivity.KEY_HOST, choiceList[which].toString());
+							editor.putBoolean(SettingsActivity.KEY_SERVER_CHOSEN, true);
+							editor.commit();
+							dialog.dismiss();
+							Util.hideProgress();
+						}
+					});
+					builder.show();
+				}
+			};
+			serverProxy.getAlternateServers(serverListCallback);
+		} else if (accountName.length() > 0) {
 			// log in immediately, if the calling activity asked for it:
 			Bundle bundle = getIntent().getExtras();
 			boolean loginImmediately = (bundle == null) ? false : bundle
@@ -258,8 +297,8 @@ public class LoginActivity extends Activity {
 	}
 
 	/**
-	 * (non-Javadoc)
-	 * Finishes the activity when the child registration activity has finished successfully
+	 * (non-Javadoc) Finishes the activity when the child registration activity
+	 * has finished successfully
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {

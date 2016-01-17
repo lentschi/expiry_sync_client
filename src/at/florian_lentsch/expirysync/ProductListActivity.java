@@ -243,7 +243,7 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 
 		// save the current sorting mode for the next time:
 		if (this.sortBy != null) {
-			outState.putString("sortBy", sortBy);
+			outState.putString("sortBy", this.sortBy);
 		}
 	}
 
