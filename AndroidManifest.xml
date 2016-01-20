@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="at.florian_lentsch.expirysync"
     android:versionCode="1"
-    android:versionName="0.5" 
+    android:versionName="0.6" 
     android:theme="@style/Theme.AppCompat.Light"
     android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
 
