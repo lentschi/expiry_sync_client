@@ -60,6 +60,6 @@ The following files need to exist and have to be executable, for the tests to be
 ### Running the tests
 
 - Ensure that camera emulation is running. (On my machine I need to run `gst-launch-0.10` before launching the emulator as explained above)
-- Start an android emulator of your choice with the first camera set to the emulated camera.
+- Start an android emulator of your choice with the first camera set to the emulated camera and the system language to US English (i18n is not yet part of the tests).
 - Ensure that you have the environment variable `ANDROID_HOME` set to you SDK directory.
 - run `calabash-android run bin/expiry_sync_client.apk`.

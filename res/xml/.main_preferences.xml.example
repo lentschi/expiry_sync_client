@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-		<EditTextPreference
-        android:defaultValue="http://your.api.server/"
-        android:dialogTitle="@string/host"
-        android:key="pref_key_host"
-        android:title="@string/host" />
-
     <at.florian_lentsch.expirysync.settings.IntEditTextPreference
         android:defaultValue="-1"
         android:dialogTitle="@string/days_before_medium"
@@ -32,4 +26,10 @@
         android:dialogTitle="@string/stay_in_offline_mode"
         android:key="pref_key_offline_mode"
         android:title="@string/stay_in_offline_mode" />
+    
+    <EditTextPreference
+        android:defaultValue="https://nameless-oasis-2639.herokuapp.com/"
+        android:dialogTitle="@string/host"
+        android:key="pref_key_host"
+        android:title="@string/host" />
 </PreferenceScreen>

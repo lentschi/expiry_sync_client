@@ -17,33 +17,23 @@
 
 package at.florian_lentsch.expirysync;
 
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-
 import at.florian_lentsch.expirysync.auth.User;
 import at.florian_lentsch.expirysync.db.DatabaseManager;
 import at.florian_lentsch.expirysync.model.Location;
-import at.florian_lentsch.expirysync.net.AlternateServer;
 import at.florian_lentsch.expirysync.net.ServerProxy;
 import at.florian_lentsch.expirysync.util.Util;
 
@@ -67,42 +57,7 @@ public class LoginActivity extends Activity {
 		Boolean serverChosen = sharedPref.getBoolean(SettingsActivity.KEY_SERVER_CHOSEN, false);
 
 		if (!serverChosen) {
-			ServerProxy serverProxy = ServerProxy.getInstanceFromConfig(this);
-			Util.showProgress(this);
-			ServerProxy.AlternateServerListCallback serverListCallback = serverProxy.new AlternateServerListCallback() {
-
-				@Override
-				public void onReceive(List<AlternateServer> receivedServers) {
-					final Dialog dialog = new Dialog(LoginActivity.this);
-
-					//setting custom layout to dialog
-					dialog.setContentView(R.layout.server_choice_dialog);
-					dialog.setTitle("Choose a server");
-					final ListView serverListView = (ListView) dialog.findViewById(R.id.server_list);
-					try {
-						receivedServers.add(0, new AlternateServer(sharedPref.getString(SettingsActivity.KEY_HOST, ""), "Default Server", "No remotes"));
-					}
-					catch(URISyntaxException e) {
-						// just don't add it
-					}
-					AlternateServerAdapter.ServerTapListener tapListener = new AlternateServerAdapter.ServerTapListener() {
-						
-						@Override
-						public void tapped(AlternateServer alternateServer) {
-							Editor editor = sharedPref.edit();
-							editor.putString(SettingsActivity.KEY_HOST, alternateServer.url.toString());
-							editor.putBoolean(SettingsActivity.KEY_SERVER_CHOSEN, true);
-							editor.commit();
-							dialog.dismiss();
-							Util.hideProgress();				
-						}
-					};
-					ListAdapter adapter = new AlternateServerAdapter(LoginActivity.this, R.layout.server_list_item, receivedServers, tapListener);
-					serverListView.setAdapter(adapter);
-					dialog.show();
-				}
-			};
-			serverProxy.getAlternateServers(serverListCallback);
+			AlternateServerChoiceDialog.showChoice(this);
 		} else if (accountName.length() > 0) {
 			// log in immediately, if the calling activity asked for it:
 			Bundle bundle = getIntent().getExtras();
@@ -193,6 +148,7 @@ public class LoginActivity extends Activity {
 
 			@Override
 			public void onError(Map<String, List<String>> errors) {
+				Util.hideProgress();
 				Util.showMessage(LoginActivity.this, getResources().getString(R.string.login_failed));
 
 				LoginActivity.this.setContentView(R.layout.activity_login);
@@ -203,6 +159,7 @@ public class LoginActivity extends Activity {
 			}
 		};
 
+		Util.showProgress(this);
 		serverProxy.login(accountName, password, loginCallback);
 	}
 

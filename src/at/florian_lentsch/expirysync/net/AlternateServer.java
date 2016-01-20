@@ -26,7 +26,7 @@ public class AlternateServer {
 	public String name, description;
 	
 	public AlternateServer(String url, String name, String description) throws URISyntaxException {
-		this.url = new URI(url);
+		this.url = (url != null) ? new URI(url) : null;
 		this.name = name;
 		this.description = description;
 	}

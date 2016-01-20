@@ -40,6 +40,14 @@ public class RegistrationActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_registration);
+		
+		final SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences("main",
+				Context.MODE_PRIVATE);
+		Boolean serverChosen = sharedPref.getBoolean(SettingsActivity.KEY_SERVER_CHOSEN, false);
+
+		if (!serverChosen) {
+			AlternateServerChoiceDialog.showChoice(this);
+		}
 	}
 
 	@Override
@@ -84,6 +92,7 @@ public class RegistrationActivity extends Activity {
 
 			@Override
 			public void onError(Map<String, List<String>> errors) {
+				Util.hideProgress();
 				Util.showMessage(RegistrationActivity.this, getResources().getString(R.string.registration_failed));
 
 				List<String> usernameErrors = errors.get("username");
@@ -103,6 +112,7 @@ public class RegistrationActivity extends Activity {
 			}
 		};
 
+		Util.showProgress(this);
 		serverProxy.register(email.length() == 0 ? null : email, username.length() == 0 ? null : username, password,
 				registerCallback);
 	}

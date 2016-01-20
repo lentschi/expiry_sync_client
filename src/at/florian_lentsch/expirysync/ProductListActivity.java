@@ -502,6 +502,7 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 			break;
 		case LOGIN_RESULT:
 		case REGISTER_RESULT:
+			Util.hideProgress();
 			// open login/registration straight after the user choose to do so
 			// in the
 			// other form respectively:

@@ -1,19 +1,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:gravity="start|center" >
-    <TextView
-        android:id="@+id/server_url"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    android:gravity="top|start"
+    android:orientation="vertical"
+    android:paddingLeft="3px"
+    android:paddingRight="3px"
+    android:paddingBottom="5px"
+    android:paddingTop="5px" >
 
     <TextView
         android:id="@+id/server_name"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-    
+        android:layout_height="wrap_content"
+        android:text="Loading Server Name..."
+        android:textSize="@dimen/server_name_font_size"
+        android:textColor="@color/server_data_color" />
+
+    <TextView
+        android:id="@+id/server_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading URL..."
+        android:textColor="@color/server_url_color" />
+
     <TextView
         android:id="@+id/server_description"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Loading Description..."
+        android:textColor="@color/server_data_color" />
+
 </LinearLayout>

@@ -75,5 +75,16 @@
     <string name="saving_entry_failed">Saving the product entry failed</string>
     <string name="name_may_not_be_empty">Name may not be empty</string>
     <string name="amount_invalid">Amount must be an integer >= 1</string>
-    <string name="choose_server">Choose a server</string>
+    <string name="choose_server_title">Choose a server</string>
+    <string name="choose_server">This app connects to a server to retrieve information about barcodes and 
+ synchronize your entries between multiple devices.
+
+The following servers - provided by the community (no warranty!) - are available:</string>
+		<string name="default_server_name">Default</string>
+		<string name="default_server_description">Simple server by the app publisher; no barcode data available (except for data provided by the community)</string>
+		<string name="offline_mode_server_name">Offline mode</string>
+		<string name="offline_mode_server_description">Entries won\'t sync with the server. When scanning product barcodes, data will only be downloaded (from the default server).</string>
+		<string name="confirm_server_choice">Are you sure about your choice?</string>
+    <string name="server_chosen">Server chosen</string>
+    <string name="setting_change_at_your_own_risk">Advanced setting - change at your own risk</string>
 </resources>

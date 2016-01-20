@@ -125,6 +125,7 @@ public class JsonCaller {
 		//connect to the server:
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		prepareConnection(connection, method, outputAvailable);
+		connection.addRequestProperty("Accept-Language", Locale.getDefault().getLanguage());
 		connection.connect();
 
 		// write out:

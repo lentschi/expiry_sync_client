@@ -72,4 +72,19 @@
     <string name="not_found">Nicht gefunden</string>
     <string name="logout_succeeded">Logout erfolgreich</string>
     <string name="logout_failed">Logout fehlgeschlagen</string>
+    <string name="saving_entry_failed">Speichern des Produkteintrags fehlgeschlagen</string>
+    <string name="name_may_not_be_empty">Name darf nicht leer sein</string>
+    <string name="amount_invalid">Anzahl muss eine Ganzzahl >= 1 sein</string>
+    <string name="choose_server_title">Wählen Sie einen Server</string>
+    <string name="choose_server">Diese App verbindet sich mit einem Server um Informationen über Barcodes abzurufen und
+        um Ihre Einträge zwischen mehreren Geräten zu synchronisieren.
+
+Die folgenden Server - bereitgestellt von der Community (keine Garantie) - sind verfügbar:</string>
+    <string name="default_server_name">Standard</string>
+    <string name="default_server_description">Einfacher Server vom App-Publisher; keine Barcode-Daten verfügbar (außer Daten, die von der Community bereitgestellt wurden)</string>
+    <string name="offline_mode_server_name">Offline-Modus</string>
+    <string name="offline_mode_server_description">Einträge werden nicht mit dem Server synchronisiert. Wenn Produkt-Barcodes gescannt werden, werden die Daten dazu nur heruntergeladen (vom Standard-Server).</string>
+    <string name="confirm_server_choice">Sind Sie sicher, dass Sie diesen Server wählen wollen?</string>
+    <string name="server_chosen">Server gewählt</string>
+    <string name="setting_change_at_your_own_risk">Erweiterte Einstellung - Ändern auf eigene Gefahr</string>
 </resources>

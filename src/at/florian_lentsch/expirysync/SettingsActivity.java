@@ -83,7 +83,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 		super.onResume();
 
 		// initial values:
-		this.hostPreference.setSummary(this.sharedPreferences.getString(KEY_HOST, ""));
+		this.hostPreference.setSummary(getResources().getString(R.string.setting_change_at_your_own_risk));
 		this.daysBeforeMediumPreference.setSummary(String.valueOf(this.sharedPreferences.getInt(KEY_DAYS_BEFORE_MEDIUM,
 				0)));
 		this.daysBeforeBadPreference.setSummary(String.valueOf(this.sharedPreferences.getInt(KEY_DAYS_BEFORE_BAD, 0)));
