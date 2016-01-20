@@ -1,6 +1,11 @@
 ExpirySync - Android Client
 ===
 
+## Project
+
+This is just the client;
+There's a wrapper project including the __API docs__ as well as both server and client as submodules at [https://github.com/lentschi/expiry_sync](https://github.com/lentschi/expiry_sync).
+
 ## Building & Running
 
 
