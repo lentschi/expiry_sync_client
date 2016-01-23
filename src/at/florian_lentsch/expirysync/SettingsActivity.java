@@ -39,6 +39,7 @@ import at.florian_lentsch.expirysync.settings.TimePreference;
 public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 	// keys used to identify specific settings:
 	public static final String KEY_HOST = "pref_key_host";
+	public static final String KEY_SEARCH_URL = "pref_key_search_url";
 	public static final String KEY_ACCOUNT_NAME = "pref_key_email";
 	public static final String KEY_PASSWORD = "pref_key_password";
 	public static final String KEY_LAST_LOGIN_ACCOUNT_NAME = "pref_key_last_login_email";
@@ -49,7 +50,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 	public static final String KEY_OFFLINE_MODE = "pref_key_offline_mode";
 	public static final String KEY_SERVER_CHOSEN = "pref_key_server_chosen";
 
-	private EditTextPreference hostPreference = null, daysBeforeMediumPreference = null,
+	private EditTextPreference hostPreference = null, searchUrlPreference = null, daysBeforeMediumPreference = null,
 			daysBeforeBadPreference = null;
 	private TimePreference alertTimePreference = null;
 	
@@ -69,6 +70,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 		PreferenceScreen preferenceScreen = getPreferenceScreen();
 		this.sharedPreferences = preferenceScreen.getSharedPreferences();
 		this.hostPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_HOST);
+		this.searchUrlPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_SEARCH_URL);
 		this.alertTimePreference = (TimePreference) preferenceScreen.findPreference(KEY_ALERT_TIME);
 		this.daysBeforeMediumPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_DAYS_BEFORE_MEDIUM);
 		this.daysBeforeBadPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_DAYS_BEFORE_BAD);
@@ -84,6 +86,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 
 		// initial values:
 		this.hostPreference.setSummary(getResources().getString(R.string.setting_change_at_your_own_risk));
+		this.searchUrlPreference.setSummary(this.sharedPreferences.getString(KEY_SEARCH_URL, ""));
 		this.daysBeforeMediumPreference.setSummary(String.valueOf(this.sharedPreferences.getInt(KEY_DAYS_BEFORE_MEDIUM,
 				0)));
 		this.daysBeforeBadPreference.setSummary(String.valueOf(this.sharedPreferences.getInt(KEY_DAYS_BEFORE_BAD, 0)));
@@ -110,8 +113,8 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		// Let's do something a preference value changes
-		if (key.equals(KEY_HOST)) {
-			this.hostPreference.setSummary(this.sharedPreferences.getString(KEY_HOST, ""));
+		if (key.equals(KEY_SEARCH_URL)) {
+			this.searchUrlPreference.setSummary(this.sharedPreferences.getString(KEY_SEARCH_URL, ""));
 		} else if (key.equals(KEY_DAYS_BEFORE_MEDIUM)) {
 			this.daysBeforeMediumPreference.setSummary(String.valueOf(this.sharedPreferences.getInt(
 					KEY_DAYS_BEFORE_MEDIUM, 0)));

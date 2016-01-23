@@ -7,18 +7,15 @@
         android:title="@string/add_product"
         expiry_sync:showAsAction="always"/>
     <item
+        android:id="@+id/action_recipe_search"
+        android:icon="@drawable/ic_menu_search"
+        android:title="@string/recipe_search_title"
+        expiry_sync:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/action_delete_selected"
         android:icon="@drawable/ic_menu_delete"
         android:title="@string/delete_selected_title"
         expiry_sync:showAsAction="ifRoom"/>
-    <!--
-         <item
-        android:id="@+id/mainMenu"
-        android:title="@string/more"
-        android:icon="@drawable/ic_menu_moreoverflow_normal_holo_light"
-        expiry_sync:showAsAction="ifRoom">
-        <menu>
-    -->
     <item
         android:id="@+id/action_sorting"
         android:icon="@drawable/ic_menu_sort_alphabetically"
@@ -46,9 +43,5 @@
         android:id="@+id/action_exit"
         android:title="@string/exit_title"/>
     
-    <!--
-    </menu>
-    </item>
-    -->
 
 </menu>

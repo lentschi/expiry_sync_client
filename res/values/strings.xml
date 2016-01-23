@@ -40,6 +40,8 @@
     <string name="no">no</string>
     <string name="host">Host</string>
     <string name="delete_selected_title">Delete selected</string>
+    <string name="recipe_search_title">Recipe search</string>
+    <string name="recipe">Recipe</string>
     <string name="sort_title">Entry sorting</string>
     <string name="login_title">Login</string>
     <string name="logout_title">Logout</string>
@@ -58,6 +60,7 @@
     <string name="days_before_bad">Days before marking as bad</string>
     <string name="alert_time">At what time to show "EAT-NOW" alerts</string>
     <string name="offline_mode">Offline mode</string>
+    <string name="search_url">Search engine URL (for recipe search)</string>
     <string name="stay_in_offline_mode">always work in offline mode</string>
     <string name="take_product_photo">Take Photo</string>
     <string name="set_offline_mode_title">Offline mode</string>

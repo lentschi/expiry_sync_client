@@ -17,6 +17,8 @@
 
 package at.florian_lentsch.expirysync;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -30,6 +32,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -319,12 +322,17 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 		// enable/disable the "delete selected" menu item depending on wether
 		// any list item has been checked:
 		MenuItem deleteSelectedItem = menu.findItem(R.id.action_delete_selected);
+		MenuItem recipeSearchItem = menu.findItem(R.id.action_recipe_search);
 		if (this.selectedEntries.size() != 0) {
 			deleteSelectedItem.setEnabled(true);
 			deleteSelectedItem.getIcon().setAlpha(255);
+			recipeSearchItem.setEnabled(true);
+			recipeSearchItem.getIcon().setAlpha(255);
 		} else {
 			deleteSelectedItem.setEnabled(false);
 			deleteSelectedItem.getIcon().setAlpha(64);
+			recipeSearchItem.setEnabled(false);
+			recipeSearchItem.getIcon().setAlpha(64);
 		}
 
 		return super.onPrepareOptionsMenu(menu);
@@ -392,6 +400,9 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 			break;
 		case R.id.action_delete_selected:
 			deleteSelectedProducts();
+			break;
+		case R.id.action_recipe_search:
+			searchRecipesForSelectedProducts();
 			break;
 		case R.id.action_settings:
 			// start settings activity:
@@ -733,6 +744,31 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 		loadProductEntriesToList();
 
 		Util.hideProgress();
+	}
+	
+	private void searchRecipesForSelectedProducts() {
+		Resources res = getResources();
+		final SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences("main",
+				Context.MODE_PRIVATE);
+		
+		String search = res.getString(R.string.recipe) + " ";
+		for (int i = 0; i < ProductListActivity.this.selectedEntries.size(); i++) {
+			int entryId = ProductListActivity.this.selectedEntries.keyAt(i);
+			ProductEntry entry = ProductListActivity.this.selectedEntries.get(entryId);
+			search += entry.article.name;
+			if (i + 1 < ProductListActivity.this.selectedEntries.size()) {
+				search += " ";
+			}
+		}
+		
+		try {
+			search = URLEncoder.encode(search, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		Uri uri = Uri.parse(sharedPref.getString(SettingsActivity.KEY_SEARCH_URL, "") + search);
+		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		startActivity(intent);
 	}
 
 	/**
