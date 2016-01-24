@@ -27,6 +27,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -765,10 +766,18 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 			search = URLEncoder.encode(search, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
+			Util.showMessage(this, res.getString(R.string.error_starting_search));
 		}
 		Uri uri = Uri.parse(sharedPref.getString(SettingsActivity.KEY_SEARCH_URL, "") + search);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		startActivity(intent);
+		
+		try {
+			startActivity(intent);
+		}
+		catch(ActivityNotFoundException e) {
+			e.printStackTrace();
+			Util.showMessage(this, res.getString(R.string.error_starting_search));
+		}
 	}
 
 	/**

@@ -42,6 +42,7 @@
     <string name="delete_selected_title">Delete selected</string>
     <string name="recipe_search_title">Recipe search</string>
     <string name="recipe">Recipe</string>
+    <string name="error_starting_search">Could not start the search - Please check your "search engine URL" setting</string>
     <string name="sort_title">Entry sorting</string>
     <string name="login_title">Login</string>
     <string name="logout_title">Logout</string>
