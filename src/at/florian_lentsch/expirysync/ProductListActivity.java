@@ -105,7 +105,7 @@ public class ProductListActivity extends UndeprecatedActionBarActivity {
 
 		// set default values for preferences that haven't been customized:
 		PreferenceManager.setDefaultValues(this.getApplicationContext(), "main", Context.MODE_PRIVATE,
-				R.xml.main_preferences, false);
+				R.xml.main_preferences, true);
 
 		// set alarm for notifications (if not already set):
 		NotifyChecker.setAlarm(this);
