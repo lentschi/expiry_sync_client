@@ -26,6 +26,7 @@ end
 
 When /^I press "(.+)" in the main menu$/ do |marked_str|
   step('I open the main menu')
+  ExpirySyncUtility.scroll_to("DropDownListView * marked:'#{marked_str}'")
   tap_when_element_exists("DropDownListView * marked:'#{marked_str}'")
 end
 

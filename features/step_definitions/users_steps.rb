@@ -28,7 +28,8 @@ When /^I open the registration form$/ do
     step('I try to log out')
     step('logout should be successful')
   end
-  step('I press "Register" in the main menu')
+  step('the login form is open')
+  tap_when_element_exists("* marked:'Sign up'")
   wait_for_element_exists("* id:'email_address'")
 end
 
