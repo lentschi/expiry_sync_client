@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>login</ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="user-login" *ngIf="user">
+  <form #loginForm="ngForm" class="list" (ngSubmit)="loginTapped(loginForm.valid)" novalidate>
+    <ion-item [class.server-validation-error]="serverValidationErrors.login">
+      <ion-label stacked translate>login</ion-label>
+      <ion-input 
+        required 
+        autofocus 
+        [(ngModel)]="user.login" 
+        name="login" 
+        #login="ngModel" 
+        autocorrect="off" 
+        autocapitalize="none"
+        [placeholder]="'email OR user name' | translate"></ion-input>
+    </ion-item>
+    
+    <ng-container *ngIf="serverValidationErrors.login">
+      <ng-container *ngFor="let serverValidationError of serverValidationErrors.login">
+        <div class="validation-error">{{serverValidationError}}</div>
+      </ng-container>
+    </ng-container>
+    <ion-item [class.server-validation-error]="serverValidationErrors.password">
+      <ion-label stacked translate>password</ion-label>
+      <ion-input type="password" [(ngModel)]="user.password" name="password" #password="ngModel"></ion-input>
+    </ion-item>
+    <ng-container *ngIf="serverValidationErrors.password">
+      <ng-container *ngFor="let serverValidationError of serverValidationErrors.password">
+        <div class="validation-error">{{serverValidationError}}</div>
+      </ng-container>
+    </ng-container>
+    <button ion-button type="submit" full translate>login</button>
+    <div class="other-options">
+      <a class="forgot-password" target="_blank" [href]="forgotPasswordUrl" translate>Forgot your password?</a>
+      <div class="label" translate>You don't want to synchronize with a server?</div>
+      <button ion-button type="button" (click)="dismiss()" translate>offline mode</button>
+    </div>
+  </form>
+</ion-content>

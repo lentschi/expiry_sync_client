@@ -1,0 +1,28 @@
+<ng-container [ngSwitch]="setting.key">
+  <div class="info" *ngSwitchCase="'host'">
+    <ion-icon name="information-circle"></ion-icon>
+    <div class="details" translate>
+      The specified host must implement the following API:<br />
+      <a target="_blank" href="https://github.com/lentschi/expiry_sync/releases">Download API from GitHub</a><br /><br />
+      <b>Take care:</b><br />
+      When changing this setting after logging in on another server, all your current products and locations will be removed!!
+    </div>
+  </div>
+  <div class="info" *ngSwitchCase="'searchUrl'">
+    <ion-icon name="information-circle"></ion-icon>
+    <div class="details" translate>
+      Enter the URL for your recipe search site.<br />
+      Within the URL you may use the following placeholders, that will be substituted before searching:
+      <ul>
+        <li>
+          <b>{{recipeTranslation}<!---->}:</b><br />
+          The word 'recipe' in the chosen UI language
+        </li>
+        <li>
+          <b>{{ingredients}<!---->}:</b><br />
+          The ingredients you want to search for (Will be separated by HTML encoded space characters)
+        </li>
+      </ul>
+    </div>
+  </div>
+</ng-container>

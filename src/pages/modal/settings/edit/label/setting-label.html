@@ -1,0 +1,11 @@
+<ng-container [ngSwitch]="setting.key">
+  <ng-container *ngSwitchCase="'host'" translate>host name</ng-container>
+  <ng-container *ngSwitchCase="'reminderTime'" translate>When do you want to be reminded?</ng-container>        
+  <ng-container *ngSwitchCase="'localeId'" translate>UI Language</ng-container>
+  <ng-container *ngSwitchCase="'daysBeforeBad'" translate>Days before marking as bad</ng-container>
+  <ng-container *ngSwitchCase="'daysBeforeMedium'" translate>Days before marking as medium</ng-container>
+  <ng-container *ngSwitchCase="'offlineMode'" translate>offline mode</ng-container>
+  <ng-container *ngSwitchCase="'barcodeEngine'" translate>barcode engine</ng-container>
+  <ng-container *ngSwitchCase="'searchUrl'" translate>URL used for recipe search</ng-container>
+  <ng-container *ngSwitchDefault>TODO: {{setting.key}}</ng-container>
+</ng-container>

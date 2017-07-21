@@ -1,0 +1,16 @@
+ion-content#user-registration {
+  .other-options {
+    margin-top:20px;
+    border-top: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+
+    .label {
+      margin-top:20px;
+    }
+
+    button {
+      display:inline-block;
+    }
+  }
+}

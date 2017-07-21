@@ -1,0 +1,38 @@
+.modal-wrapper {
+  .scroll-content {
+    margin-top: 56px;
+  }
+}
+
+.barcode-controls {
+  display:flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  button {
+    width:60px;
+    margin: 10px 0px 0px 16px;
+  }
+
+  ion-item {
+    flex: 1;
+    width:auto;
+  }
+}
+
+.image-controls {
+  text-align: center;
+  margin: 20px 0px;
+
+
+  .image-wrapper {
+    padding:0;
+  }
+}
+
+.submit-controls {
+  text-align: center;
+  button[type="button"] {
+    margin: 20px 0px;
+  }
+}

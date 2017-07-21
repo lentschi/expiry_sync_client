@@ -1,0 +1,23 @@
+ion-content#settings {
+  .item-note, .datetime-text {
+    color: map-get($colors, medium-dark);
+  }
+
+  ion-item.time {
+    .item-inner {
+      display:block;
+      .input-wrapper {
+        .label {
+          color: map-get($colors, dark);
+          margin-bottom: 0px;
+        }
+
+        display:block;
+        ion-datetime {
+          margin: 2px 0px 10px 0px;
+          padding:0;
+        }
+      }
+    }
+  }
+}

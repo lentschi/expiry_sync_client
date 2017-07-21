@@ -1,0 +1,46 @@
+<ng-container *ngIf="location">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons start>
+        <button ion-button (click)="dismiss()">
+          <ion-icon name="arrow-back"></ion-icon>
+        </button>
+      </ion-buttons>
+      <ion-title>{{'Share \"\" with others' | translate:location}}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content id="location-shares">
+    <ion-list>
+      <ion-item *ngFor="let share of shares">
+        <span class="user-name">{{share.user.userName}}</span>
+        <button *ngIf="location.serverId && app.currentUser.loggedIn" ion-button item-right (click)="removeTapped(share)">
+          <ion-icon name="trash"></ion-icon>
+        </button>
+      </ion-item>
+    </ion-list>
+    <form *ngIf="app.currentUser.loggedIn" #shareForm="ngForm" class="list" (ngSubmit)="addShare(shareForm.valid)" novalidate>
+      <ion-item [class.server-validation-error]="serverValidationErrors.login">
+        <ion-label fixed translate>add share</ion-label>
+        <ion-input 
+          [placeholder]="'user name or email address' | translate" 
+          [(ngModel)]="shareUser.login" 
+          autocorrect="off" 
+          autocapitalize="none"
+          name="login" 
+          #login="ngModel"></ion-input>
+      </ion-item>
+      <ng-container *ngIf="serverValidationErrors.login">
+        <ng-container *ngFor="let serverValidationError of serverValidationErrors.login">
+          <div class="validation-error">{{serverValidationError}}</div>
+        </ng-container>
+      </ng-container>
+      <button ion-button type="submit" full translate>add</button>
+    </form>
+    <div class="info" *ngIf="!app.currentUser.loggedIn">
+      <ion-icon name="information-circle"></ion-icon>
+      <span translate>
+        You cannot add or remove shares as you are currently not logged in.
+      </span>
+    </div>
+  </ion-content>
+</ng-container>

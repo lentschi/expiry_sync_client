@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-toolbar *ngIf="productEntries">
+    <ion-title translate>move products to another location</ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-select [(ngModel)]="selectedLocationId">
+    <ng-container *ngFor="let location of locations">
+      <ion-option [value]="location.id">{{location.name}}</ion-option>
+    </ng-container>
+  </ion-select>
+  <button ion-button (click)="move()" full translate>move</button>
+</ion-content>

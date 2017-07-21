@@ -1,0 +1,28 @@
+#recipe-search {
+  .introduction {
+    font-size: 15px;
+    padding:10px;
+    border-bottom: 1px solid map-get($colors, light);
+  }
+
+  .keywords-container {
+    padding: 10px;
+
+    .keyword {
+        font-size: 20px;
+        margin: 9px;
+        color: #ce9b9b;
+        display: inline-block;
+
+        &.active {
+          color: #008800;
+        }
+    }
+
+  }
+  
+  .select-helpers {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+}

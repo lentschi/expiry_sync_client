@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>settings</ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="settings">
+  <ion-list>
+    <ng-container *ngFor="let setting of settings">
+      <ng-container *ngIf="setting.editable">
+        <button *ngIf="setting.settingConfig.editComponent" ion-item (click)="settingTapped($event, setting)">
+          <div class="item-left">
+            <setting-label [setting]="setting"></setting-label>
+          </div>
+          <div class="item-note" *ngIf="!setting.settingConfig.choices">{{setting.value}}</div>
+          <div class="item-note" *ngIf="setting.settingConfig.choices">
+            <ng-container *ngFor="let choice of setting.settingConfig.choices">
+              <ng-container *ngIf="choice.key == setting.value">
+                {{choice.label}}
+              </ng-container>
+            </ng-container>
+          </div>
+        </button>
+        <ion-item *ngIf="setting.settingConfig.inlineEditableBoolean">
+          <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
+          <ion-checkbox [checked]="setting.value == '1'" (ionChange)="booleanValueChanged(setting)"></ion-checkbox>
+        </ion-item>
+        <ion-item class="time" *ngIf="setting.settingConfig.timeButton">
+          <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
+          <ion-datetime displayFormat="H:mm" pickerFormat="H mm"
+            [(ngModel)]="setting.value"
+            (ionChange)="timeValueChanged(setting)"
+            [cancelText]="'cancel' | translate"
+            [doneText]="'done' | translate"
+            required>
+          </ion-datetime>
+        </ion-item>
+      </ng-container>
+    </ng-container>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,92 @@
+// http://ionicframework.com/docs/v2/theming/
+
+
+// App Global Sass
+// --------------------------------------------------
+// Put style rules here that you want to apply globally. These
+// styles are for the entire app and not just one component.
+// Additionally, this file can be also used as an entry point
+// to import other Sass files to be included in the output CSS.
+//
+// Shared Sass variables, which can be used to adjust Ionic's
+// default Sass variables, belong in "theme/variables.scss".
+//
+// To declare rules for a specific mode, create a child rule
+// for the .md, .ios, or .wp mode classes. The mode class is
+// automatically applied to the <body> element in the app.
+
+.translation {
+  display:none;
+}
+
+// ion-title
+.toolbar-title::first-letter, ion-label::first-letter, ion-label .label::first-letter {
+  text-transform: uppercase;
+}
+
+.no-first-upper::first-letter {
+  text-transform: none !important;
+}
+
+#main-menu {
+  ion-label .label {
+    display:inline-block;
+    padding-left: 5px;
+  }
+}
+
+.validation-error {
+  color: #c00;
+  padding:15px;
+}
+
+.server-validation-error.item-md.item-input.ng-valid.input-has-value .item-inner {
+  border-bottom-color: #c00;
+  box-shadow: inset 0 -1px 0 0 #c00;
+}
+
+.toast-md.error .toast-wrapper {
+  background-color:#800;
+}
+
+@media (max-width: 350px) {
+  ::placeholder {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 350px) {
+  .item-label-stacked {
+    .label-md[stacked] {
+        align-self: inherit;
+        pointer-events: none;
+        font-size: 16px;
+        margin: 13px 8px 13px 0;
+        flex: initial;
+        width:40%;
+    }
+
+    ion-datetime {
+      width: inherit;
+      padding-left: inhertit;
+    }
+
+    .input-wrapper {
+      flex-direction: inherit;
+    }
+  }
+}
+
+#loadingOverlay {
+  position:absolute;
+  z-index:999;
+  width:100%;
+  height:100%;
+  background-color: transparent;
+}
+
+.bar-button-md {
+  font-size: 2rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}

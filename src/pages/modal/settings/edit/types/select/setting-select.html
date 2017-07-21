@@ -1,0 +1,22 @@
+<form #settingForm="ngForm" class="list" (ngSubmit)="saveSetting()" novalidate>
+  <ion-item>
+    <ion-label fixed>
+      <setting-label [setting]="setting"></setting-label>
+    </ion-label>
+    <ion-select 
+      [(ngModel)]="setting.value"
+      name="settingValue" 
+      #settingValue="ngModel"
+      [okText]="'Okay' | translate"
+      [cancelText]="'Dismiss' | translate"
+      required>
+      <ng-container *ngFor="let choice of setting.settingConfig.choices">
+        <ion-option [value]="choice.key">
+          {{choice.label}}
+        </ion-option> 
+      </ng-container>
+    </ion-select>
+  </ion-item>
+  <setting-info [setting]="setting"></setting-info>
+  <button ion-button full translate>Choose</button>
+</form>
