@@ -28,13 +28,14 @@
           [(ngModel)]="productEntry.article.barcode" 
           (blur)="loadArticleByBarcode()" 
           name="barcode" 
+          maxlength="255"
           [placeholder]="'Barcode' | translate"
           #barcode="ngModel"></ion-input>
       </ion-item>
     </div>
     <ion-item #articleNameItem>
       <ion-label stacked translate>name</ion-label>
-      <ion-input [(ngModel)]="productEntry.article.name" name="name" #name="ngModel" required></ion-input>
+      <ion-input [(ngModel)]="productEntry.article.name" name="name" maxlength="255" #name="ngModel" required></ion-input>
     </ion-item>
     <div *ngIf="name.errors && (name.dirty || name.touched)"
            class="validation-error">
@@ -57,7 +58,8 @@
       <ion-label stacked translate>amount</ion-label>
       <ion-input 
         type="number" 
-        validateGreaterThan="0" 
+        validateGreaterThan="0"
+        validateLessThan="100000"
         validateInteger
         required 
         [(ngModel)]="productEntry.amount" 
@@ -72,7 +74,7 @@
     </div>
     <ion-item>
       <ion-label stacked translate>description</ion-label>
-      <ion-input [(ngModel)]="productEntry.description" name="description" #description="ngModel"></ion-input>
+      <ion-input [(ngModel)]="productEntry.description" name="description" maxlength="255" #description="ngModel"></ion-input>
     </ion-item>
     <ion-item *ngIf="productEntry.ownedByCurrentUser">
       <ion-label translate>Free to take for everyone</ion-label>

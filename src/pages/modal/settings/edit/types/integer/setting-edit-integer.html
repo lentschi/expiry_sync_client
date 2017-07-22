@@ -7,6 +7,8 @@
       [(ngModel)]="setting.value"
       type="number"
       validateInteger
+      validateGreaterThan="-100000"
+      validateLessThan="100000"
       name="settingValue" 
       #settingValue="ngModel" 
       required>

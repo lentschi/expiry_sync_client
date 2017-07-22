@@ -26,7 +26,7 @@ import { SettingInfoElement } from '../pages/modal/settings/edit/info/setting-in
 import { SettingLabelElement } from '../pages/modal/settings/edit/label/setting-label';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { LocalNotifications } from '@ionic-native/local-notifications';
-import { GreaterThanValidator, IntegerValidator, UrlValidator } from './utils/custom-validators';
+import { GreaterThanValidator, LessThanValidator, IntegerValidator, UrlValidator } from './utils/custom-validators';
 import { EllipsisPipe } from './utils/custom-pipes';
 import { Device } from '@ionic-native/device';
 import { BrowserModule } from '@angular/platform-browser';
@@ -65,6 +65,7 @@ export function createTranslateLoader(http: Http) {
     SettingEditStringElement,
     SettingSelectElement,
     GreaterThanValidator,
+    LessThanValidator,
     UrlValidator,
     IntegerValidator,
     EllipsisPipe,

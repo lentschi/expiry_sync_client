@@ -13,7 +13,7 @@ export class GreaterThanValidator implements Validator {
     if (this.validateGreaterThan !== undefined
       && this.validateGreaterThan != ''
       && c.value != ''
-      && c.value <= this.validateGreaterThan) {
+      && parseFloat(c.value) <= parseFloat(this.validateGreaterThan)) {
         return {
           validateGreaterThan: true
         };

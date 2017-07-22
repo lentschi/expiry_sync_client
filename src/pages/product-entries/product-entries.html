@@ -27,7 +27,7 @@
   </ion-navbar>
   <ion-toolbar class="filter-bar" *ngIf="showFilter">
     <ion-item>
-      <ion-input [(ngModel)]="productEntries.filterValue" (keyup)="showListAndFilters()" #filterField></ion-input>
+      <ion-input [(ngModel)]="productEntries.filterValue" (keyup)="showListAndFilters()" maxlength="255" #filterField></ion-input>
     </ion-item>
     <ion-icon (click)="clearFilterValue()" name="close"></ion-icon>
   </ion-toolbar>

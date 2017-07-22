@@ -16,6 +16,7 @@
         required 
         [(ngModel)]="user.userName" 
         name="userName" 
+        maxlength="255"
         #userName="ngModel"
         autocorrect="off" 
         autocapitalize="none"></ion-input>
@@ -34,6 +35,7 @@
       <ion-input 
         [(ngModel)]="user.email" 
         name="email" 
+        maxlength="255"
         #email="ngModel" 
         [placeholder]="'optional' | translate" 
         type="email"></ion-input>
@@ -45,7 +47,7 @@
     </ng-container>
     <ion-item [class.server-validation-error]="serverValidationErrors.password">
       <ion-label stacked translate>password</ion-label>
-      <ion-input type="password" [(ngModel)]="user.password" name="password" #password="ngModel"></ion-input>
+      <ion-input type="password" [(ngModel)]="user.password" name="password" #password="ngModel" maxlength="255"></ion-input>
     </ion-item>
     <ng-container *ngIf="serverValidationErrors.password">
       <ng-container *ngFor="let serverValidationError of serverValidationErrors.password">
