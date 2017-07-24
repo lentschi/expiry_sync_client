@@ -7,7 +7,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </button>
       <ng-container>
-        <button ion-button (click)="deleteEntry(productEntry)">
+        <button *ngIf="productEntry.id" ion-button (click)="deleteEntry(productEntry)">
           <ion-icon name="trash"></ion-icon>
         </button>
         <button ion-button (click)="saveEntry(productEntry)">
