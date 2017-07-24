@@ -146,6 +146,16 @@ export class ExpirySync extends ExpirySyncController {
   private exitAfterReminder:boolean = false;
 
   /**
+   * the entry, that has been last updated (before any sync)
+   */
+  updatedEntry:ProductEntry;
+
+  /**
+   * the location, that has been last updated (before any sync)
+   */
+  updatedLocation:Location;
+
+  /**
    * Initializes the app's db locale and menu
    */
   constructor(private platform: Platform, translate:TranslateService, private config:Config, private menuCtrl:MenuController, private modalCtrl:ModalController, private app:IonicApp, private dbManager: DbManager, private server:ApiServer, public events: Events, private loadingCtrl: LoadingController, private localNotifications: LocalNotifications, private uiHelper:UiHelper, public device:Device) {
@@ -182,7 +192,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   async synchronizeTapped() {
     let task:Symbol = this.loadingStarted('Synchronizing');
-    await this.mutexedSynchronize(null, null, true);
+    await this.mutexedSynchronize(true);
     this.loadingDone(task);
   }
 
@@ -199,7 +209,7 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async mutexedSynchronize(locationUpdateId?:number, productEntryUpdateId?:number, requestedManually = false):Promise<void> {
+  async mutexedSynchronize(requestedManually = false):Promise<void> {
     console.log("SYNC: Waiting for previous sync to finish...");
     await this.syncDone(false);
 
@@ -208,7 +218,7 @@ export class ExpirySync extends ExpirySyncController {
       await this.localChangesDone();
 
       try {
-        await this.synchronize(locationUpdateId, productEntryUpdateId);
+        await this.synchronize();
       }
       catch(e) {
         if (requestedManually) {
@@ -234,7 +244,7 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async synchronize(locationUpdateId?:number, productEntryUpdateId?:number):Promise<void> {
+  async synchronize():Promise<void> {
     console.log("SYNC: Synchronizing...");
     let lastSync:Date = null;
     let lastSyncRfc2616:string = Setting.cached('lastSync');
@@ -244,11 +254,15 @@ export class ExpirySync extends ExpirySyncController {
 
 
     const beforeSync = new Date();
-    const newLocations = await Location.pullAll(lastSync, locationUpdateId);
+    const newLocations = await Location.pullAll(lastSync, this.updatedLocation ? this.updatedLocation.serverId : null);
     await Location.pushAll();
 
-    await ProductEntry.pullAll(lastSync, productEntryUpdateId, newLocations);
+    this.updatedLocation = null;
+
+    await ProductEntry.pullAll(lastSync, this.updatedEntry ? this.updatedEntry.serverId : null, newLocations);
     await ProductEntry.pushAll();
+
+    this.updatedEntry = null;
 
     lastSync = moment(beforeSync).add(this.server.timeSkew, 'ms').toDate();
 

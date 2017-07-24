@@ -75,7 +75,7 @@ export class ProductEntriesPage extends ExpirySyncController {
 
   async showList() {
     // var loadingTask:Symbol = this.app.loadingStarted('Listing entries');
-    
+
     this.selectedLocation = await Location.getSelected();
     this.selectedLocationId = this.selectedLocation.id;
 
@@ -106,7 +106,7 @@ export class ProductEntriesPage extends ExpirySyncController {
         entry.selected = true;
       }
     }
-    
+
     this.loadingAfterLocationSwitchDone = true;
   }
 
@@ -148,7 +148,8 @@ export class ProductEntriesPage extends ExpirySyncController {
       await this.showList();
     }
     if (this.app.currentUser.loggedIn) {
-      this.app.mutexedSynchronize(null, updatedEntry ? updatedEntry.serverId : null).then(async () => {
+      this.app.updatedEntry = updatedEntry;
+      this.app.mutexedSynchronize().then(async () => {
         if (showList || (updatedEntry && !(await updatedEntry.exists()))) {
           await this.showList();
         }
@@ -273,7 +274,7 @@ export class ProductEntriesPage extends ExpirySyncController {
       resolve();
     }));
   }
-  
+
   async toggleSearchTapped() {
     this.showFilter = !this.showFilter;
     await this.viewChangeOccurred();
@@ -323,7 +324,7 @@ export class ProductEntriesPage extends ExpirySyncController {
         const modal = this.modalCtrl.create(RecipeSearchModal, {selectedProductEntries: this.productEntries.selected});
         modal.present();
       };
-      
+
       if (this.locations.length > 1) {
         this.app.enableMenuPoint(ExpirySync.MenuPointId.moveEntriesToAnotherLocation).method = async () => {
           await this.syncDone();

@@ -78,7 +78,7 @@ export class ProductEntry extends AppModel {
   get selected():boolean {
     return this.isSelected;
   }
-  
+
 
   set expirationDateIsoStr(date:any) {
     // TODO: Remove all this after upgrading to ionic-angular 3.1.1:
