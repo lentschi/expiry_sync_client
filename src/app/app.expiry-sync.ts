@@ -154,6 +154,11 @@ export class ExpirySync extends ExpirySyncController {
    * the location, that has been last updated (before any sync)
    */
   updatedLocation:Location;
+  
+  /**
+   * resolved when auto login and initial sync have finished (no matter if successful or not)
+   */
+  private autoLoginAndSyncDone:Promise<void>;
 
   /**
    * Initializes the app's db locale and menu
@@ -440,9 +445,10 @@ export class ExpirySync extends ExpirySyncController {
    */
   private async showReminder() {
     console.log("Showing reminder");
-    if (this.currentUser && this.currentUser.loggedIn) {
-      await this.mutexedSynchronize();
+    if (this.autoLoginAndSyncDone) {
+      await this.autoLoginAndSyncDone;
     }
+    
     this.localNotifications.cancelAll();
     let productEntries:Array<ProductEntry> = <Array<ProductEntry>> await ProductEntry
       .all()
@@ -574,47 +580,54 @@ export class ExpirySync extends ExpirySyncController {
       modal.present();
     });
   }
-
+  
   /**
    * Perform automatic login, unless the 'offlineMode' setting is active or there is no user 'usedForLogin=true' in the db
    * If auto login fails, show the login form
    * @param {boolean} openRegistrationOnFailure open the registration form on failure (instead of the login form)
    */
   private async autoLogin(openRegistrationOnFailure = false) {
-    console.log("Versions: " + JSON.stringify(this.platform.versions()));
-    let offlineModeStr:string = Setting.cached('offlineMode');
-    let offlineMode:boolean = (offlineModeStr === '1');
-    if (offlineMode) {
-      return;
-    }
-
-    this.disableMenuPoint(ExpirySync.MenuPointId.login);
-    this.disableMenuPoint(ExpirySync.MenuPointId.registration);
-
-    try {
-      var user:User = <User> await User.findBy('usedForLogin', true);
-      user.login = user.userName ? user.userName : user.email;
-      await user.authenticate();
-      user.loggedIn = true;
-      this.currentUser = user;
-      this.authDone();
-    }
-    catch(e) {
-      let loginMenuPoint;
-      let params:any = {};
-
-      if (openRegistrationOnFailure) {
-        loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.registration);
+    this.autoLoginAndSyncDone = new Promise<void>(async resolve => {
+      console.log("Versions: " + JSON.stringify(this.platform.versions()));
+      let offlineModeStr:string = Setting.cached('offlineMode');
+      let offlineMode:boolean = (offlineModeStr === '1');
+      if (offlineMode) {
+        resolve();
+        return;
       }
-      else {
-        loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.login);
-        if (user && user.login) {
-          // We tried with a seemingly valid user -> display errors:
-          params.error = e;
+
+      this.disableMenuPoint(ExpirySync.MenuPointId.login);
+      this.disableMenuPoint(ExpirySync.MenuPointId.registration);
+
+      try {
+        var user:User = <User> await User.findBy('usedForLogin', true);
+        user.login = user.userName ? user.userName : user.email;
+        await user.authenticate();
+        user.loggedIn = true;
+        this.currentUser = user;
+        await this.authDone();
+      }
+      catch(e) {
+        let loginMenuPoint;
+        let params:any = {};
+
+        if (openRegistrationOnFailure) {
+          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.registration);
         }
+        else {
+          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.login);
+          if (user && user.login) {
+            // We tried with a seemingly valid user -> display errors:
+            params.error = e;
+          }
+        }
+        this.openMenuPoint(loginMenuPoint, params);
       }
-      this.openMenuPoint(loginMenuPoint, params);
-    }
+      
+      resolve();
+    });
+    
+    await this.autoLoginAndSyncDone;
   }
 
   /**
@@ -622,7 +635,7 @@ export class ExpirySync extends ExpirySyncController {
    * Called when either login or registration have completed.
    * @param  {boolean} openLoginInstead true, if the user requested to open the login form
    */
-  private authDone(openLoginInstead?:boolean) {
+  private async authDone(openLoginInstead?:boolean) {
     if (openLoginInstead) {
       this.openMenuPoint(this.menuPoints.find(menuPoint => {
         return menuPoint.id == ExpirySync.MenuPointId.login;
@@ -640,7 +653,7 @@ export class ExpirySync extends ExpirySyncController {
       this.disableMenuPoint(ExpirySync.MenuPointId.registration);
       this.enableMenuPoint(ExpirySync.MenuPointId.logout);
       this.enableMenuPoint(ExpirySync.MenuPointId.synchronize);
-      this.mutexedSynchronize();
+      await this.mutexedSynchronize();
     }
     else {
       this.enableMenuPoint(ExpirySync.MenuPointId.login);
