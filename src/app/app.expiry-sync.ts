@@ -154,7 +154,7 @@ export class ExpirySync extends ExpirySyncController {
    * the location, that has been last updated (before any sync)
    */
   updatedLocation:Location;
-  
+
   /**
    * resolved when auto login and initial sync have finished (no matter if successful or not)
    */
@@ -448,7 +448,7 @@ export class ExpirySync extends ExpirySyncController {
     if (this.autoLoginAndSyncDone) {
       await this.autoLoginAndSyncDone;
     }
-    
+
     this.localNotifications.cancelAll();
     let productEntries:Array<ProductEntry> = <Array<ProductEntry>> await ProductEntry
       .all()
@@ -473,7 +473,8 @@ export class ExpirySync extends ExpirySyncController {
         icon: 'res://icon',
         smallIcon: 'res://icon',
         text: text,
-        led: 'FFFFFF'
+        led: 'FFFFFF',
+        data: {firstLocationId: productEntries[0].locationId}
       };
       console.log("Displaying notification: ", notificationConf);
       this.localNotifications.schedule(notificationConf);
@@ -492,6 +493,13 @@ export class ExpirySync extends ExpirySyncController {
   private initializeApp() {
     ExpirySync.readyPromise = new Promise<{}>(async resolve => {
       await this.platform.ready();
+
+      // Check, if the app has been launched due to a notification click:
+      let tappedNotificationData:any = null;
+      this.localNotifications.on('click', async (notification) => {
+        tappedNotificationData = JSON.parse(notification.data);
+      });
+
       console.log("--- Platform ready");
       await this.detectVersion();
       this.setupBackgroundMode();
@@ -501,6 +509,11 @@ export class ExpirySync extends ExpirySyncController {
       // initialize db:
       await this.dbManager.initialize();
       await Setting.addDefaultsForMissingKeys();
+
+      // switch location if required by notification tap:
+      if (tappedNotificationData) {
+        await this.changeLocationForTappedNotification(tappedNotificationData);
+      }
 
       // find/create current user in the db:
       try {
@@ -567,6 +580,28 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   /**
+   * switch to the first product entry's location after a notification has been tapped
+   * @param  {any} tappedNotificationData notification data containing the first location id
+   */
+  private async changeLocationForTappedNotification(tappedNotificationData) {
+    let currentLocation = <Location> await Location.getSelected();
+
+    if (tappedNotificationData.firstLocationId != currentLocation.id) {
+        try {
+          let firstLocation = <Location> await Location.findBy('id', tappedNotificationData.firstLocationId);
+          firstLocation.isSelected = true;
+          await firstLocation.save();
+
+          currentLocation.isSelected = false;
+          await currentLocation.save();
+        }
+        catch(e) {
+          console.error("Unable to switch location after notification has been tapped");
+        }
+    }
+  }
+
+  /**
    * Display the server choice dialog
    * @return {Promise<void>} resolved when the choice has been made
    */
@@ -580,7 +615,7 @@ export class ExpirySync extends ExpirySyncController {
       modal.present();
     });
   }
-  
+
   /**
    * Perform automatic login, unless the 'offlineMode' setting is active or there is no user 'usedForLogin=true' in the db
    * If auto login fails, show the login form
@@ -623,10 +658,10 @@ export class ExpirySync extends ExpirySyncController {
         }
         this.openMenuPoint(loginMenuPoint, params);
       }
-      
+
       resolve();
     });
-    
+
     await this.autoLoginAndSyncDone;
   }
 
