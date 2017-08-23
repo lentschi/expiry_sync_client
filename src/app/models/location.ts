@@ -62,6 +62,11 @@ export class Location extends AppModel {
 
   async markForDeletion():Promise<void> {
     if (!this.serverId) {
+      await ProductEntry
+        .all()
+        .filter('locationId', '=', this.id)
+        .prefetch('location')
+        .delete();
       return this.delete();
     }
 
@@ -237,6 +242,11 @@ export class Location extends AppModel {
 
     let locationData = await ApiServer.call(callId, params);
     if (this.deletedAt) {
+      await ProductEntry
+        .all()
+        .filter('locationId', '=', this.id)
+        .prefetch('location')
+        .delete();
       await this.delete();
     }
     else {
@@ -330,7 +340,7 @@ export class Location extends AppModel {
     }
     return await super.save();
   }
-  
+
   get ownedByCurrentUser():boolean {
     const app:ExpirySync = ExpirySync.getInstance();
     return (!this.creatorId || (app.currentUser && app.currentUser.id == this.creatorId));
