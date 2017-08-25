@@ -464,7 +464,7 @@ export class ExpirySync extends ExpirySyncController {
     if (productEntries.length > 0) {
       let text:string = `${productEntries[0].amount}x ${productEntries[0].article.name}`;
       if (productEntries.length > 1) {
-        text += " " + await this.pluralTranslate('and other articles', productEntries.length);
+        text += " " + await this.pluralTranslate('and other articles', productEntries.length - 1);
       }
 
       let notificationConf = {
