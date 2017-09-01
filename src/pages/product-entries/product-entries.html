@@ -3,10 +3,14 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title *ngIf="selectedLocation">
+    <ion-title *ngIf="locations">
       <ion-item>
         <ion-label translate>location</ion-label>
-        <ion-select [(ngModel)]="selectedLocationId" (ionChange)="locationSwitched()">
+        <ion-select 
+            [(ngModel)]="selectedLocationId" 
+            (ionChange)="locationSwitched()"
+            [class.no-location-selected]="!selectedLocation">
+          <ion-option *ngIf="locations?.length > 1" [value]="''" translate>All locations</ion-option>
           <ng-container *ngFor="let location of locations">
             <ion-option [value]="location.id">{{location.name}}</ion-option>
           </ng-container>
@@ -14,7 +18,7 @@
       </ion-item>
     </ion-title>
     <ion-buttons *ngIf="productEntries" start>
-      <button ion-button (click)="openEntryForm()">
+      <button *ngIf="selectedLocation" ion-button (click)="openEntryForm()">
         <ion-icon name="add-circle"></ion-icon>
       </button>
       <button [disabled]="productEntries.selected.length == 0" ion-button (click)="deleteAllTapped()">
@@ -87,7 +91,7 @@
         </ion-item-sliding>
         <ion-item class="no-products" *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
           <span class="label" translate>There aren't any products in the list.</span>
-          <button ion-button (click)="openEntryForm()" translate>Add one now</button>
+          <button *ngIf="selectedLocation" ion-button (click)="openEntryForm()" translate>Add one now</button>
         </ion-item>
         <ion-item class="no-products" *ngIf="!loadingAfterLocationSwitchDone">
           <span class="label" translate>Please wait...</span>

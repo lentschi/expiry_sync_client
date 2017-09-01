@@ -1,3 +1,4 @@
+
 import { AppModel, Column, PersistenceModel } from '../utils/orm/app-model';
 import { ExpirySync } from '../app.expiry-sync';
 import { ApiServer } from '../utils/api-server';
@@ -53,7 +54,7 @@ export class Setting extends AppModel {
     ]},
     // searchUrl: {default: 'http://www.chefkoch.de/rs/s0/{{ingredients}}/Rezepte.html', editComponent: SettingEditStringElement},
     searchUrl: {default: 'http://www.google.com/#q={{recipeTranslation}}%20{{ingredients}}', editComponent: SettingEditStringElement},
-    host: {default: 'http://expiry-sync-web.local', editComponent: SettingEditStringElement},
+    host: {default: 'https://nameless-oasis-2639.herokuapp.com', editComponent: SettingEditStringElement},
     lastSync: {default: ''},
     serverChosen: {default: '0'},
     lastUserId: {default: ''},

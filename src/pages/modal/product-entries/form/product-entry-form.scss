@@ -4,6 +4,24 @@
   }
 }
 
+.location {
+  margin: 10px 0px 20px 16px;
+  color: map-get($colors, medium-dark);
+
+  .label {
+    display:inline-block;
+    font-weight: bold;
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+
+    &:after {
+      content: ': ';
+    }
+  }
+}
+
 .barcode-controls {
   display:flex;
   flex-direction: row;

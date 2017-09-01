@@ -20,8 +20,9 @@ declare var cloudSky;
   templateUrl: 'product-entry-form.html'
 })
 export class ProductEntryFormModal extends ExpirySyncController {
-  public productEntry:ProductEntry;
-  public dateFormat:string;
+  productEntry:ProductEntry;
+  dateFormat:string;
+  displayLocation = false;
   private app:ExpirySync;
 
   static MAX_DAYS_UNTIL_EXPIRATION_DATE:number = 10000;
@@ -46,6 +47,10 @@ export class ProductEntryFormModal extends ExpirySyncController {
     if (params.get('id')) {
       ProductEntry.findBy('id', params.get('id')).then(async(retrievedEntry:ProductEntry) => {
         retrievedEntry.article = <Article> await Article.findBy('id', retrievedEntry.articleId);
+        if (params.get('displayLocation')) {
+          retrievedEntry.location = <Location> await Location.findBy('id', retrievedEntry.locationId);
+          this.displayLocation = true;
+        }
         retrievedEntry.article.images = <Array<ArticleImage>> await ArticleImage
           .all()
           .filter('articleId', '=', retrievedEntry.articleId)
@@ -125,12 +130,12 @@ export class ProductEntryFormModal extends ExpirySyncController {
     this.app.loadingDone(task);
     this.viewCtrl.dismiss(this.productEntry);
   }
-  
+
   async cloneEntry(valid:boolean) {
     if (!valid) {
       return;
     }
-    
+
     this.productEntry = <ProductEntry> this.productEntry.clone();
     this.productEntry.serverId = null;
     this.productEntry.inSync = false;

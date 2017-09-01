@@ -77,20 +77,29 @@ export class ProductEntriesPage extends ExpirySyncController {
     // var loadingTask:Symbol = this.app.loadingStarted('Listing entries');
 
     this.selectedLocation = await Location.getSelected();
-    this.selectedLocationId = this.selectedLocation.id;
+    if (this.selectedLocation) {
+      this.selectedLocationId = this.selectedLocation.id;
+    }
+    else {
+      this.selectedLocationId = '';
+    }
 
     this.locations = <Array<Location>> await Location
       .all()
       .filter('deletedAt', '=', null)
       .list();
 
-    let dbEntries:Array<ProductEntry> =  <Array<ProductEntry>> await  ProductEntry
+    const query = ProductEntry
       .all()
       .prefetch('article')
       .prefetch('creator')
-      .filter('deletedAt', '=', null)
-      .filter('locationId', '=', this.selectedLocationId)
-      .list();
+      .filter('deletedAt', '=', null);
+
+    if (this.selectedLocationId) {
+      query.filter('locationId', '=', this.selectedLocationId);
+    }
+
+    let dbEntries:Array<ProductEntry> = <Array<ProductEntry>> await query.list();
 
     const previouslySelectedEntries:Array<ProductEntry> = this.productEntries.selected;
 
@@ -161,25 +170,34 @@ export class ProductEntriesPage extends ExpirySyncController {
   async locationSwitched() {
     let task:Symbol = this.app.loadingStarted("Switching location");
 
-    if (this.selectedLocation.id != this.selectedLocationId) {
+    const oldSelectionId = this.selectedLocation ? this.selectedLocation.id : null;
+    if (oldSelectionId != this.selectedLocationId) {
       this.loadingAfterLocationSwitchDone = false;
       this.productEntries.setValues([]);
       const oldSelection = this.selectedLocation;
 
       // select new location:
-      this.selectedLocation = <Location> await Location.findBy('id', this.selectedLocationId);
-      this.selectedLocation.isSelected = true;
-      await this.selectedLocation.save();
+      if (this.selectedLocationId) {
+        this.selectedLocation = <Location> await Location.findBy('id', this.selectedLocationId);
+        this.selectedLocation.isSelected = true;
+        await this.selectedLocation.save();
+      }
+      else {
+        this.selectedLocation = null;
+      }
 
       // de-select old location:
-      oldSelection.isSelected = false;
-      await oldSelection.save();
+      if (oldSelection) {
+        oldSelection.isSelected = false;
+        await oldSelection.save();
+      }
     }
 
     this.app.loadingDone(task);
     await this.showListAndFilters();
     this.enableDisableMenuPoints();
   }
+
 
   async openEntryForm(productEntry?:ProductEntry) {
     await this.syncDone();
@@ -188,6 +206,7 @@ export class ProductEntriesPage extends ExpirySyncController {
       let params:any = {};
       if (productEntry) {
         params.id = productEntry.id;
+        params.displayLocation = !this.selectedLocation;
       }
 
       let modal = this.modalCtrl.create(ProductEntryFormModal, params);

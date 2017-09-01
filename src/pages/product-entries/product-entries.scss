@@ -8,9 +8,15 @@ html, body {
 }
 
 ion-header#product-entries-header {
-    ion-select.select-md {
-      max-width: none;
-      padding-left:0;
+    ion-select{
+      &.no-location-selected .select-text {
+        font-style: italic;
+        padding-right: 3px;
+      }
+      &.select-md {
+        max-width: none;
+        padding-left:0;
+      }
     }
 
     .item-select {

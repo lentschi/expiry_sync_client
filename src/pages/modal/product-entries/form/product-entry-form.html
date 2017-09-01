@@ -19,6 +19,10 @@
 </ion-header>
 <ion-content>
   <form #entryForm="ngForm" class="list" (ngSubmit)="saveEntry(entryForm.valid)" *ngIf="productEntry" novalidate>
+    <div *ngIf="displayLocation" class="location">
+      <span class="label" translate>location</span>
+      <span class="value">{{productEntry.location.name}}</span>
+    </div>
     <div class="barcode-controls">
       <button ion-button type="button" (click)="scanBarcode()">
         <ion-icon name="barcode"></ion-icon>

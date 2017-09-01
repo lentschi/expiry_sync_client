@@ -56,7 +56,11 @@ export class Location extends AppModel {
       return location;
     }
     catch(e) {
-      return this.createDefault();
+      if (await this.all().count() == 0) {
+        return this.createDefault();
+      }
+
+      return null;
     }
   }
 

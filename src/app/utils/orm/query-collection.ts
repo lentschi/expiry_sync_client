@@ -62,6 +62,19 @@ export class QueryCollection {
     });
   }
 
+  count():Promise<number> {
+    return new Promise<number>(resolve => {
+      this.persistenceCollection.list(async(results) => {
+        let count = 0;
+        results.forEach((persistenceInstance) => {
+          count++;
+        });
+
+        resolve(count);
+      });
+    });
+  }
+
   updateField(propertyName:string, value:any):Promise<void> {
     return this.update([{propertyName, value}]);
   }

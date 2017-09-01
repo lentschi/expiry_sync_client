@@ -33,6 +33,7 @@
     "deselect all": "alle abwählen",
     "select all": "alle anwählen",
     "location": "Ort",
+    "All locations": "Alle Orte",
     "Really delete those products?": {
       "_plurals": {
         "1": "Dieses Produkt wirklich löschen?",
