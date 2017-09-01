@@ -49,13 +49,13 @@
   background-color:#800;
 }
 
-@media (max-width: 350px) {
+@media (max-width: 365px) {
   ::placeholder {
     font-size: 1.2rem;
   }
 }
 
-@media (min-width: 350px) {
+@media (min-width: 365px) {
   .item-label-stacked {
     .label-md[stacked] {
         align-self: inherit;
