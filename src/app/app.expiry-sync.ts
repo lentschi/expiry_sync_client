@@ -467,6 +467,14 @@ export class ExpirySync extends ExpirySyncController {
         text += " " + await this.pluralTranslate('and other articles', productEntries.length - 1);
       }
 
+      let startupLocationId = productEntries[0].locationId;
+      for (let entry of productEntries) {
+        if (entry.locationId != startupLocationId) {
+          startupLocationId = null;
+          break;
+        }
+      }
+
       let notificationConf = {
         id: 1,
         title: await this.translate('Eat now:'),
@@ -474,7 +482,7 @@ export class ExpirySync extends ExpirySyncController {
         smallIcon: 'res://icon',
         text: text,
         led: 'FFFFFF',
-        data: {firstLocationId: productEntries[0].locationId}
+        data: {startupLocationId}
       };
       console.log("Displaying notification: ", notificationConf);
       this.localNotifications.schedule(notificationConf);
@@ -584,16 +592,24 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {any} tappedNotificationData notification data containing the first location id
    */
   private async changeLocationForTappedNotification(tappedNotificationData) {
-    let currentLocation = <Location> await Location.getSelected();
+    const currentLocation = <Location> await Location.getSelected();
+    let currentLocationId:string = null;
+    if (currentLocation) {
+      currentLocationId = currentLocation.id;
+    }
 
-    if (tappedNotificationData.firstLocationId != currentLocation.id) {
+    if (tappedNotificationData.startupLocationId != currentLocationId) {
         try {
-          let firstLocation = <Location> await Location.findBy('id', tappedNotificationData.firstLocationId);
-          firstLocation.isSelected = true;
-          await firstLocation.save();
+          if (tappedNotificationData.startupLocationId) {
+            let startupLocation = <Location> await Location.findBy('id', tappedNotificationData.startupLocationId);
+            startupLocation.isSelected = true;
+            await startupLocation.save();
+          }
 
-          currentLocation.isSelected = false;
-          await currentLocation.save();
+          if (currentLocation) {
+            currentLocation.isSelected = false;
+            await currentLocation.save();
+          }
         }
         catch(e) {
           console.error("Unable to switch location after notification has been tapped");
