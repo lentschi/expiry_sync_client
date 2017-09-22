@@ -356,7 +356,7 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   /**
-   * TODO: Handle back button?
+   * stop/resume auto sync when entering/leaving background mode
    */
   private setupBackgroundMode() {
     this.platform.resume.subscribe(() => {
@@ -368,6 +368,41 @@ export class ExpirySync extends ExpirySyncController {
       this.active = false;
       this.clearSyncTimeout();
     });
+  }
+  
+  private handleBackButton() {
+    this.platform.registerBackButtonAction(e => {
+      if (this.nav.canGoBack()) {
+        this.nav.pop()
+        return;
+      }
+    
+      // Don't do anything while a loader is open:
+      let activePortal = this.app._loadingPortal.getActive();
+      if (activePortal) {
+        if (this.loaderBackButtonCallback) {
+          this.loaderBackButtonCallback();
+        }
+        return;
+      }
+    
+      // Close modals, or remove toasts/overlays if any:
+      activePortal = this.app._modalPortal.getActive() ||
+        this.app._toastPortal.getActive() ||
+        this.app._overlayPortal.getActive();
+    
+      if (activePortal) {
+        return activePortal.dismiss();
+      }
+    
+      // Close menu if open:
+      if (this.menuCtrl.isOpen()) {
+          this.menuCtrl.close();
+          return;
+      }
+    
+      this.platform.exitApp();
+    },101);
   }
 
   /**
@@ -511,6 +546,7 @@ export class ExpirySync extends ExpirySyncController {
       console.log("--- Platform ready");
       await this.detectVersion();
       this.setupBackgroundMode();
+      this.handleBackButton();
 
       let task:Symbol = this.loadingStarted("Initializing app");
 

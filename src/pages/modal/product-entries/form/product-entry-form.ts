@@ -91,6 +91,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
     }
 
     const task = this.app.loadingStarted('Fetching barcode');
+    // allow aborting when fetching the barcode:
     this.app.loaderBackButtonCallback = () => {
       ApiServer.getInstance().cancelCurrentRequest();
       this.app.loadingDone(task);

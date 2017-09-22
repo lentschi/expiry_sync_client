@@ -17,7 +17,7 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content>
+<ion-content id="product-entries-form">
   <form #entryForm="ngForm" class="list" (ngSubmit)="saveEntry(entryForm.valid)" *ngIf="productEntry" novalidate>
     <div *ngIf="displayLocation" class="location">
       <span class="label" translate>location</span>

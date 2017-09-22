@@ -1,56 +1,59 @@
+// TODO: Not sure, if this is still required and why:
 .modal-wrapper {
   .scroll-content {
     margin-top: 56px;
   }
 }
 
-.location {
-  margin: 10px 0px 20px 16px;
-  color: map-get($colors, medium-dark);
+#product-entries-form {
+  .location {
+    margin: 10px 0px 20px 16px;
+    color: map-get($colors, medium-dark);
 
-  .label {
-    display:inline-block;
-    font-weight: bold;
+    .label {
+      display:inline-block;
+      font-weight: bold;
 
-    &::first-letter {
-      text-transform: uppercase;
+      &::first-letter {
+        text-transform: uppercase;
+      }
+
+      &:after {
+        content: ': ';
+      }
+    }
+  }
+
+  .barcode-controls {
+    display:flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    button {
+      width:60px;
+      margin: 10px 0px 0px 16px;
     }
 
-    &:after {
-      content: ': ';
+    ion-item {
+      flex: 1;
+      width:auto;
     }
   }
-}
 
-.barcode-controls {
-  display:flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-
-  button {
-    width:60px;
-    margin: 10px 0px 0px 16px;
-  }
-
-  ion-item {
-    flex: 1;
-    width:auto;
-  }
-}
-
-.image-controls {
-  text-align: center;
-  margin: 20px 0px;
-
-
-  .image-wrapper {
-    padding:0;
-  }
-}
-
-.submit-controls {
-  text-align: center;
-  button[type="button"] {
+  .image-controls {
+    text-align: center;
     margin: 20px 0px;
+
+
+    .image-wrapper {
+      padding:0;
+    }
+  }
+
+  .submit-controls {
+    text-align: center;
+    button[type="button"] {
+      margin: 20px 0px;
+    }
   }
 }

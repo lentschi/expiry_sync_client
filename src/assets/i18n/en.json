@@ -33,6 +33,7 @@
   "deselect all": "deselect all",
   "select all": "select all",
   "location": "location",
+  "All locations": "All locations",
   "Really delete those products?": {
     "_plurals": {
       "1": "Really delete this product?",
@@ -43,6 +44,7 @@
   "owner": "owner",
   "\"Free for all!\"": "\"Free for all!\"",
   "There aren't any products in the list.": "There aren't any products in the list.",
+  "There are no products matching your search.": "There are no products matching your search.",
   "Add one now": "Add one now",
   "edit setting": "edit setting",
   "Cancel": "Cancel",

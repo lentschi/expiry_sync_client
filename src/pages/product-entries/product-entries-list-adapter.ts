@@ -10,12 +10,40 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
   sortBy:string = 'expirationDate';
   sortAscending:boolean = true;
 
+  /**
+   * set the array's values
+   * If an entry's attributes stay the same, ensure that it is not replaced
+   * (in order not to lose any object references)
+   */
   setValues(productEntries:Array<ProductEntry>) {
     // TODO: this may not be the most efficient way to do this:
-    this.splice(0, this.length);
+    const tmp:Array<ProductEntry> = [];
+    
     for (let productEntry of productEntries) {
+      const existingEntry = this.find(curEntry => !this.entryViewDiffers(curEntry, productEntry));
+    
+      if (existingEntry) {
+        tmp.push(existingEntry);
+      }
+      else {
+        tmp.push(productEntry);
+      }
+    }
+    
+    this.length = 0;
+    for (let productEntry of tmp) {
       this.push(productEntry);
     }
+  }
+
+  private entryViewDiffers(p1:ProductEntry, p2:ProductEntry):boolean {
+    return p1.id != p2.id
+      || p1.article.name != p2.article.name
+      || p1.amount != p2.amount
+      || p1.locationId != p2.locationId
+      || p1.expirationDate.getTime() != p2.expirationDate.getTime()
+      || p1.creatorId != p2.creatorId
+      || p1.freeToTake != p2.freeToTake;
   }
 
   get creatorFilter():CreatorFilter {
@@ -64,6 +92,7 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
         case 'expirationDate': prop1 = p1.expirationDate; prop2 = p2.expirationDate; break;
         case 'name': prop1 = p1.article.name.toLowerCase(); prop2 = p2.article.name.toLowerCase(); break;
         case 'creator': prop1 = p1.creator.userName.toLowerCase(); prop2 = p2.creator.userName.toLowerCase(); break;
+        case 'location': prop1 = p1.location.name.toLowerCase(); prop2 = p2.location.name.toLowerCase(); break;
         default: throw `Invalid order field: '${this.sortBy}''`;
       }
 

@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/core';
 
-import { NavController, ModalController, TextInput, Events } from 'ionic-angular';
+import { NavController, ModalController, TextInput, Events, Platform } from 'ionic-angular';
 import { ProductEntry, Location, Setting, User } from '../../app/models';
 import { ExpirySync } from '../../app/app.expiry-sync';
 import { ExpirySyncController } from '../../app/app.expiry-sync-controller';
@@ -44,7 +44,7 @@ export class ProductEntriesPage extends ExpirySyncController {
 
   @ViewChild('filterField') filterField: TextInput;
 
-  constructor(private navCtrl: NavController, private modalCtrl:ModalController, private uiHelper:UiHelper, private events:Events, private cd:ChangeDetectorRef, translate:TranslateService) {
+  constructor(private platform: Platform, private navCtrl: NavController, private modalCtrl:ModalController, private uiHelper:UiHelper, private events:Events, private cd:ChangeDetectorRef, translate:TranslateService) {
     super(translate);
     this.app = ExpirySync.getInstance();
     this.app.entriesList = this;
@@ -93,6 +93,7 @@ export class ProductEntriesPage extends ExpirySyncController {
       .all()
       .prefetch('article')
       .prefetch('creator')
+      .prefetch('location')
       .filter('deletedAt', '=', null);
 
     if (this.selectedLocationId) {
@@ -293,20 +294,29 @@ export class ProductEntriesPage extends ExpirySyncController {
       resolve();
     }));
   }
+  
+  private deregisterBackButtonHandler:Function;
 
   async toggleSearchTapped() {
     this.showFilter = !this.showFilter;
     await this.viewChangeOccurred();
     if (this.showFilter) {
       this.filterField.setFocus();
+      this.deregisterBackButtonHandler = this.platform.registerBackButtonAction(e => {
+        this.toggleSearchTapped();
+      }, 102);
     }
     else {
+      this.deregisterBackButtonHandler();
       this.productEntries.filterValue = '';
       await this.showListAndFilters();
     }
   }
 
-  async clearFilterValue() {
+  /**
+   * Clears the filter input
+   */
+  async clearFilterValue() {    
     this.productEntries.filterValue = '';
     await this.viewChangeOccurred();
     this.filterField.setFocus();

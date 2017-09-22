@@ -37,6 +37,7 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { IonicTranslateDirective } from './utils/ionic-translate.directive';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { Http } from '@angular/http';
+import { EllipsisModule } from 'ngx-ellipsis';
 
 
 export function createTranslateLoader(http: Http) {
@@ -79,6 +80,7 @@ export function createTranslateLoader(http: Http) {
     BrowserModule,
     HttpModule,
     BrowserAnimationsModule,
+    EllipsisModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
