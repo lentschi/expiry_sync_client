@@ -150,10 +150,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     await this.showList();
   }
 
-  private async onEntryUpdated(updatedEntry?:ProductEntry, showList?:boolean) {
-    if (typeof showList === 'undefined') {
-      showList = true;
-    }
+  private async onEntryUpdated(updatedEntry?:ProductEntry, showList:boolean = true) {
     if (showList) {
       await this.showList();
     }
@@ -294,7 +291,7 @@ export class ProductEntriesPage extends ExpirySyncController {
       resolve();
     }));
   }
-  
+
   private deregisterBackButtonHandler:Function;
 
   async toggleSearchTapped() {
@@ -316,7 +313,7 @@ export class ProductEntriesPage extends ExpirySyncController {
   /**
    * Clears the filter input
    */
-  async clearFilterValue() {    
+  async clearFilterValue() {
     this.productEntries.filterValue = '';
     await this.viewChangeOccurred();
     this.filterField.setFocus();

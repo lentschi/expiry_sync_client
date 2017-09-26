@@ -118,6 +118,11 @@ export class Location extends AppModel {
     return locationData;
   }
 
+  static async hasRemoteChanges(modifiedAfter?:Date):Promise<boolean> {
+    const locationSyncList:LocationSyncList = await Location.fetchSyncList(modifiedAfter);
+    return locationSyncList.locations.length > 0 || locationSyncList.deletedLocations.length > 0;
+  }
+
   static async pullAll(modifiedAfter?:Date, updateId?:number):Promise<Array<Location>> {
     let newLocations = [];
     let app:ExpirySync = ExpirySync.getInstance();
@@ -211,6 +216,15 @@ export class Location extends AppModel {
     }
 
     return syncList;
+  }
+
+  static async hasLocalChanges():Promise<boolean> {
+    const count = await Location
+      .all()
+      .filter('inSync', '=', false)
+      .count();
+
+    return count > 0;
   }
 
   static async pushAll():Promise<void> {

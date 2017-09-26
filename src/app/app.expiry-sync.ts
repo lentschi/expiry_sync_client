@@ -208,6 +208,20 @@ export class ExpirySync extends ExpirySyncController {
     this.platform.exitApp();
   }
 
+  private async hasLocalChanges():Promise<boolean> {
+    return await Location.hasLocalChanges() || await ProductEntry.hasLocalChanges();
+  }
+
+  private async hasRemoteChanges():Promise<boolean> {
+    let lastSync:Date = null;
+    let lastSyncRfc2616:string = Setting.cached('lastSync');
+    if (lastSyncRfc2616 != '') {
+      lastSync = new Date(lastSyncRfc2616);
+    }
+
+    return await Location.hasRemoteChanges(lastSync) || await ProductEntry.hasRemoteChanges(lastSync);
+  }
+
   /**
    * Synchronize product entries with the server, waiting for any ongoing sync or local changes to complete first
    * @param  {number}        locationUpdateId     ID of a location that has just been updated locally (won't be pulled)
@@ -218,7 +232,14 @@ export class ExpirySync extends ExpirySyncController {
     console.log("SYNC: Waiting for previous sync to finish...");
     await this.syncDone(false);
 
-    return this.setSyncDonePromise(new Promise<void>(async resolve => {
+
+    if (!requestedManually && !this.updatedEntry && !(await this.hasLocalChanges()) && !(await this.hasRemoteChanges())) {
+      console.log("SYNC: Not required");
+      this.setSyncTimeout();
+      return;
+    }
+
+    await this.setSyncDonePromise(new Promise<void>(async resolve => {
       console.log("SYNC: Waiting for local changes to be completed...");
       await this.localChangesDone();
 
@@ -234,10 +255,8 @@ export class ExpirySync extends ExpirySyncController {
       resolve();
 
       this.events.publish('app:syncDone');
-      if (!this.device.platform || this.active) {
-        console.log("SYNC: Setting sync timeout");
-        this.setSyncTimeout();
-      }
+      console.log("SYNC: Setting sync timeout");
+      this.setSyncTimeout();
     }));
   }
 
@@ -290,6 +309,12 @@ export class ExpirySync extends ExpirySyncController {
    */
   private setSyncTimeout() {
     this.clearSyncTimeout();
+
+    // Abort if the app has been deactivated:
+    if (this.device.platform && !this.active) {
+      return;
+    }
+
     this.syncTimeout = setTimeout(() => {
       this.syncTimeout = null;
       if (this.currentUser && this.currentUser.loggedIn) {
@@ -369,14 +394,14 @@ export class ExpirySync extends ExpirySyncController {
       this.clearSyncTimeout();
     });
   }
-  
+
   private handleBackButton() {
     this.platform.registerBackButtonAction(e => {
       if (this.nav.canGoBack()) {
         this.nav.pop()
         return;
       }
-    
+
       // Don't do anything while a loader is open:
       let activePortal = this.app._loadingPortal.getActive();
       if (activePortal) {
@@ -385,22 +410,22 @@ export class ExpirySync extends ExpirySyncController {
         }
         return;
       }
-    
+
       // Close modals, or remove toasts/overlays if any:
       activePortal = this.app._modalPortal.getActive() ||
         this.app._toastPortal.getActive() ||
         this.app._overlayPortal.getActive();
-    
+
       if (activePortal) {
         return activePortal.dismiss();
       }
-    
+
       // Close menu if open:
       if (this.menuCtrl.isOpen()) {
           this.menuCtrl.close();
           return;
       }
-    
+
       this.platform.exitApp();
     },101);
   }

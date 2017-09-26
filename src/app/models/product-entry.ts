@@ -142,6 +142,24 @@ export class ProductEntry extends AppModel {
     return productEntryData;
   }
 
+  static async hasRemoteChanges(modifiedAfter?:Date):Promise<boolean> {
+    let locations:Array<Location> = <Array<Location>> await Location
+      .all()
+      .filter('deletedAt', '=', null)
+      .filter('serverId', '!=', null)
+      .list();
+
+    for (let location of locations) {
+      const productEntrySyncList:ProductEntrySyncList = await location.fetchProductEntriesSyncList(modifiedAfter);
+      if (productEntrySyncList.productEntries.length > 0 || productEntrySyncList.deletedProductEntries.length > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
   static async pullAll(modifiedAfter?:Date, updateId?:number, locationsCreatedByPull?:Array<Location>):Promise<void> {
     if (typeof(locationsCreatedByPull) == "undefined") {
       locationsCreatedByPull = [];
@@ -182,6 +200,17 @@ export class ProductEntry extends AppModel {
         }
       }
     }
+  }
+
+  static async hasLocalChanges():Promise<boolean> {
+    const count = await ProductEntry
+      .all()
+      .filter('inSync', '=', false)
+      .prefetch('article')
+      .prefetch('location')
+      .count();
+
+    return count > 0;
   }
 
   static async pushAll():Promise<void> {
