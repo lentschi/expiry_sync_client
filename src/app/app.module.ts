@@ -14,6 +14,8 @@ import { SettingEditStringElement } from '../pages/modal/settings/edit/types/str
 import { SettingSelectElement } from '../pages/modal/settings/edit/types/select/setting-select';
 import { AlternateServersChoiceModal } from '../pages/modal/alternate-servers/choice/alternate-servers-choice';
 import { ProductEntryFormModal } from '../pages/modal/product-entries/form/product-entry-form';
+import { QuaggaBarcodeScanModal } from '../pages/modal/product-entries/barcode-scan/quagga-barcode-scan';
+import { BrowserCamModal } from '../pages/modal/product-entries/browser-cam/browser-cam';
 import { ProductEntryMoveFormModal } from '../pages/modal/product-entries/move-form/product-entry-move-form';
 import { LocationFormModal } from '../pages/modal/locations/form/location-form';
 import { LocationSharesModal } from '../pages/modal/location-shares/list/location-shares';
@@ -55,6 +57,8 @@ export function createTranslateLoader(http: Http) {
     AlternateServersChoiceModal,
     ProductEntryFormModal,
     ProductEntryMoveFormModal,
+    QuaggaBarcodeScanModal,
+    BrowserCamModal,
     UserRegistrationModal,
     LocationFormModal,
     LocationSharesModal,
@@ -100,6 +104,8 @@ export function createTranslateLoader(http: Http) {
     SettingEditModal,
     ProductEntryFormModal,
     ProductEntryMoveFormModal,
+    QuaggaBarcodeScanModal,
+    BrowserCamModal,
     LocationFormModal,
     LocationSharesModal,
     RecipeSearchModal,

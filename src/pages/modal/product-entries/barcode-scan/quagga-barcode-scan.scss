@@ -1,0 +1,14 @@
+#quagga-barcode-scan {
+  .scroll-content {
+    display:flex;
+    flex-direction: column;
+  }
+
+  .video-wall {
+    width:100%;
+    flex: 1;
+    overflow: hidden;
+    vertical-align: middle;
+    text-align: center;
+  }
+}

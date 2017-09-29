@@ -53,6 +53,7 @@
     "ngx-ellipsis": "^1.0.4",
     "persistencejs": "git://github.com/coresmart/persistencejs.git#f692c4eb554a4d5f289eb8f19614e501fae9de76",
     "phonegap-plugin-barcodescanner": "^6.0.7",
+    "quagga": "^0.12.1",
     "reflect-metadata": "^0.1.10",
     "rxjs": "5.1.1",
     "sw-toolbox": "3.4.0",

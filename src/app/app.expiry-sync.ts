@@ -576,7 +576,14 @@ export class ExpirySync extends ExpirySyncController {
       let task:Symbol = this.loadingStarted("Initializing app");
 
       // initialize db:
-      await this.dbManager.initialize();
+      try {
+        await this.dbManager.initialize(this.runningInBrowser);
+      }
+      catch (e) {
+        alert("Database initialization failed - Ensure that your platform supports WebSQL or SQLite!");
+        return;
+      }
+      this.adeptPlatformDependingSettings();
       await Setting.addDefaultsForMissingKeys();
 
       // switch location if required by notification tap:
@@ -648,6 +655,13 @@ export class ExpirySync extends ExpirySyncController {
     });
   }
 
+  private adeptPlatformDependingSettings() {
+    if (this.runningInBrowser) {
+      // -> choose quaggaJs as default barcode engine and hide the selection from settings:
+      Setting.settingConfig.barcodeEngine = {default: 'quaggaJs'};
+    }
+  }
+
   /**
    * switch to the first product entry's location after a notification has been tapped
    * @param  {any} tappedNotificationData notification data containing the first location id
@@ -700,7 +714,6 @@ export class ExpirySync extends ExpirySyncController {
    */
   private async autoLogin(openRegistrationOnFailure = false) {
     this.autoLoginAndSyncDone = new Promise<void>(async resolve => {
-      console.log("Versions: " + JSON.stringify(this.platform.versions()));
       let offlineModeStr:string = Setting.cached('offlineMode');
       let offlineMode:boolean = (offlineModeStr === '1');
       if (offlineMode) {
@@ -948,8 +961,12 @@ export class ExpirySync extends ExpirySyncController {
     }));
   }
 
+  get runningInBrowser():boolean {
+    return (this.platform.is('core') || !this.device.platform || this.device.platform == 'browser');
+  }
+
   async detectVersion() {
-    if (typeof(cordova) != 'undefined' && (this.platform.is('android') || this.platform.is('ios'))) {
+    if (!this.runningInBrowser) {
       console.log("Retrieving version");
       this.version = await cordova.getAppVersion.getVersionNumber();
       this.version += ' (Build: ' + await cordova.getAppVersion.getVersionCode() + ')';

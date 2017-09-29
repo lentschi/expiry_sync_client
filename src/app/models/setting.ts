@@ -49,7 +49,8 @@ export class Setting extends AppModel {
     offlineMode: {default: '0', inlineEditableBoolean: true},
     barcodeEngine: {default: 'phonegap', editComponent: SettingSelectElement, choices: [
       {key: 'cszBar', label: 'cszBar'},
-      {key: 'phonegap', label: 'phonegap'}
+      {key: 'phonegap', label: 'phonegap'},
+      {key: 'quaggaJs', label: 'quaggaJs'}
     ]},
     // searchUrl: {default: 'http://www.chefkoch.de/rs/s0/{{ingredients}}/Rezepte.html', editComponent: SettingEditStringElement},
     searchUrl: {default: 'http://www.google.com/#q={{recipeTranslation}}%20{{ingredients}}', editComponent: SettingEditStringElement},

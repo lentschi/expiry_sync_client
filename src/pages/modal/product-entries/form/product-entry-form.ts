@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavParams, ViewController } from 'ionic-angular';
+import { NavParams, ViewController, ModalController } from 'ionic-angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { ProductEntry, Article, ArticleImage, Location, Setting } from '../../../../app/models';
 import { ExpirySync } from '../../../../app/app.expiry-sync';
@@ -10,11 +10,13 @@ import { UiHelper } from '../../../../app/utils/ui-helper';
 import { Camera } from '@ionic-native/camera';
 import { Device } from '@ionic-native/device';
 import { TranslateService } from '@ngx-translate/core';
-
+import { QuaggaBarcodeScanModal } from '../barcode-scan/quagga-barcode-scan';
+import { BrowserCamModal } from '../browser-cam/browser-cam';
 import * as moment from 'moment';
 import 'moment/min/locales';
 
 declare var cloudSky;
+declare var navigator;
 
 @Component({
   templateUrl: 'product-entry-form.html'
@@ -38,7 +40,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
   @ViewChild('barcodeItem') barcodeItem:any;
   @ViewChild('articleNameItem') articleNameItem:any;
 
-  constructor(public params:NavParams, public viewCtrl:ViewController, private barcodeScanner:BarcodeScanner, private device:Device, private uiHelper:UiHelper, private camera:Camera, translate:TranslateService) {
+  constructor(public params:NavParams, public viewCtrl:ViewController, private barcodeScanner:BarcodeScanner, private device:Device, private uiHelper:UiHelper, private camera:Camera, translate:TranslateService, private modalCtrl:ModalController) {
     super(translate);
     this.app = ExpirySync.getInstance();
     this.dateFormat = moment.localeData(moment.locale()).longDateFormat('l');
@@ -77,9 +79,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
         this.productEntry.locationId = selectedLocation.id;
         this.productEntry.article = new Article();
       });
-      if (this.device.platform) {
-          this.scanBarcode();
-      }
+      this.scanBarcode();
     }
 
   }
@@ -148,8 +148,18 @@ export class ProductEntryFormModal extends ExpirySyncController {
     this.viewCtrl.dismiss(productEntry);
   }
 
+
   async scanBarcode() {
-    if (this.device.platform == 'Android' && Setting.cached('barcodeEngine') == 'cszBar') {
+    if (Setting.cached('barcodeEngine') == 'quaggaJs') {
+      const modal = this.modalCtrl.create(QuaggaBarcodeScanModal);
+      modal.onDidDismiss((barcode:string = null) => {
+        if (barcode !== null) {
+          this.onBarcodeScanned(barcode)
+        }
+      });
+      modal.present();
+    }
+    else if (Setting.cached('barcodeEngine') == 'cszBar') {
       // On Android use tjwoon's ZBar cordova wrapper, as
       // ZBar performs better than ionic's default
       // plugin ("phonegap-plugin-barcodescanner")
@@ -160,7 +170,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
       }, barcode => {this.onBarcodeScanned(barcode)}, async(response:string) => {
         console.log("ZBar did not return a barcode", response);
         await this.viewChangeOccurred();
-        this.barcodeItem.getNativeElement().querySelector('input').focus();
+        this.focusBarcodeInput();
       })
     }
     else {
@@ -171,9 +181,17 @@ export class ProductEntryFormModal extends ExpirySyncController {
       }).catch(async (e) => {
         console.log("barcodeScanner did not return a barcode", e);
         await this.viewChangeOccurred();
-        this.barcodeItem.getNativeElement().querySelector('input').focus();
+        this.focusBarcodeInput();
       });
     }
+  }
+
+  private focusBarcodeInput() {
+    if (!this.barcodeItem) {
+      console.error("No barcode item");
+      return;
+    }
+    this.barcodeItem.getNativeElement().querySelector('input').focus();
   }
 
   private onBarcodeScanned(barcode:string) {
@@ -182,16 +200,28 @@ export class ProductEntryFormModal extends ExpirySyncController {
   }
 
   takePicture() {
-    this.camera.getPicture({
-        destinationType: this.camera.DestinationType.DATA_URL,
-        targetWidth: 400,
-        quality: 90
-    }).then(imageData => {
+    const saveImage = (imageData:string  = null) => {
+      if (imageData !== null) {
         this.productEntry.article.images[0] = new ArticleImage();
         this.productEntry.article.images[0].originalExtName = '.jpg';
         this.productEntry.article.images[0].imageData = "data:image/jpeg;base64," + imageData;
-    }, (err) => {
-        console.error("Error taking picture", err);
-    });
+      }
+    }
+    
+    if (this.app.runningInBrowser) {
+      const modal = this.modalCtrl.create(BrowserCamModal);
+
+      modal.onDidDismiss(saveImage);
+      modal.present();
+    }
+    else {
+      this.camera.getPicture({
+          destinationType: this.camera.DestinationType.DATA_URL,
+          targetWidth: 400,
+          quality: 90
+      }).then(saveImage, (err) => {
+          console.error("Error taking picture", err);
+      });
+    }
   }
 }

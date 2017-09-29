@@ -1,5 +1,6 @@
+import { ExpirySync } from '../../../app/app.expiry-sync';
+
 declare var persistence: any;
-declare var cordova: any;
 
 export class ModifyBaseTablesMigration {
   constructor() {
@@ -81,7 +82,7 @@ export class ModifyBaseTablesMigration {
         this.addIndex('Location', 'serverId');
 
         // Copy old schema's data:
-        if (typeof(cordova) != 'undefined') { // only if not on web platform (else there's no old data to copy)
+        if (!ExpirySync.getInstance().runningInBrowser) { // only if not on web platform (else there's no old data to copy)
           this.executeSql(`
             INSERT INTO Article (id, barcode, name)
             SELECT id || '_Article', barcode, name

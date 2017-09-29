@@ -15,8 +15,8 @@ export class DbManager {
 
     constructor(private device:Device) {}
 
-    public async initialize() : Promise<any> {
-        this.configure();
+    public async initialize(preventSqlite:boolean) : Promise<any> {
+        this.configure(preventSqlite);
         await this.migrateFromV0_7();
         this.loadMigrations();
         await this.runMigrations();
@@ -83,7 +83,10 @@ export class DbManager {
       return this.rawDb;
     }
 
-    private configure() {
+    private configure(preventSqlite:boolean) {
+        if (preventSqlite && 'sqlitePlugin' in window) {
+            delete window.sqlitePlugin;
+        }
         persistence.store.cordovasql.config(
             persistence,
             'ExpirySync.sqlite',

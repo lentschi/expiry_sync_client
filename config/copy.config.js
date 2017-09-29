@@ -22,6 +22,10 @@ module.exports = {
     src: ['{{ROOT}}/node_modules/sw-toolbox/sw-toolbox.js'],
     dest: '{{BUILD}}'
   },
+
+  // Note: The only reason why persistencejs needs to be copied and included
+  // through index.html, is that the persistencejs migrations abort inclusion, if
+  // window.persistence is undefined, which it would be using an import statement:
   copyPersistenceJs: {
     src: ['{{ROOT}}/node_modules/persistencejs/lib/**/*'],
     dest: '{{WWW}}/assets/js/persistencejs'

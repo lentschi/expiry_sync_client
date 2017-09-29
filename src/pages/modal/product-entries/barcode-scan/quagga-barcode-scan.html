@@ -1,0 +1,16 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>scan barcode</ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="quagga-barcode-scan">
+  <div #videowall class="video-wall">
+    
+  </div>
+  <button ion-button full translate (click)="dismiss()">Enter manually</button>
+</ion-content>
