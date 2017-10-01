@@ -57,7 +57,6 @@
     "reflect-metadata": "^0.1.10",
     "rxjs": "5.1.1",
     "sw-toolbox": "3.4.0",
-    "webrtc-adapter": "^5.0.4",
     "zone.js": "^0.8.5"
   },
   "devDependencies": {
