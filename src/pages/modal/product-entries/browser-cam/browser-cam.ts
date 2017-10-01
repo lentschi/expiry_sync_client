@@ -3,6 +3,7 @@ import { ExpirySyncController } from '../../../../app/app.expiry-sync-controller
 import { ViewController } from 'ionic-angular';
 import { TranslateService } from '@ngx-translate/core';
 
+
 @Component({
   templateUrl: 'browser-cam.html'
 })
@@ -15,10 +16,9 @@ export class BrowserCamModal extends ExpirySyncController {
   }
 
   ngOnInit() {
-    navigator.getUserMedia({ video: true, audio: false }, stream => {
+    navigator.mediaDevices.getUserMedia({ video: {facingMode: "environment"}, audio: false }).then(stream => {
       this.localMediaStream = stream;
-      this.video.nativeElement.src = window.URL.createObjectURL(this.localMediaStream);
-      this.video.nativeElement.play();
+      this.video.nativeElement.srcObject = this.localMediaStream;
     }, () => {
       console.error("Could not access camera stream");
       this.viewCtrl.dismiss();

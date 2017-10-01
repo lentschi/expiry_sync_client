@@ -19,7 +19,10 @@ export class QuaggaBarcodeScanModal extends ExpirySyncController {
       inputStream : {
         name : "Live",
         type : "LiveStream",
-        target: this.videoWall.nativeElement
+        target: this.videoWall.nativeElement,
+        constraint: {
+          facingMode: "environment"
+        }
       },
       decoder : {
         readers : ['ean_reader']
