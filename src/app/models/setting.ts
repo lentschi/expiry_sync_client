@@ -41,8 +41,9 @@ export class Setting extends AppModel {
     reminderTime: {default: '15:00', timeButton: true},
     lastReminder: {default: ''},
     localeId: {default: '', editComponent: SettingSelectElement, choices: [
+        {key: 'de', label: 'Deutsch'},
         {key: 'en', label: 'English'},
-        {key: 'de', label: 'Deutsch'}
+        {key: 'es', label: 'Español'},
     ]},
     daysBeforeBad: {default: '-3', editComponent: SettingEditIntegerElement},
     daysBeforeMedium: {default: '-1', editComponent: SettingEditIntegerElement},
