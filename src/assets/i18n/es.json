@@ -64,7 +64,7 @@
     "add": "añadir",
     "locations": "lugares",
     "registration": "registro",
-    "about": "acerca de",
+    "about": "acerca de ExpirySync",
     "Always stay in offline mode? (Can be undone on the settings page.)": "Siempre permanecer en modo desconectado? (Se puede deshacer en la página de configuración).",
     "User '' has been registered successfully.": "El usuario '{{user}}' se registró correctamente.",
     "user name": "nombre de usuario",
@@ -96,7 +96,7 @@
     "show everyone's products": "mostrar los productos de todos",
     "show own products only": "mostrar solo productos propios",
     "synchronize": "sincronizar",
-    "Logout": "\"{{userName}}\"",
+    "Logout": "Cerrar sesión de \"{{userName}}\"",
     "At home": "En casa",
     "you": "usted",
     "yes": "sí",
@@ -138,7 +138,7 @@
     "Please wait...": "Espera por favor...",
     "move products": "mover productos",
     "move products to another location": "mover productos a otro lugar",
-    "move": "muevelo",
+    "move": "mover",
     "Are you you want to move products to location?": {
         "_plurals": {
             "1": "¿Seguro que quieres mover este producto a \"{{location}}\"?",
