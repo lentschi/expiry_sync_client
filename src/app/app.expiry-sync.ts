@@ -235,6 +235,7 @@ export class ExpirySync extends ExpirySyncController {
 
     if (!requestedManually && !this.updatedEntry && !(await this.hasLocalChanges()) && !(await this.hasRemoteChanges())) {
       console.log("SYNC: Not required");
+      this.entriesList.loadingAfterLocationSwitchDone = true;
       this.setSyncTimeout();
       return;
     }
