@@ -20,7 +20,7 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
     const tmp:Array<ProductEntry> = [];
     
     for (let productEntry of productEntries) {
-      const existingEntry = this.find(curEntry => !this.entriesDiffer(curEntry, productEntry));
+      const existingEntry = this.find(curEntry => !this.entryViewDiffers(curEntry, productEntry));
     
       if (existingEntry) {
         tmp.push(existingEntry);
@@ -36,16 +36,14 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
     }
   }
 
-  private entriesDiffer(p1:ProductEntry, p2:ProductEntry):boolean {
+  private entryViewDiffers(p1:ProductEntry, p2:ProductEntry):boolean {
     return p1.id != p2.id
       || p1.article.name != p2.article.name
-      || p1.articleId != p2.articleId
       || p1.amount != p2.amount
       || p1.locationId != p2.locationId
       || p1.expirationDate.getTime() != p2.expirationDate.getTime()
       || p1.creatorId != p2.creatorId
-      || p1.freeToTake != p2.freeToTake
-      || p1.serverId != p2.serverId;
+      || p1.freeToTake != p2.freeToTake;
   }
 
   get creatorFilter():CreatorFilter {

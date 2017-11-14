@@ -247,7 +247,6 @@ export class ProductEntry extends AppModel {
         .list();
       params.product_entry = this.toServerData();
     }
-    
 
     let productEntryData = await ApiServer.call(callId, params);
     if (this.deletedAt) {
