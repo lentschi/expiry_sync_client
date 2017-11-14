@@ -222,6 +222,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     await this.syncDone();
 
     this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
+      productEntry = <ProductEntry> await ProductEntry.findBy('id', productEntry.id);
       if (productEntry.amount == 1) {
         this.productEntries.anySelected = false;
         productEntry.selected = true;
@@ -249,6 +250,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     await this.syncDone();
 
     this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
+      productEntry = <ProductEntry> await ProductEntry.findBy('id', productEntry.id);
       productEntry.amount++;
       productEntry.inSync = false;
 
