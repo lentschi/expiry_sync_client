@@ -58,18 +58,18 @@ ion-header#product-entries-header {
         display: flex;
         align-items: center;
       }
-      
+
       ion-item {
         flex:1;
         display:inline-block;
       }
-      
+
       button {
         font-size: 2rem;
         padding: 0 1rem;
         background-color: transparent;
       }
-      
+
     }
 }
 
@@ -161,13 +161,13 @@ ion-content#product-entries {
           display:inline-block;
           width: 10%;
         }
-        
+
         .filtered-by-location {
           .creation, .location {
             width: 20%;
           }
         }
-        
+
         .expiration {
           width: 20%;
         }
@@ -239,7 +239,7 @@ ion-content#product-entries {
       .amount::after {
         content: 'x';
       }
-      
+
       .creation {
         padding-left:3px;
       }
@@ -250,7 +250,7 @@ ion-content#product-entries {
           content: ':';
         }
       }
-      
+
       .location .label::before {
         content: '• ';
       }
@@ -359,7 +359,12 @@ ion-content#product-entries {
 
       @media (min-width: 350px) and (max-width: 640px) {
         .creation {
-          display:inline;
+          display:inline-block;
+          width: 100%;
+
+          &.inline {
+            width: auto;
+          }
 
           &.free-to-take {
             position:relative;
@@ -367,9 +372,14 @@ ion-content#product-entries {
           }
         }
 
+        .location {
+          display:inline-block;
+          width: 100%;
+        }
+
         .expiration {
           position:relative;
-          margin-top:-31px;
+          margin-top:-50px;
         }
       }
 
@@ -389,7 +399,7 @@ ion-content#product-entries {
             display:none;
           }
         }
-        
+
         .filtered-by-location {
           .creation {
             width: 20%;
@@ -401,7 +411,7 @@ ion-content#product-entries {
           width: 20%;
         }
       }
-      
+
     }
   }
 }

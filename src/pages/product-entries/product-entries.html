@@ -78,7 +78,7 @@
               ellipsis
               ellipsis-resize-detection="window"
               [ellipsis-content]="productEntry.article.name"></span>
-            <span class="creation" [class.free-to-take]="productEntry.freeToTake">
+            <span class="creation" [class.inline]="!selectedLocation" [class.free-to-take]="productEntry.freeToTake">
               <ion-icon class="icon" name="share" *ngIf="productEntry.freeToTake"></ion-icon>
               <span class="label" translate>owner</span>
               <span class="creator">
