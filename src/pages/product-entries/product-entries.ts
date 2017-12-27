@@ -353,7 +353,7 @@ export class ProductEntriesPage extends ExpirySyncController {
         modal.present();
       };
 
-      if (this.locations.length > 1) {
+      if (this.locations.length > 1 && this.selectedLocation) {
         this.app.enableMenuPoint(ExpirySync.MenuPointId.moveEntriesToAnotherLocation).method = async () => {
           await this.syncDone();
 
