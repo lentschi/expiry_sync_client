@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavParams, ViewController, ModalController } from 'ionic-angular';
+import { NavParams, ViewController, ModalController, Platform } from 'ionic-angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { ProductEntry, Article, ArticleImage, Location, Setting } from '../../../../app/models';
 import { ExpirySync } from '../../../../app/app.expiry-sync';
@@ -40,7 +40,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
   @ViewChild('barcodeItem') barcodeItem:any;
   @ViewChild('articleNameItem') articleNameItem:any;
 
-  constructor(public params:NavParams, public viewCtrl:ViewController, private barcodeScanner:BarcodeScanner, private device:Device, private uiHelper:UiHelper, private camera:Camera, translate:TranslateService, private modalCtrl:ModalController) {
+  constructor(public params:NavParams, public viewCtrl:ViewController, private barcodeScanner:BarcodeScanner, private device:Device, private uiHelper:UiHelper, private camera:Camera, translate:TranslateService, private modalCtrl:ModalController, private platform: Platform) {
     super(translate);
     this.app = ExpirySync.getInstance();
     this.dateFormat = moment.localeData(moment.locale()).longDateFormat('l');
@@ -150,6 +150,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
 
   async scanBarcode() {
+    console.log('BC scan');
     if (Setting.cached('barcodeEngine') == 'quaggaJs') {
       const modal = this.modalCtrl.create(QuaggaBarcodeScanModal);
       modal.onDidDismiss((barcode:string = null) => {
@@ -176,8 +177,15 @@ export class ProductEntryFormModal extends ExpirySyncController {
     else {
       this.barcodeScanner.scan({
         prompt: await this.translate('Place the barcode inside the scan area or press the "back" button to enter the product manually'),
-      }).then((barcodeData) => {
-        this.onBarcodeScanned(barcodeData.text);
+      }).then(async (barcodeData) => {
+        const versions = this.platform.versions();
+        if (barcodeData.cancelled && versions.android && versions.android.major > 6) {
+          this.app.preventNextBackButton = true;
+          await this.viewChangeOccurred();
+          this.focusBarcodeInput();
+        } else {
+          this.onBarcodeScanned(barcodeData.text);
+        }
       }).catch(async (e) => {
         console.log("barcodeScanner did not return a barcode", e);
         await this.viewChangeOccurred();
@@ -207,7 +215,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
         this.productEntry.article.images[0].imageData = "data:image/jpeg;base64," + imageData;
       }
     }
-    
+
     if (this.app.runningInBrowser) {
       const modal = this.modalCtrl.create(BrowserCamModal);
 

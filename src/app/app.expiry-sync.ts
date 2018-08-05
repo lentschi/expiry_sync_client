@@ -160,6 +160,8 @@ export class ExpirySync extends ExpirySyncController {
    */
   private autoLoginAndSyncDone:Promise<void>;
 
+  preventNextBackButton: boolean = false;
+
   /**
    * Initializes the app's db locale and menu
    */
@@ -398,6 +400,10 @@ export class ExpirySync extends ExpirySyncController {
 
   private handleBackButton() {
     this.platform.registerBackButtonAction(e => {
+      if (this.preventNextBackButton) {
+        this.preventNextBackButton = false;
+        return;
+      }
       if (this.nav.canGoBack()) {
         this.nav.pop()
         return;
