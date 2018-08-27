@@ -259,12 +259,20 @@ export class ApiServer {
       this.currentRequestSubscription = this.http
         .request(url, this.requestOpts)
         .timeout(this.REQUEST_TIMEOUT)
-        .subscribe((response:Response) => {
+        .subscribe(async (response:Response) => {
           try {
             var data = response.json();
           }
           catch (e) {
             reject(e);
+          }
+
+          const permanentRedirectUrl = response.headers.get('X-Expiry-Sync-Permanent-Redirect');
+          if (permanentRedirectUrl && Setting.cached('host') !== permanentRedirectUrl) {
+            await Setting.set('host', permanentRedirectUrl);
+            console.error('Permanent redirect: ' + permanentRedirectUrl);
+            window.location.reload();
+            return;
           }
 
           if (data.status != "success") {
