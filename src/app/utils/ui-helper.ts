@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AlertController, ToastController, Toast } from 'ionic-angular';
 import { ExpirySync } from '../app.expiry-sync';
+import { AlertButton } from 'ionic-angular/umd/components/alert/alert-options';
 
 @Injectable()
 export class UiHelper {
@@ -26,6 +27,27 @@ export class UiHelper {
             }
           }
         ]
+      }).present();
+    });
+  }
+
+  multipleChoiceDialog(message:string, choices: {[key: string]: string}, title?: string):Promise<string> {
+    return new Promise<string>(async resolve => {
+      let app:ExpirySync = ExpirySync.getInstance();
+      const buttons: AlertButton[] = [];
+      for (const choiceKey in choices) {
+        const choice = choices[choiceKey];
+        buttons.push({
+          text: choice,
+          handler: () => {
+            resolve(choiceKey);
+          }
+        })
+      }
+      this.alertCtrl.create({
+        message: message,
+        buttons,
+        title
       }).present();
     });
   }

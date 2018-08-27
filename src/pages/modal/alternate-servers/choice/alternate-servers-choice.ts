@@ -57,8 +57,28 @@ export class AlternateServersChoiceModal extends ExpirySyncController {
   }
 
   async serverTapped(server:AlternateServer) {
-    if (!await this.uiHelper.confirm(await this.translate('Are you sure about your choice?'))) {
-      return;
+    if (server.replacementUrl) {
+      const replacementChoice = await this.uiHelper.multipleChoiceDialog(
+        server.replacementExplanation,
+        {
+          'useReplacement': await this.translate('Use replacement'),
+          'keepOriginal': await this.translate('Stick with your choice'),
+          'abort': await this.translate('cancel')
+        },
+        await this.translate('Message by the server owner')
+      );
+
+      switch(replacementChoice) {
+        case 'useReplacement':
+          server.url = server.replacementUrl;
+          break;
+        case 'abort':
+          return;
+      }
+    } else {
+      if (!await this.uiHelper.confirm(await this.translate('Are you sure about your choice?'))) {
+        return;
+      }
     }
     let serverSelected = false;
     if (server.url) {
