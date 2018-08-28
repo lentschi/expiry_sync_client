@@ -33,7 +33,6 @@ export class UiHelper {
 
   multipleChoiceDialog(message:string, choices: {[key: string]: string}, title?: string):Promise<string> {
     return new Promise<string>(async resolve => {
-      let app:ExpirySync = ExpirySync.getInstance();
       const buttons: AlertButton[] = [];
       for (const choiceKey in choices) {
         const choice = choices[choiceKey];
