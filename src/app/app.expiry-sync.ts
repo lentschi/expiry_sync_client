@@ -56,7 +56,8 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Fallback version to display if determining the real version fails
    */
-  static readonly FALLBACK_APP_VERSION = '1.2 web';
+  static readonly FALLBACK_APP_VERSION = '1.4 web';
+  static readonly API_VERSION = 2;
 
   /**
    * The app's version

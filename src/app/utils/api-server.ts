@@ -5,6 +5,7 @@ import { Setting } from '../models';
 import * as escapeStringRegexp from 'escape-string-regexp';
 import {Subscription} from 'rxjs/Subscription';
 import * as moment from 'moment';
+import { ExpirySync } from '../app.expiry-sync';
 
 /**
  * Enum of available API call IDs
@@ -241,6 +242,7 @@ export class ApiServer {
 
       this.requestOpts.method = method;
       this.requestOpts.headers.set('Accept-Language', Setting.cached('localeId'));
+      this.requestOpts.headers.set('X-Expiry-Sync-Api-Version', String(ExpirySync.API_VERSION));
       if (requestData) {
         if (method == RequestMethod.Get) {
           this.requestOpts.search = new URLSearchParams('', new FormQueryEncoder());
