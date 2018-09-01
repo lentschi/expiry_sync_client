@@ -227,7 +227,7 @@ export class ProductEntriesPage extends ExpirySyncController {
         this.productEntries.anySelected = false;
         productEntry.selected = true;
         await this.viewChangeOccurred();
-        if (await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', this.productEntries.selected.length))) {
+        if (await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', 1))) {
           await productEntry.markForDeletion();
         }
         await this.onEntryUpdated(productEntry);
