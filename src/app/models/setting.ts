@@ -44,7 +44,8 @@ export class Setting extends AppModel {
         {key: 'de', label: 'Deutsch'},
         {key: 'en', label: 'English'},
         {key: 'es', label: 'Español'},
-        {key: 'fr', label: 'Français'}
+        {key: 'fr', label: 'Français'},
+        {key: 'it', label: 'Italiano'}
     ]},
     daysBeforeBad: {default: '-3', editComponent: SettingEditIntegerElement},
     daysBeforeMedium: {default: '-1', editComponent: SettingEditIntegerElement},
