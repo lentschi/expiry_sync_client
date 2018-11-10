@@ -306,7 +306,9 @@ export class ProductEntriesPage extends ExpirySyncController {
       }, 102);
     }
     else {
-      this.deregisterBackButtonHandler();
+      if (this.deregisterBackButtonHandler) {
+        this.deregisterBackButtonHandler();
+      }
       this.productEntries.filterValue = '';
       await this.showListAndFilters();
     }
