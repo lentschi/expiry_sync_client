@@ -21,6 +21,7 @@
         <icon density="xxxhdpi" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
         <preference name="loadUrlTimeoutValue" value="700000" />
         <preference name="android-minSdkVersion" value="22" />
+        <preference name="android-targetSdkVersion" value="26"/>
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
