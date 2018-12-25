@@ -14,13 +14,13 @@ interface RecipeKeyword {
 })
 export class RecipeSearchModal extends ExpirySyncController {
   keywords: Array<RecipeKeyword>;
+  selectedProductEntries: ProductEntry[];
 
-  constructor(private params: NavParams, private modalCtrl: ModalController, translate: TranslateService) {
+  constructor(private modalCtrl: ModalController, translate: TranslateService) {
     super(translate);
 
-    const selectedProductEntries: Array<ProductEntry> = <Array<ProductEntry>>params.get('selectedProductEntries');
     this.keywords = [];
-    for (const productEntry of selectedProductEntries) {
+    for (const productEntry of this.selectedProductEntries) {
       const articleWords = productEntry.article.name.split(/\s/g);
       for (const word of articleWords) {
         if (word.length > 1 && !this.includedInKeywords(word)) {

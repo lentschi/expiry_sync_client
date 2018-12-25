@@ -12,6 +12,7 @@ import { ExpirySync } from 'src/app/app.expiry-sync';
 export class ProductEntryMoveFormModal extends ExpirySyncController {
   productEntries: Array<ProductEntry>;
   locations: Array<Location>;
+  currentLocation: Location;
   selectedLocationId: string;
 
   constructor(
@@ -23,14 +24,9 @@ export class ProductEntryMoveFormModal extends ExpirySyncController {
   ) {
     super(translate);
 
-    this.productEntries = params.get('selectedProductEntries');
-
-    const currentLocation: Location = params.get('selectedLocation');
-    const locations: Array<Location> = params.get('locations');
-
     this.locations = [];
-    for (const location of locations) {
-      if (location.id !== currentLocation.id) {
+    for (const location of this.locations) {
+      if (location.id !== this.currentLocation.id) {
         this.locations.push(location);
         if (!this.selectedLocationId) {
           this.selectedLocationId = location.id;

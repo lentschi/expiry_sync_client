@@ -11,9 +11,9 @@
       [cancelText]="'Dismiss' | translate"
       required>
       <ng-container *ngFor="let choice of setting.settingConfig.choices">
-        <ion-option [value]="choice.key">
+        <ion-select-option [value]="choice.key">
           {{choice.label}}
-        </ion-option> 
+        </ion-select-option> 
       </ng-container>
     </ion-select>
   </ion-item>

@@ -11,7 +11,7 @@
 <ion-content>
   <ion-select [(ngModel)]="selectedLocationId">
     <ng-container *ngFor="let location of locations">
-      <ion-option [value]="location.id">{{location.name}}</ion-option>
+      <ion-select-option [value]="location.id">{{location.name}}</ion-select-option>
     </ng-container>
   </ion-select>
   <button ion-button (click)="move()" full translate>move</button>

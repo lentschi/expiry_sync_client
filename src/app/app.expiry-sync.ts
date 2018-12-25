@@ -1,9 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
   Platform, ModalController, Events, LoadingController, MenuController,
   IonNav,
   Config,
-  IonApp
 } from '@ionic/angular';
 import { Device } from '@ionic-native/device/ngx';
 import { Setting, User, ProductEntry, Location } from './models';
@@ -22,6 +21,7 @@ import { UserLoginModal } from 'src/modal/users/login/user-login';
 import { AboutModal } from 'src/modal/about/about';
 import { LoadingOptions } from '@ionic/core';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
 
 declare var window;
 declare var cordova;
@@ -55,7 +55,10 @@ interface MenuPointConfig { id: number; component?: any; method?: Function; moda
  * The app's 'main class'
  */
 @Component({
-  templateUrl: 'app.expiry-sync.html'
+  selector: 'app-root',
+  templateUrl: 'app.expiry-sync.html',
+  styleUrls: ['app.expiry-sync.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ExpirySync extends ExpirySyncController {
   /**
@@ -193,7 +196,6 @@ export class ExpirySync extends ExpirySyncController {
     private config: Config,
     private menuCtrl: MenuController,
     private modalCtrl: ModalController,
-    private app: IonApp,
     private dbManager: DbManager,
     private server: ApiServer,
     public events: Events,
@@ -736,14 +738,14 @@ export class ExpirySync extends ExpirySyncController {
    * @return {Promise<void>} resolved when the choice has been made
    */
   private showServerChoice(): Promise<boolean> {
-    // TODO: UPGRADE
-    return new Promise<boolean>(resolve => {
-    //   const modal = this.modalCtrl.create(AlternateServersChoiceModal);
-    //   modal.onDidDismiss(async (serverSelected: boolean) => {
-    //     await Setting.set('serverChosen', '1');
-    //     resolve(serverSelected);
-    //   });
-    //   modal.present();
+    return new Promise<boolean>(async (resolve) => {
+      const modal = await this.modalCtrl.create({component: AlternateServersChoiceModal});
+      modal.onDidDismiss().then(async (event) => {
+        const serverSelected: boolean = event.data;
+        await Setting.set('serverChosen', '1');
+        resolve(serverSelected);
+      });
+      modal.present();
     });
   }
 
@@ -959,7 +961,7 @@ export class ExpirySync extends ExpirySyncController {
 
     // opening any menu point might ensue local changes
     // -> set the promise, which 'mutexedSynchronize' will have to wait for:
-    this.setLocalChangesDonePromise(new Promise<void>(resolve => {
+    this.setLocalChangesDonePromise(new Promise<void>(async (resolve) => {
       // menu point configured to call a method:
       if (menuPoint.method) {
         menuPoint.method.apply(this);
@@ -970,17 +972,14 @@ export class ExpirySync extends ExpirySyncController {
       if (menuPoint.component) {
         // menu point configured to open a modal:
         if (menuPoint.modal) {
-          const modal = this.modalCtrl.create(menuPoint.component).then( (component: any) => {
-            component.data = data; // TODO: UPGRADE
+          const modal = await this.modalCtrl.create({component: menuPoint.component, componentProps: data});
+          modal.onDidDismiss().then((...args: any[]) => {
+            if (menuPoint.onDidDismiss) {
+              menuPoint.onDidDismiss.apply(this, args);
+            }
+            resolve();
           });
-          // TODO: UPGRADE
-          // modal.onDidDismiss((...args: any[]) => {
-          //   if (menuPoint.onDidDismiss) {
-          //     menuPoint.onDidDismiss.apply(this, args);
-          //   }
-          //   resolve();
-          // });
-          // modal.present();
+          modal.present();
           return;
         }
 

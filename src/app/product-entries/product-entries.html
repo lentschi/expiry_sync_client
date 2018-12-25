@@ -1,5 +1,5 @@
 <ion-header id="product-entries-header">
-  <ion-navbar *ngIf="!showFilter">
+  <ion-toolbar *ngIf="!showFilter">
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
@@ -10,9 +10,9 @@
             [(ngModel)]="selectedLocationId" 
             (ionChange)="locationSwitched()"
             [class.no-location-selected]="!selectedLocation">
-          <ion-option *ngIf="locations?.length > 1" [value]="''" translate>All locations</ion-option>
+          <ion-select-option *ngIf="locations?.length > 1" [value]="''" translate>All locations</ion-select-option>
           <ng-container *ngFor="let location of locations">
-            <ion-option [value]="location.id">{{location.name}}</ion-option>
+            <ion-select-option [value]="location.id">{{location.name}}</ion-select-option>
           </ng-container>
         </ion-select>
       </ion-item>
@@ -28,7 +28,7 @@
         <ion-icon name="search"></ion-icon>
       </button>
     </ion-buttons>
-  </ion-navbar>
+  </ion-toolbar>
   <ion-toolbar class="filter-bar" *ngIf="showFilter">
     <button class="close-btn" (click)="toggleSearchTapped()">
       <ion-icon name="arrow-back"></ion-icon>

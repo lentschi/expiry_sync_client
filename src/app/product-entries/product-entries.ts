@@ -9,6 +9,9 @@ import { ProductEntriesListAdapter } from './product-entries-list-adapter';
 import { ChangeDetectorRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { UiHelper } from 'src/utils/ui-helper';
+import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-entry-form';
+import { RecipeSearchModal } from 'src/modal/recipes/search/recipe-search';
+import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/product-entry-move-form';
 
 @Component({
   selector: 'product-entries',
@@ -205,22 +208,22 @@ export class ProductEntriesPage extends ExpirySyncController {
   async openEntryForm(productEntry?: ProductEntry) {
     await this.syncDone();
 
-    this.setLocalChangesDonePromise(new Promise<void>(resolve => {
+    this.setLocalChangesDonePromise(new Promise<void>(async (resolve) => {
       const params: any = {};
       if (productEntry) {
         params.id = productEntry.id;
         params.displayLocation = !this.selectedLocation;
       }
 
-      // TODO: UPGRADE
-      // const modal = this.modalCtrl.create(ProductEntryFormModal, params);
-      // modal.onDidDismiss(async (productEntry: ProductEntry) => {
-      //   if (productEntry) {
-      //     await this.onEntryUpdated(productEntry);
-      //   }
-      //   resolve();
-      // });
-      // modal.present();
+      const modal = await this.modalCtrl.create({ component: ProductEntryFormModal, componentProps: params });
+      modal.onDidDismiss().then(async (event) => {
+        const returnedProductEntry: ProductEntry = event.data;
+        if (returnedProductEntry) {
+          await this.onEntryUpdated(returnedProductEntry);
+        }
+        resolve();
+      });
+      modal.present();
     }));
   }
 
@@ -350,25 +353,31 @@ export class ProductEntriesPage extends ExpirySyncController {
     }
 
     if (this.productEntries.selected.length > 0) {
-      this.app.enableMenuPoint(ExpirySync.MenuPointId.recipeSearch).method = () => {
-        // TODO: UPGRADE
-        // const modal = this.modalCtrl.create(RecipeSearchModal, { selectedProductEntries: this.productEntries.selected });
-        // modal.present();
+      this.app.enableMenuPoint(ExpirySync.MenuPointId.recipeSearch).method = async () => {
+        const modal = await this.modalCtrl.create(
+          { component: RecipeSearchModal, componentProps: { selectedProductEntries: this.productEntries.selected } }
+        );
+        modal.present();
       };
 
       if (this.locations.length > 1 && this.selectedLocation) {
         this.app.enableMenuPoint(ExpirySync.MenuPointId.moveEntriesToAnotherLocation).method = async () => {
           await this.syncDone();
 
-          // TODO: UPGRADE
-          // const modal = this.modalCtrl.create(ProductEntryMoveFormModal,
-          // { selectedProductEntries: this.productEntries.selected, locations: this.locations, selectedLocation: this.selectedLocation });
-          // this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
-          //   modal.present();
-          //   modal.onDidDismiss(() => {
-          //     resolve();
-          //   });
-          // }));
+          const modal = await this.modalCtrl.create({
+            component: ProductEntryMoveFormModal,
+            componentProps: {
+              productEntries: this.productEntries.selected,
+              locations: this.locations,
+              currentLocation: this.selectedLocation
+            }
+          });
+          this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
+            modal.present();
+            modal.onDidDismiss().then(() => {
+              resolve();
+            });
+          }));
         };
       }
     } else {

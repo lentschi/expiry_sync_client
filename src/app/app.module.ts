@@ -40,7 +40,7 @@ import { Camera } from '@ionic-native/camera/ngx';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { MomentModule } from 'angular2-moment';
 import { EllipsisModule } from 'ngx-ellipsis';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
 export function createTranslateLoader(http: HttpClient) {
@@ -105,6 +105,7 @@ export function createTranslateLoader(http: HttpClient) {
     FormsModule,
     MomentModule,
     HttpModule,
+    HttpClientModule,
     EllipsisModule,
     TranslateModule.forRoot({
       loader: {
@@ -120,6 +121,8 @@ export function createTranslateLoader(http: HttpClient) {
     UiHelper,
     BarcodeScanner,
     LocalNotifications,
+    HttpModule,
+    HttpClientModule,
     Device,
     Camera,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
