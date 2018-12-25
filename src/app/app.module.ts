@@ -1,49 +1,50 @@
 import { NgModule, ErrorHandler } from '@angular/core';
-import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
-import { ExpirySync } from './app.expiry-sync';
-import { ProductEntriesPage } from '../pages/product-entries/product-entries';
-import { LocationsModal } from '../pages/modal/locations/list/locations';
-import { SettingsModal } from '../pages/modal/settings/list/settings';
-import { DbManager } from './utils/db-manager';
-import { ApiServer } from './utils/api-server';
-import { UiHelper } from './utils/ui-helper';
-import { AboutModal } from '../pages/modal/about/about';
-import { SettingEditModal } from '../pages/modal/settings/edit/setting-edit';
-import { SettingEditIntegerElement } from '../pages/modal/settings/edit/types/integer/setting-edit-integer';
-import { SettingEditStringElement } from '../pages/modal/settings/edit/types/string/setting-edit-string';
-import { SettingSelectElement } from '../pages/modal/settings/edit/types/select/setting-select';
-import { AlternateServersChoiceModal } from '../pages/modal/alternate-servers/choice/alternate-servers-choice';
-import { ProductEntryFormModal } from '../pages/modal/product-entries/form/product-entry-form';
-import { QuaggaBarcodeScanModal } from '../pages/modal/product-entries/barcode-scan/quagga-barcode-scan';
-import { BrowserCamModal } from '../pages/modal/product-entries/browser-cam/browser-cam';
-import { ProductEntryMoveFormModal } from '../pages/modal/product-entries/move-form/product-entry-move-form';
-import { LocationFormModal } from '../pages/modal/locations/form/location-form';
-import { LocationSharesModal } from '../pages/modal/location-shares/list/location-shares';
-import { RecipeSearchModal } from '../pages/modal/recipes/search/recipe-search';
-import { UserRegistrationModal } from '../pages/modal/users/registration/user-registration';
-import { UserLoginModal } from '../pages/modal/users/login/user-login';
-import { FormsModule }   from '@angular/forms';
-import { MomentModule } from 'angular2-moment';
-import { SettingInfoElement } from '../pages/modal/settings/edit/info/setting-info';
-import { SettingLabelElement } from '../pages/modal/settings/edit/label/setting-label';
-import { BarcodeScanner } from '@ionic-native/barcode-scanner';
-import { LocalNotifications } from '@ionic-native/local-notifications';
-import { GreaterThanValidator, LessThanValidator, IntegerValidator, UrlValidator } from './utils/custom-validators';
-import { EllipsisPipe } from './utils/custom-pipes';
-import { Device } from '@ionic-native/device';
 import { BrowserModule } from '@angular/platform-browser';
+import { RouteReuseStrategy } from '@angular/router';
+
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { ExpirySync } from './app.expiry-sync';
+import { AppRoutingModule } from './app-routing.module';
+import { ProductEntriesPage } from './product-entries/product-entries';
+import { AboutModal } from 'src/modal/about/about';
+import { SettingsModal } from 'src/modal/settings/list/settings';
+import { LocationsModal } from 'src/modal/locations/list/locations';
+import { SettingEditModal } from 'src/modal/settings/edit/setting-edit';
+import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
+import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-entry-form';
+import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/product-entry-move-form';
+import { QuaggaBarcodeScanModal } from 'src/modal/product-entries/barcode-scan/quagga-barcode-scan';
+import { BrowserCamModal } from 'src/modal/product-entries/browser-cam/browser-cam';
+import { UserRegistrationModal } from 'src/modal/users/registration/user-registration';
+import { LocationFormModal } from 'src/modal/locations/form/location-form';
+import { LocationSharesModal } from 'src/modal/location-shares/list/location-shares';
+import { RecipeSearchModal } from 'src/modal/recipes/search/recipe-search';
+import { UserLoginModal } from 'src/modal/users/login/user-login';
+import { SettingLabelElement } from 'src/modal/settings/edit/label/setting-label';
+import { SettingInfoElement } from 'src/modal/settings/edit/info/setting-info';
+import { SettingEditIntegerElement } from 'src/modal/settings/edit/types/integer/setting-edit-integer';
+import { SettingEditStringElement } from 'src/modal/settings/edit/types/string/setting-edit-string';
+import { SettingSelectElement } from 'src/modal/settings/edit/types/select/setting-select';
+import { GreaterThanValidator, LessThanValidator, UrlValidator, IntegerValidator } from 'src/utils/custom-validators';
+import { EllipsisPipe } from 'src/utils/custom-pipes';
+import { IonicTranslateDirective } from 'src/utils/ionic-translate.directive';
+import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Camera } from '@ionic-native/camera';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { IonicTranslateDirective } from './utils/ionic-translate.directive';
+import { DbManager } from 'src/utils/db-manager';
+import { ApiServer } from 'src/utils/api-server';
+import { UiHelper } from 'src/utils/ui-helper';
+import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
+import { Device } from '@ionic-native/device/ngx';
+import { Camera } from '@ionic-native/camera/ngx';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { Http } from '@angular/http';
+import { MomentModule } from 'angular2-moment';
 import { EllipsisModule } from 'ngx-ellipsis';
+import { HttpClient } from '@angular/common/http';
+import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
-
-export function createTranslateLoader(http: Http) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+export function createTranslateLoader(http: HttpClient) {
+  return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
 }
 
 @NgModule({
@@ -76,24 +77,6 @@ export function createTranslateLoader(http: Http) {
     EllipsisPipe,
     IonicTranslateDirective
   ],
-  imports: [
-    IonicModule.forRoot(ExpirySync, {
-    }),
-    FormsModule,
-    MomentModule,
-    BrowserModule,
-    HttpModule,
-    BrowserAnimationsModule,
-    EllipsisModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [Http]
-      }
-    })
-  ],
-  bootstrap: [IonicApp],
   entryComponents: [
     ExpirySync,
     ProductEntriesPage,
@@ -115,6 +98,22 @@ export function createTranslateLoader(http: Http) {
     SettingEditStringElement,
     SettingSelectElement,
   ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    FormsModule,
+    MomentModule,
+    HttpModule,
+    EllipsisModule,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (createTranslateLoader),
+        deps: [HttpClient]
+      }
+    })
+  ],
   providers: [
     DbManager,
     ApiServer,
@@ -123,7 +122,8 @@ export function createTranslateLoader(http: Http) {
     LocalNotifications,
     Device,
     Camera,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
-  ]
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+  ],
+  bootstrap: [ExpirySync]
 })
 export class AppModule {}

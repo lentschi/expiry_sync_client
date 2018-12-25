@@ -1,7 +1,7 @@
-import { AppModel, Column, HasOne, PersistenceModel, RecordNotFoundError } from '../utils/orm';
+import { AppModel, Column, HasOne, PersistenceModel, RecordNotFoundError } from '../../utils/orm';
 import { Article, ArticleImage, Location, User, Setting } from '../models';
-import { ApiServer, ApiServerCall } from '../utils/api-server';
-import { ExpirySync } from '../app.expiry-sync'
+import { ApiServer, ApiServerCall } from '../../utils/api-server';
+import { ExpirySync } from '../app.expiry-sync';
 
 import * as moment from 'moment';
 import 'moment/min/locales';

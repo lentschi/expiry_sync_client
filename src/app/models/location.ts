@@ -1,7 +1,7 @@
-import { AppModel, Column, PersistenceModel, HasOne, RecordNotFoundError } from '../utils/orm';
+import { AppModel, Column, PersistenceModel, HasOne, RecordNotFoundError } from '../../utils/orm';
 import { ProductEntry, ProductEntrySyncList, LocationShare } from '../models';
 import { User } from '../models';
-import { ApiServer, ApiServerCall } from '../utils/api-server';
+import { ApiServer, ApiServerCall } from '../../utils/api-server';
 import { ExpirySync } from '../app.expiry-sync'
 
 @PersistenceModel

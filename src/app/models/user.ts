@@ -1,5 +1,5 @@
-import { AppModel, Column, PersistenceModel, RecordNotFoundError } from '../utils/orm';
-import { ApiServer, ApiServerCall, InvalidLogin } from '../utils/api-server';
+import { AppModel, Column, PersistenceModel, RecordNotFoundError } from '../../utils/orm';
+import { ApiServer, ApiServerCall, InvalidLogin } from '../../utils/api-server';
 import { ProductEntry, Location, LocationShare, Setting} from './';
 
 @PersistenceModel

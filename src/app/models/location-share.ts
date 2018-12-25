@@ -1,6 +1,6 @@
-import { AppModel , Column , HasOne } from '../utils/orm/index';
+import { AppModel , Column , HasOne } from '../../utils/orm/index';
 import { User, Location } from './index';
-import { ApiServer, ApiServerCall } from '../utils/api-server';
+import { ApiServer, ApiServerCall } from '../../utils/api-server';
 
 export class LocationShare extends AppModel {
   static tableName = 'LocationShare';

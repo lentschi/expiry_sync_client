@@ -1,5 +1,5 @@
-import { AppModel, Column, PersistenceModel } from '../utils/orm/app-model';
-import { ApiServer, ApiServerCall } from '../utils/api-server';
+import { AppModel, Column, PersistenceModel } from '../../utils/orm/app-model';
+import { ApiServer, ApiServerCall } from '../../utils/api-server';
 import { ArticleImage } from './article-image';
 
 @PersistenceModel

@@ -1,22 +1,27 @@
-import {DbManager} from './utils/db-manager';
 import { Component, ViewChild } from '@angular/core';
-import { Nav, Platform, ModalController, Events, LoadingController, MenuController, IonicApp, LoadingOptions, Loading, Config } from 'ionic-angular';
-import { Device } from '@ionic-native/device';
-import { ProductEntriesPage } from '../pages/product-entries/product-entries';
-import { SettingsModal } from '../pages/modal/settings/list/settings';
-import { LocationsModal } from '../pages/modal/locations/list/locations';
-import { AboutModal } from '../pages/modal/about/about';
+import {
+  Platform, ModalController, Events, LoadingController, MenuController,
+  IonNav,
+  Config,
+  IonApp
+} from '@ionic/angular';
+import { Device } from '@ionic-native/device/ngx';
 import { Setting, User, ProductEntry, Location } from './models';
-import { ApiServer } from './utils/api-server';
-import { UserRegistrationModal } from '../pages/modal/users/registration/user-registration';
-import { AlternateServersChoiceModal } from '../pages/modal/alternate-servers/choice/alternate-servers-choice';
-import { UserLoginModal } from '../pages/modal/users/login/user-login';
 import { TranslateService } from '@ngx-translate/core';
-import { LocalNotifications } from '@ionic-native/local-notifications';
-import { UiHelper } from './utils/ui-helper';
 import { ExpirySyncController } from './app.expiry-sync-controller';
 import * as moment from 'moment';
 import 'moment/min/locales';
+import { ProductEntriesPage } from './product-entries/product-entries';
+import { UiHelper } from 'src/utils/ui-helper';
+import { ApiServer } from 'src/utils/api-server';
+import { DbManager } from 'src/utils/db-manager';
+import { LocationsModal } from 'src/modal/locations/list/locations';
+import { SettingsModal } from 'src/modal/settings/list/settings';
+import { UserRegistrationModal } from 'src/modal/users/registration/user-registration';
+import { UserLoginModal } from 'src/modal/users/login/user-login';
+import { AboutModal } from 'src/modal/about/about';
+import { LoadingOptions } from '@ionic/core';
+import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
 declare var window;
 declare var cordova;
@@ -24,7 +29,7 @@ declare var cordova;
 /**
  * The main menu's menu points
  */
-enum  MenuPointId {
+enum MenuPointId {
   locationList,
   settings,
   selectAll,
@@ -38,19 +43,19 @@ enum  MenuPointId {
   login,
   logout,
   about
-};
+}
 
 /**
  * Menu point configuration
  * @interface
  */
-interface MenuPointConfig {id: number, component?: any, method?:Function, modal?: boolean, onDidDismiss?: Function, disabled?:boolean};
+interface MenuPointConfig { id: number; component?: any; method?: Function; modal?: boolean; onDidDismiss?: Function; disabled?: boolean; }
 
 /**
- * The app's "main class"
+ * The app's 'main class'
  */
 @Component({
-  templateUrl: 'app.html'
+  templateUrl: 'app.expiry-sync.html'
 })
 export class ExpirySync extends ExpirySyncController {
   /**
@@ -60,6 +65,21 @@ export class ExpirySync extends ExpirySyncController {
   static readonly API_VERSION = 2;
 
   /**
+   * Singleton instance
+   */
+  private static appInstance: ExpirySync;
+
+  /**
+   * Resolved when the app has been initialized
+   */
+  private static readyPromise: Promise<{}>;
+
+  /**
+   * The main menu's menu points
+   */
+  public static MenuPointId = MenuPointId;
+
+  /**
    * The app's version
    */
   version = ExpirySync.FALLBACK_APP_VERSION;
@@ -67,7 +87,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Reference to ion-nav
    */
-  @ViewChild(Nav) nav: Nav;
+  @ViewChild(IonNav) nav: IonNav;
 
   rootPage = ProductEntriesPage;
   curPage = ProductEntriesPage;
@@ -76,7 +96,7 @@ export class ExpirySync extends ExpirySyncController {
    * The app's current state (active/not active)
    * @member {boolean}
    */
-  private active=true;
+  private active = true;
 
   /**
    * The active user
@@ -84,12 +104,12 @@ export class ExpirySync extends ExpirySyncController {
    * foreign keys (might be useful for a later sync)
    * @type {User}
    */
-  currentUser:User;
+  currentUser: User;
 
   /**
    * Show/hide the loading overlay (prevents clicks to the background if the loader is visible)
    */
-  showLoadingOverlay:boolean = false;
+  showLoadingOverlay = false;
 
   /**
    * List of menu points to be shown in the main menu
@@ -99,37 +119,23 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * The product entries page
    */
-  entriesList:ProductEntriesPage;
+  entriesList: ProductEntriesPage;
 
   /**
    * Js timeout ID of the synchronization timeout
    */
-  private syncTimeout:number;
+  private syncTimeout: any;
 
   /**
    * Loader instance
    */
-  private loader:Loading;
+  private loader: HTMLIonLoadingElement;
 
   /**
    * The loader dialog's stack
    */
-  private loadingTasks:Array<Symbol> = [];
+  private loadingTasks: Array<Symbol> = [];
 
-  /**
-   * Singleton instance
-   */
-  private static appInstance:ExpirySync;
-
-  /**
-   * Resolved when the app has been initialized
-   */
-  private static readyPromise:Promise<{}>;
-
-  /**
-   * The main menu's menu points
-   */
-  public static MenuPointId = MenuPointId;
 
   /**
    * The main menu's menu points
@@ -139,58 +145,90 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Called when the back button is pressed while the loader is active
    */
-  loaderBackButtonCallback:Function;
+  loaderBackButtonCallback: Function;
 
   /**
    * If true, the app will exit right after showing the reminder
    */
-  private exitAfterReminder:boolean = false;
+  private exitAfterReminder = false;
 
   /**
    * the entry, that has been last updated (before any sync)
    */
-  updatedEntry:ProductEntry;
+  updatedEntry: ProductEntry;
 
   /**
    * the location, that has been last updated (before any sync)
    */
-  updatedLocation:Location;
+  updatedLocation: Location;
 
   /**
    * resolved when auto login and initial sync have finished (no matter if successful or not)
    */
-  private autoLoginAndSyncDone:Promise<void>;
+  private autoLoginAndSyncDone: Promise<void>;
 
-  preventNextBackButton: boolean = false;
+  preventNextBackButton = false;
+
+  /**
+   * @return {Promise}   resolved when the app has been initialized
+   */
+  static ready(): Promise<{}> {
+    return this.readyPromise;
+  }
+
+  /**
+   * Get a singleton instance
+   * @return {ExpirySync} singleton instance
+   */
+  static getInstance(): ExpirySync {
+    return ExpirySync.appInstance;
+  }
 
   /**
    * Initializes the app's db locale and menu
    */
-  constructor(private platform: Platform, translate:TranslateService, private config:Config, private menuCtrl:MenuController, private modalCtrl:ModalController, private app:IonicApp, private dbManager: DbManager, private server:ApiServer, public events: Events, private loadingCtrl: LoadingController, private localNotifications: LocalNotifications, private uiHelper:UiHelper, public device:Device) {
+  constructor(
+    private platform: Platform,
+    translate: TranslateService,
+    private config: Config,
+    private menuCtrl: MenuController,
+    private modalCtrl: ModalController,
+    private app: IonApp,
+    private dbManager: DbManager,
+    private server: ApiServer,
+    public events: Events,
+    private loadingCtrl: LoadingController,
+    private localNotifications: LocalNotifications,
+    private uiHelper: UiHelper, public device: Device
+  ) {
     super(translate);
     ExpirySync.appInstance = this;
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.menuPoints = [
-      { id: this.menuPointIds.locationList, component: LocationsModal, modal: true},
-      { id: this.menuPointIds.settings, component: SettingsModal, modal:true},
-      { id: this.menuPointIds.selectAll, disabled: true},
-      { id: this.menuPointIds.deselectAll, disabled: true},
-      { id: this.menuPointIds.filterAllUsers, disabled: true},
-      { id: this.menuPointIds.filterCurrentUser, disabled: true},
-      { id: this.menuPointIds.deselectAll, disabled: true},
-      { id: this.menuPointIds.synchronize, method: this.synchronizeTapped, disabled: true},
-      { id: this.menuPointIds.registration, component: UserRegistrationModal, modal:true, onDidDismiss: (openLoginInstead?:boolean) => {
-        this.authDone(openLoginInstead);
-      }},
-      { id: this.menuPointIds.login, component: UserLoginModal, modal: true, onDidDismiss: () => {
-        this.authDone(false);
-      }},
-      { id: this.menuPointIds.recipeSearch, disabled: true},
-      { id: this.menuPointIds.moveEntriesToAnotherLocation, disabled: true},
-      { id: this.menuPointIds.logout, method: this.logout, disabled: true},
-      { id: this.menuPointIds.about, component: AboutModal, modal: true}
+      { id: this.menuPointIds.locationList, component: LocationsModal, modal: true },
+      { id: this.menuPointIds.settings, component: SettingsModal, modal: true },
+      { id: this.menuPointIds.selectAll, disabled: true },
+      { id: this.menuPointIds.deselectAll, disabled: true },
+      { id: this.menuPointIds.filterAllUsers, disabled: true },
+      { id: this.menuPointIds.filterCurrentUser, disabled: true },
+      { id: this.menuPointIds.deselectAll, disabled: true },
+      { id: this.menuPointIds.synchronize, method: this.synchronizeTapped, disabled: true },
+      {
+        id: this.menuPointIds.registration, component: UserRegistrationModal, modal: true, onDidDismiss: (openLoginInstead?: boolean) => {
+          this.authDone(openLoginInstead);
+        }
+      },
+      {
+        id: this.menuPointIds.login, component: UserLoginModal, modal: true, onDidDismiss: () => {
+          this.authDone(false);
+        }
+      },
+      { id: this.menuPointIds.recipeSearch, disabled: true },
+      { id: this.menuPointIds.moveEntriesToAnotherLocation, disabled: true },
+      { id: this.menuPointIds.logout, method: this.logout, disabled: true },
+      { id: this.menuPointIds.about, component: AboutModal, modal: true }
     ];
   }
 
@@ -199,7 +237,7 @@ export class ExpirySync extends ExpirySyncController {
    * Synchronize has been tapped in the main menu
    */
   async synchronizeTapped() {
-    let task:Symbol = this.loadingStarted('Synchronizing');
+    const task = this.loadingStarted('Synchronizing');
     await this.mutexedSynchronize(true);
     this.loadingDone(task);
   }
@@ -208,17 +246,18 @@ export class ExpirySync extends ExpirySyncController {
    * Exit menu button has been tapped in the main menu
    */
   exitTapped() {
-    this.platform.exitApp();
+    // TODO: UPGRADE:
+    // this.platform.exit();
   }
 
-  private async hasLocalChanges():Promise<boolean> {
+  private async hasLocalChanges(): Promise<boolean> {
     return await Location.hasLocalChanges() || await ProductEntry.hasLocalChanges();
   }
 
-  private async hasRemoteChanges():Promise<boolean> {
-    let lastSync:Date = null;
-    let lastSyncRfc2616:string = Setting.cached('lastSync');
-    if (lastSyncRfc2616 != '') {
+  private async hasRemoteChanges(): Promise<boolean> {
+    let lastSync: Date = null;
+    const lastSyncRfc2616 = Setting.cached('lastSync');
+    if (lastSyncRfc2616 !== '') {
       lastSync = new Date(lastSyncRfc2616);
     }
 
@@ -231,35 +270,36 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async mutexedSynchronize(requestedManually = false):Promise<void> {
-    console.log("SYNC: Waiting for previous sync to finish...");
+  async mutexedSynchronize(requestedManually = false): Promise<void> {
+    console.log('SYNC: Waiting for previous sync to finish...');
     await this.syncDone(false);
 
 
     if (!requestedManually && !this.updatedEntry && !(await this.hasLocalChanges()) && !(await this.hasRemoteChanges())) {
-      console.log("SYNC: Not required");
+      console.log('SYNC: Not required');
       this.entriesList.loadingAfterLocationSwitchDone = true;
       this.setSyncTimeout();
       return;
     }
 
     await this.setSyncDonePromise(new Promise<void>(async resolve => {
-      console.log("SYNC: Waiting for local changes to be completed...");
+      console.log('SYNC: Waiting for local changes to be completed...');
       await this.localChangesDone();
 
       try {
         await this.synchronize();
-      }
-      catch(e) {
+      } catch (e) {
         if (requestedManually) {
-          this.uiHelper.errorToast(await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?'));
+          this.uiHelper.errorToast(
+            await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?')
+          );
         }
-        console.error("Error during sync: ", e);
+        console.error('Error during sync: ', e);
       }
       resolve();
 
       this.events.publish('app:syncDone');
-      console.log("SYNC: Setting sync timeout");
+      console.log('SYNC: Setting sync timeout');
       this.setSyncTimeout();
     }));
   }
@@ -272,11 +312,11 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async synchronize():Promise<void> {
-    console.log("SYNC: Synchronizing...");
-    let lastSync:Date = null;
-    let lastSyncRfc2616:string = Setting.cached('lastSync');
-    if (lastSyncRfc2616 != '') {
+  async synchronize(): Promise<void> {
+    console.log('SYNC: Synchronizing...');
+    let lastSync: Date = null;
+    const lastSyncRfc2616 = Setting.cached('lastSync');
+    if (lastSyncRfc2616 !== '') {
       lastSync = new Date(lastSyncRfc2616);
     }
 
@@ -295,7 +335,7 @@ export class ExpirySync extends ExpirySyncController {
     lastSync = moment(beforeSync).add(this.server.timeSkew, 'ms').toDate();
 
     await Setting.set('lastSync', ApiServer.dateToHttpDate(lastSync));
-    console.log("SYNC: Done");
+    console.log('SYNC: Done');
   }
 
   /**
@@ -324,7 +364,7 @@ export class ExpirySync extends ExpirySyncController {
       if (this.currentUser && this.currentUser.loggedIn) {
         this.mutexedSynchronize();
       }
-    }, Setting.cached('syncInterval'));
+    }, parseInt(Setting.cached('syncInterval'), 10));
   }
 
   /**
@@ -332,7 +372,7 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {boolean} remotely also do a logout API call (default: true)
    */
   async logout(remotely = true, forgetPassword = true) {
-    let task:Symbol = this.loadingStarted("Logout");
+    const task = this.loadingStarted('Logout');
 
     await this.currentUser.logout(remotely, forgetPassword);
     this.disableMenuPoint(ExpirySync.MenuPointId.logout);
@@ -340,30 +380,30 @@ export class ExpirySync extends ExpirySyncController {
     this.enableMenuPoint(ExpirySync.MenuPointId.login);
     this.enableMenuPoint(ExpirySync.MenuPointId.registration);
     this.loadingDone(task);
-    console.log("Successfully logged out");
+    console.log('Successfully logged out');
 
-    if (Setting.cached('offlineMode') != '1') {
-      this.openMenuPoint(this.menuPoints.find((menuPoint:MenuPointConfig) => {
-        return menuPoint.id == ExpirySync.MenuPointId.login;
+    if (Setting.cached('offlineMode') !== '1') {
+      this.openMenuPoint(this.menuPoints.find((menuPoint: MenuPointConfig) => {
+        return menuPoint.id === ExpirySync.MenuPointId.login;
       }));
     }
   }
 
- /**
- * Enable/disable a main menu point
- * @param  {number}          menuPointId the menu point's ID
- * @param  {boolean}         enable      true -> enable / false -> disable (default: enable)
- * @return {MenuPointConfig}             the enabled/disabled menu point's config
- *
- * @see MenuPointId
- */
-  enableMenuPoint(menuPointId:number, enable?:boolean):MenuPointConfig {
-    let menuPoint:MenuPointConfig = this.menuPoints.find((curMenuPoint:MenuPointConfig) => {
-      return (curMenuPoint.id == menuPointId);
+  /**
+  * Enable/disable a main menu point
+  * @param  {number}          menuPointId the menu point's ID
+  * @param  {boolean}         enable      true -> enable / false -> disable (default: enable)
+  * @return {MenuPointConfig}             the enabled/disabled menu point's config
+  *
+  * @see MenuPointId
+  */
+  enableMenuPoint(menuPointId: number, enable?: boolean): MenuPointConfig {
+    const menuPoint: MenuPointConfig = this.menuPoints.find((curMenuPoint: MenuPointConfig) => {
+      return (curMenuPoint.id === menuPointId);
     });
 
     if (!menuPoint) {
-      throw "Invalid menuPoint id";
+      throw new Error('Invalid menuPoint id');
     }
 
     menuPoint.disabled = (enable !== undefined) ? !enable : false;
@@ -373,15 +413,8 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * @see ExpirySync.enableMenuPoint
    */
-  disableMenuPoint(menuPointId:number) {
+  disableMenuPoint(menuPointId: number) {
     this.enableMenuPoint(menuPointId, false);
-  }
-
-  /**
-   * @return {Promise}   resolved when the app has been initialized
-   */
-  static ready():Promise<{}> {
-    return this.readyPromise;
   }
 
   /**
@@ -400,42 +433,43 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   private handleBackButton() {
-    this.platform.registerBackButtonAction(e => {
-      if (this.preventNextBackButton) {
-        this.preventNextBackButton = false;
-        return;
-      }
-      if (this.nav.canGoBack()) {
-        this.nav.pop()
-        return;
-      }
+    // TODO: UPGRADE
+    // this.platform.registerBackButtonAction(e => {
+    //   if (this.preventNextBackButton) {
+    //     this.preventNextBackButton = false;
+    //     return;
+    //   }
+    //   if (this.nav.canGoBack()) {
+    //     this.nav.pop()
+    //     return;
+    //   }
 
-      // Don't do anything while a loader is open:
-      let activePortal = this.app._loadingPortal.getActive();
-      if (activePortal) {
-        if (this.loaderBackButtonCallback) {
-          this.loaderBackButtonCallback();
-        }
-        return;
-      }
+    //   // Don't do anything while a loader is open:
+    //   let activePortal = this.app._loadingPortal.getActive();
+    //   if (activePortal) {
+    //     if (this.loaderBackButtonCallback) {
+    //       this.loaderBackButtonCallback();
+    //     }
+    //     return;
+    //   }
 
-      // Close modals, or remove toasts/overlays if any:
-      activePortal = this.app._modalPortal.getActive() ||
-        this.app._toastPortal.getActive() ||
-        this.app._overlayPortal.getActive();
+    //   // Close modals, or remove toasts/overlays if any:
+    //   activePortal = this.app._modalPortal.getActive() ||
+    //     this.app._toastPortal.getActive() ||
+    //     this.app._overlayPortal.getActive();
 
-      if (activePortal) {
-        return activePortal.dismiss();
-      }
+    //   if (activePortal) {
+    //     return activePortal.dismiss();
+    //   }
 
-      // Close menu if open:
-      if (this.menuCtrl.isOpen()) {
-          this.menuCtrl.close();
-          return;
-      }
+    //   // Close menu if open:
+    //   if (this.menuCtrl.isOpen()) {
+    //     this.menuCtrl.close();
+    //     return;
+    //   }
 
-      this.platform.exitApp();
-    },101);
+    //   this.platform.exitApp();
+    // }, 101);
   }
 
   /**
@@ -443,36 +477,38 @@ export class ExpirySync extends ExpirySyncController {
    */
   private setupReminder() {
     this.scheduleReminder();
-    Setting.onChange('reminderTime', (setting:Setting) => {
+    Setting.onChange('reminderTime', (setting: Setting) => {
       this.scheduleReminder();
     });
 
-    // handle the wakeup plugin's events:
-    if (typeof(window.plugins) != "undefined") {
-      window.plugins.intent.setNewIntentHandler(async intent => {
-        if (typeof(intent.extras) != 'undefined' && typeof(intent.extras.wakeup) != 'undefined' && intent.extras.wakeup) {
-          // the app has been running and a wakeup occurred
-          // -> show the reminder:
-          await this.showReminder();
-          if (this.exitAfterReminder) {
-            // the app was in background when the wakeup occurred
-            // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
-            this.platform.exitApp();
-          }
-        }
-      });
+    // TODO: UPGRADE:
 
-      window.plugins.intent.getCordovaIntent(async intent => {
-        if (typeof(intent.extras) != 'undefined' && typeof(intent.extras.wakeup) != 'undefined' && intent.extras.wakeup) {
-          // the app has not been running and a wakeup occurred
-          // -> show the reminder and then exit the app again:
-          await this.showReminder();
-          this.platform.exitApp();
-        }
-      }, () => {
-        console.error("unknown cdvintent error");
-      });
-    }
+    // handle the wakeup plugin's events:
+    // if (typeof (window.plugins) !== 'undefined') {
+    //   window.plugins.intent.setNewIntentHandler(async intent => {
+    //     if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
+    //       // the app has been running and a wakeup occurred
+    //       // -> show the reminder:
+    //       await this.showReminder();
+    //       if (this.exitAfterReminder) {
+    //         // the app was in background when the wakeup occurred
+    //         // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
+    //         this.platform.exitApp();
+    //       }
+    //     }
+    //   });
+
+    //   window.plugins.intent.getCordovaIntent(async intent => {
+    //     if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
+    //       // the app has not been running and a wakeup occurred
+    //       // -> show the reminder and then exit the app again:
+    //       await this.showReminder();
+    //       this.platform.exitApp();
+    //     }
+    //   }, () => {
+    //     console.error('unknown cdvintent error');
+    //   });
+    // }
   }
 
   /**
@@ -480,79 +516,79 @@ export class ExpirySync extends ExpirySyncController {
    * @see ExpirySync.showReminder
    */
   private scheduleReminder() {
-    if (typeof(window.wakeuptimer) === 'undefined') {
-      console.error("Cordova plugin wakeuptimer missing - no reminder scheduled");
+    if (typeof (window.wakeuptimer) === 'undefined') {
+      console.error('Cordova plugin wakeuptimer missing - no reminder scheduled');
       return;
     }
 
     const reminderTimeSetting = Setting.cached('reminderTime');
-    let md = reminderTimeSetting.match(/([0-9]{2}):([0-9]{2})/);
-    if (!md || md.length != 3) {
-      console.error("Invalid reminder time setting: " + reminderTimeSetting);
+    const md = reminderTimeSetting.match(/([0-9]{2}):([0-9]{2})/);
+    if (!md || md.length !== 3) {
+      console.error('Invalid reminder time setting: ' + reminderTimeSetting);
       return;
     }
 
-    window.wakeuptimer.wakeup((p:any) => {
-      if (typeof(p.type) != 'undefined' && p.type == 'wakeup' && !this.active) {
+    window.wakeuptimer.wakeup((p: any) => {
+      if (typeof (p.type) !== 'undefined' && p.type === 'wakeup' && !this.active) {
         this.exitAfterReminder = true;
       }
     },
-     (error) => {
-       console.error("Wakeup error");
-     },
-     {
-          alarms : [{
-              type : 'onetime',
-              time : { hour : md[1], minute : md[2] },
-         }]
-     });
+      (error) => {
+        console.error('Wakeup error');
+      },
+      {
+        alarms: [{
+          type: 'onetime',
+          time: { hour: md[1], minute: md[2] },
+        }]
+      });
   }
 
   /**
    * Immediately show a local notification about expiring products (if any)
    */
   private async showReminder() {
-    console.log("Showing reminder");
+    console.log('Showing reminder');
     if (this.autoLoginAndSyncDone) {
       await this.autoLoginAndSyncDone;
     }
 
     this.localNotifications.cancelAll();
-    let productEntries:Array<ProductEntry> = <Array<ProductEntry>> await ProductEntry
+    let productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
       .order('expirationDate', true)
       .prefetch('article')
       .list();
 
-    productEntries = productEntries.filter((productEntry:ProductEntry) => {
+    productEntries = productEntries.filter((productEntry: ProductEntry) => {
       return moment(productEntry.expirationDate).subtract(Setting.cached('daysBeforeMedium'), 'days').toDate() < new Date();
     });
 
 
     if (productEntries.length > 0) {
-      let text:string = `${productEntries[0].amount}x ${productEntries[0].article.name}`;
+      let text = `${productEntries[0].amount}x ${productEntries[0].article.name}`;
       if (productEntries.length > 1) {
-        text += " " + await this.pluralTranslate('and other articles', productEntries.length - 1);
+        text += ' ' + await this.pluralTranslate('and other articles', productEntries.length - 1);
       }
 
       let startupLocationId = productEntries[0].locationId;
-      for (let entry of productEntries) {
-        if (entry.locationId != startupLocationId) {
+      for (const entry of productEntries) {
+        if (entry.locationId !== startupLocationId) {
           startupLocationId = null;
           break;
         }
       }
 
-      let notificationConf = {
+      const notificationConf = {
         id: 1,
         title: await this.translate('Eat now:'),
         icon: 'res://icon',
         smallIcon: 'res://icon',
         text: text,
         led: 'FFFFFF',
-        data: {startupLocationId}
+        data: { startupLocationId }
       };
-      console.log("Displaying notification: ", notificationConf);
+      console.log('Displaying notification: ', notificationConf);
       this.localNotifications.schedule(notificationConf);
 
       await Setting.set('lastReminder', ApiServer.dateToHttpDate(new Date()));
@@ -571,24 +607,23 @@ export class ExpirySync extends ExpirySyncController {
       await this.platform.ready();
 
       // Check, if the app has been launched due to a notification click:
-      let tappedNotificationData:any = null;
-      this.localNotifications.on('click', async (notification) => {
+      let tappedNotificationData: any = null;
+      this.localNotifications.on('click').subscribe(async (notification) => {
         tappedNotificationData = JSON.parse(notification.data);
       });
 
-      console.log("--- Platform ready");
+      console.log('--- Platform ready');
       await this.detectVersion();
       this.setupBackgroundMode();
       this.handleBackButton();
 
-      let task:Symbol = this.loadingStarted("Initializing app");
+      let task: Symbol = this.loadingStarted('Initializing app');
 
       // initialize db:
       try {
         await this.dbManager.initialize(this.runningInBrowser);
-      }
-      catch (e) {
-        alert("Database initialization failed - Ensure that your platform supports WebSQL or SQLite!");
+      } catch (e) {
+        alert('Database initialization failed - Ensure that your platform supports WebSQL or SQLite!');
         return;
       }
       this.adeptPlatformDependingSettings();
@@ -601,14 +636,12 @@ export class ExpirySync extends ExpirySyncController {
 
       // find/create current user in the db:
       try {
-        this.currentUser = <User> await User.findBy('usedForLogin', true);
-      }
-      catch(e) {
+        this.currentUser = <User>await User.findBy('usedForLogin', true);
+      } catch (e) {
         const lastUserId = Setting.cached('lastUserId');
-        if (lastUserId != '') {
-          this.currentUser = <User> await User.findBy('id', lastUserId);
-        }
-        else {
+        if (lastUserId !== '') {
+          this.currentUser = <User>await User.findBy('id', lastUserId);
+        } else {
           // create dummy user:
           this.currentUser = new User();
           this.currentUser.usedForLogin = true;
@@ -623,14 +656,14 @@ export class ExpirySync extends ExpirySyncController {
 
       // show server choice dialog if this hasn't happened before:
       let justChoseAServer = false;
-      if (Setting.cached('serverChosen') != '1') {
+      if (Setting.cached('serverChosen') !== '1') {
         this.loadingDone(task);
         justChoseAServer = await this.showServerChoice();
-        task = this.loadingStarted("Initializing app");
+        task = this.loadingStarted('Initializing app');
       }
 
       // when the host setting is changed, the db has to be cleaned:
-      Setting.onChange('host', async() => {
+      Setting.onChange('host', async () => {
         await this.syncDone();
         await User.clearUserRelatedData();
         await this.logout(false);
@@ -640,15 +673,14 @@ export class ExpirySync extends ExpirySyncController {
       });
 
       // when offline mode is changed, login/logout has to be performed:
-      Setting.onChange('offlineMode', async(setting:Setting) => {
-        if (setting.value != '1') {
+      Setting.onChange('offlineMode', async (setting: Setting) => {
+        if (setting.value !== '1') {
           await this.autoLogin();
-          console.log("Logged in after offline mode has been deactivated");
-        }
-        else if (this.currentUser.loggedIn) {
+          console.log('Logged in after offline mode has been deactivated');
+        } else if (this.currentUser.loggedIn) {
           this.clearSyncTimeout();
           await this.logout(true, false);
-          console.log("Logged out as offline mode has been activated");
+          console.log('Logged out as offline mode has been activated');
         }
       });
 
@@ -666,7 +698,7 @@ export class ExpirySync extends ExpirySyncController {
   private adeptPlatformDependingSettings() {
     if (this.runningInBrowser) {
       // -> choose quaggaJs as default barcode engine and hide the selection from settings:
-      Setting.settingConfig.barcodeEngine = {default: 'quaggaJs'};
+      Setting.settingConfig.barcodeEngine = { default: 'quaggaJs' };
     }
   }
 
@@ -675,28 +707,27 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {any} tappedNotificationData notification data containing the first location id
    */
   private async changeLocationForTappedNotification(tappedNotificationData) {
-    const currentLocation = <Location> await Location.getSelected();
-    let currentLocationId:string = null;
+    const currentLocation = <Location>await Location.getSelected();
+    let currentLocationId: string = null;
     if (currentLocation) {
       currentLocationId = currentLocation.id;
     }
 
-    if (tappedNotificationData.startupLocationId != currentLocationId) {
-        try {
-          if (tappedNotificationData.startupLocationId) {
-            let startupLocation = <Location> await Location.findBy('id', tappedNotificationData.startupLocationId);
-            startupLocation.isSelected = true;
-            await startupLocation.save();
-          }
+    if (tappedNotificationData.startupLocationId !== currentLocationId) {
+      try {
+        if (tappedNotificationData.startupLocationId) {
+          const startupLocation = <Location>await Location.findBy('id', tappedNotificationData.startupLocationId);
+          startupLocation.isSelected = true;
+          await startupLocation.save();
+        }
 
-          if (currentLocation) {
-            currentLocation.isSelected = false;
-            await currentLocation.save();
-          }
+        if (currentLocation) {
+          currentLocation.isSelected = false;
+          await currentLocation.save();
         }
-        catch(e) {
-          console.error("Unable to switch location after notification has been tapped");
-        }
+      } catch (e) {
+        console.error('Unable to switch location after notification has been tapped');
+      }
     }
   }
 
@@ -704,14 +735,15 @@ export class ExpirySync extends ExpirySyncController {
    * Display the server choice dialog
    * @return {Promise<void>} resolved when the choice has been made
    */
-  private showServerChoice():Promise<boolean> {
+  private showServerChoice(): Promise<boolean> {
+    // TODO: UPGRADE
     return new Promise<boolean>(resolve => {
-      const modal = this.modalCtrl.create(AlternateServersChoiceModal);
-      modal.onDidDismiss(async(serverSelected:boolean) => {
-        await Setting.set('serverChosen', '1');
-        resolve(serverSelected);
-      });
-      modal.present();
+    //   const modal = this.modalCtrl.create(AlternateServersChoiceModal);
+    //   modal.onDidDismiss(async (serverSelected: boolean) => {
+    //     await Setting.set('serverChosen', '1');
+    //     resolve(serverSelected);
+    //   });
+    //   modal.present();
     });
   }
 
@@ -722,8 +754,8 @@ export class ExpirySync extends ExpirySyncController {
    */
   private async autoLogin(openRegistrationOnFailure = false) {
     this.autoLoginAndSyncDone = new Promise<void>(async resolve => {
-      let offlineModeStr:string = Setting.cached('offlineMode');
-      let offlineMode:boolean = (offlineModeStr === '1');
+      const offlineModeStr: string = Setting.cached('offlineMode');
+      const offlineMode: boolean = (offlineModeStr === '1');
       if (offlineMode) {
         resolve();
         return;
@@ -732,23 +764,22 @@ export class ExpirySync extends ExpirySyncController {
       this.disableMenuPoint(ExpirySync.MenuPointId.login);
       this.disableMenuPoint(ExpirySync.MenuPointId.registration);
 
+      let user: User;
       try {
-        var user:User = <User> await User.findBy('usedForLogin', true);
+        user = <User>await User.findBy('usedForLogin', true);
         user.login = user.userName ? user.userName : user.email;
         await user.authenticate();
         user.loggedIn = true;
         this.currentUser = user;
         await this.authDone();
-      }
-      catch(e) {
+      } catch (e) {
         let loginMenuPoint;
-        let params:any = {};
+        const params: any = {};
 
         if (openRegistrationOnFailure) {
-          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.registration);
-        }
-        else {
-          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id == ExpirySync.MenuPointId.login);
+          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.registration);
+        } else {
+          loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.login);
           if (user && user.login) {
             // We tried with a seemingly valid user -> display errors:
             params.error = e;
@@ -768,27 +799,26 @@ export class ExpirySync extends ExpirySyncController {
    * Called when either login or registration have completed.
    * @param  {boolean} openLoginInstead true, if the user requested to open the login form
    */
-  private async authDone(openLoginInstead?:boolean) {
+  private async authDone(openLoginInstead?: boolean) {
     if (openLoginInstead) {
       this.openMenuPoint(this.menuPoints.find(menuPoint => {
-        return menuPoint.id == ExpirySync.MenuPointId.login;
+        return menuPoint.id === ExpirySync.MenuPointId.login;
       }));
       return;
     }
 
 
-    let offlineModeStr:string = Setting.cached('offlineMode');
-    let offlineMode:boolean = (offlineModeStr === '1');
+    const offlineModeStr: string = Setting.cached('offlineMode');
+    const offlineMode: boolean = (offlineModeStr === '1');
 
     if (!offlineMode && this.currentUser.loggedIn) {
-      console.log("Login done", this.currentUser);
+      console.log('Login done', this.currentUser);
       this.disableMenuPoint(ExpirySync.MenuPointId.login);
       this.disableMenuPoint(ExpirySync.MenuPointId.registration);
       this.enableMenuPoint(ExpirySync.MenuPointId.logout);
       this.enableMenuPoint(ExpirySync.MenuPointId.synchronize);
       await this.mutexedSynchronize();
-    }
-    else {
+    } else {
       this.enableMenuPoint(ExpirySync.MenuPointId.login);
       this.enableMenuPoint(ExpirySync.MenuPointId.registration);
       this.disableMenuPoint(ExpirySync.MenuPointId.logout);
@@ -801,14 +831,14 @@ export class ExpirySync extends ExpirySyncController {
    */
   private async setupI18n() {
     let localeId = Setting.cached('localeId');
-    if (localeId == '') {
+    if (localeId === '') {
       localeId = this.detectLocaleId();
       await Setting.set('localeId', localeId);
     }
 
     await this.switchLanguage(localeId);
 
-    Setting.onChange('localeId', (setting:Setting) => {
+    Setting.onChange('localeId', (setting: Setting) => {
       this.switchLanguage(setting.value);
     });
   }
@@ -817,10 +847,10 @@ export class ExpirySync extends ExpirySyncController {
    * Retrieve BCP 47 language code, that matches the device's default setting (navigator.language)
    * @return {string} required language code or 'en' if the app hasn't been translated into that language
    */
-  private detectLocaleId():string {
-    const langExists = (localeId:string):boolean => {
-      return !(!Setting.settingConfig['localeId'].choices.find((choice) => (choice.key == localeId)));
-    }
+  private detectLocaleId(): string {
+    const langExists = (currentLocaleId: string): boolean => {
+      return !(!Setting.settingConfig['localeId'].choices.find((choice) => (choice.key === currentLocaleId)));
+    };
 
     let localeId = navigator.language;
     if (langExists(localeId)) {
@@ -842,24 +872,17 @@ export class ExpirySync extends ExpirySyncController {
    * Set ngx-translate's language, moment's locale, and ionic's datepicker configs
    * @param  {string} localeId BCP 47 language code
    */
-  private async switchLanguage(localeId:string) {
+  private async switchLanguage(localeId: string) {
     this.translateSvc.use(localeId);
     moment.locale(localeId);
 
-    let momentLocaleId = moment.locale();
-    let momentLocale = moment.localeData(momentLocaleId);
-    this.config.set('monthNames', momentLocale.months());
-    this.config.set('monthShortNames', momentLocale.monthsShort());
-    this.config.set('dayNames', momentLocale.weekdays());
-    this.config.set('dayShortNames', momentLocale.weekdaysMin());
-  }
-
-  /**
-   * Get a singleton instance
-   * @return {ExpirySync} singleton instance
-   */
-  static getInstance():ExpirySync {
-    return ExpirySync.appInstance;
+    const momentLocaleId = moment.locale();
+    const momentLocale = moment.localeData(momentLocaleId);
+    // TODO: UPGRADE
+    // this.config.set('monthNames', momentLocale.months());
+    // this.config.set('monthShortNames', momentLocale.monthsShort());
+    // this.config.set('dayNames', momentLocale.weekdays());
+    // this.config.set('dayShortNames', momentLocale.weekdaysMin());
   }
 
   /**
@@ -868,29 +891,28 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {string} symbolName the task's ID (autogenerated, if not passed)
    * @return {Symbol}            the task's ID
    */
-  loadingStarted(content?:string, symbolName?:string, forceReopening = false):Symbol {
-    console.log("Loading started: " + content);
+  loadingStarted(content?: string, symbolName?: string, forceReopening = false): Symbol {
+    console.log('Loading started: ' + content);
     if (content && !symbolName) {
       symbolName = content;
     }
-    let task:Symbol = Symbol(symbolName);
+    const task: Symbol = Symbol(symbolName);
 
-    let options:LoadingOptions = {};
+    const options: LoadingOptions = {};
     if (content) {
       // options.content = content ;
-      options.content = this.translateSvc.instant('Please wait...');
+      options.message = this.translateSvc.instant('Please wait...');
     }
 
     this.showLoadingOverlay = true;
-    setTimeout(() => {
+    setTimeout(async () => {
       if (this.showLoadingOverlay) {
         if (!this.loader) {
-          this.loader = this.loadingCtrl.create(options);
+          this.loader = await this.loadingCtrl.create(options);
           this.loader.present();
-        }
-        else if (forceReopening) {
+        } else if (forceReopening) {
           this.loader.dismiss();
-          this.loader = this.loadingCtrl.create(options);
+          this.loader = await this.loadingCtrl.create(options);
           this.loader.present();
         }
       }
@@ -904,26 +926,26 @@ export class ExpirySync extends ExpirySyncController {
    * Stop showing the loader, if all loading tasks have completed
    * @param  {Symbol} task the loader task's ID
    */
-  loadingDone(task:Symbol) {
+  loadingDone(task: Symbol) {
     // before really removing the loader, wait
     // a millisecond in case another loader pops
     // up in the same process (avoid flickering)
     setTimeout(() => {
-      console.log("Loading done: " + task.toString());
+      console.log('Loading done: ' + task.toString());
 
-      let i:number = this.loadingTasks.indexOf(task);
-      if (i == -1) {
-        throw "No such loader " + task.toString();
+      const i: number = this.loadingTasks.indexOf(task);
+      if (i === -1) {
+        throw new Error('No such loader ' + task.toString());
       }
       this.loadingTasks.splice(i, 1);
 
-      if (this.loadingTasks.length == 0) {
+      if (this.loadingTasks.length === 0) {
         if (this.loader) {
           this.loader.dismiss();
           this.loader = null;
         }
         this.showLoadingOverlay = false;
-        console.log("All loading done");
+        console.log('All loading done');
       }
     }, 1);
   }
@@ -932,7 +954,7 @@ export class ExpirySync extends ExpirySyncController {
    * Run action configured for a specific menu point
    * @param  {MenuPointConfig} menuPoint the menu point to run actions for
    */
-  async openMenuPoint(menuPoint:MenuPointConfig, data?:any) {
+  async openMenuPoint(menuPoint: MenuPointConfig, data?: any) {
     await this.syncDone();
 
     // opening any menu point might ensue local changes
@@ -947,15 +969,18 @@ export class ExpirySync extends ExpirySyncController {
 
       if (menuPoint.component) {
         // menu point configured to open a modal:
-        if(menuPoint.modal) {
-          const modal = this.modalCtrl.create(menuPoint.component, data);
-          modal.onDidDismiss((...args: any[]) => {
-            if (menuPoint.onDidDismiss) {
-              menuPoint.onDidDismiss.apply(this, args);
-            }
-            resolve();
+        if (menuPoint.modal) {
+          const modal = this.modalCtrl.create(menuPoint.component).then( (component: any) => {
+            component.data = data; // TODO: UPGRADE
           });
-          modal.present();
+          // TODO: UPGRADE
+          // modal.onDidDismiss((...args: any[]) => {
+          //   if (menuPoint.onDidDismiss) {
+          //     menuPoint.onDidDismiss.apply(this, args);
+          //   }
+          //   resolve();
+          // });
+          // modal.present();
           return;
         }
 
@@ -965,20 +990,20 @@ export class ExpirySync extends ExpirySyncController {
         return;
       }
 
-      console.error("Menu point " + menuPoint.id + "doesn't do anyting");
+      console.error('Menu point ' + menuPoint.id + 'doesn\'t do anyting');
     }));
   }
 
-  get runningInBrowser():boolean {
-    return (this.platform.is('core') || !this.device.platform || this.device.platform == 'browser');
+  get runningInBrowser(): boolean {
+    return (this.platform.is('desktop') || !this.device.platform || this.device.platform === 'browser');
   }
 
   async detectVersion() {
     if (!this.runningInBrowser) {
-      console.log("Retrieving version");
+      console.log('Retrieving version');
       this.version = await cordova.getAppVersion.getVersionNumber();
       this.version += ' (Build: ' + await cordova.getAppVersion.getVersionCode() + ')';
-      console.log("Version: " + this.version);
+      console.log('Version: ' + this.version);
     }
   }
 }
