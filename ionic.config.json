@@ -1,5 +1,7 @@
 {
   "name": "expiry_sync_client",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }

@@ -189,6 +189,9 @@ export class AppModel {
     modelInstance.internalInstance = instance;
 
     // load has one relations if they have been prefetched:
+    if (!this.hasOneRelations) {
+      this.hasOneRelations = {};
+    }
     for (const propertyName of Object.keys(this.hasOneRelations)) {
       const relationName: string = this.hasOneRelations[propertyName];
       const relatedModelClass = AppModel.getModelClass(relationName);

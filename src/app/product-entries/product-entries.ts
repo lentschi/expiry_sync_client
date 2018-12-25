@@ -44,6 +44,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     translate: TranslateService
   ) {
     super(translate);
+    this.productEntries = new ProductEntriesListAdapter();
     this.app = ExpirySync.getInstance();
     this.app.entriesList = this;
 
@@ -71,7 +72,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     //   // this.app.disableMenuPoint(ExpirySync.MenuPointId.addProduct);
     // });
   }
-  productEntries: ProductEntriesListAdapter = new ProductEntriesListAdapter();
+  private currentProductEntries: ProductEntriesListAdapter;
   locations: Array<Location>;
   selectedLocationId: string;
   selectedLocation: Location;
@@ -83,6 +84,14 @@ export class ProductEntriesPage extends ExpirySyncController {
   @ViewChild('filterField') filterField: IonInput;
 
   private deregisterBackButtonHandler: Function;
+
+  get productEntries(): ProductEntriesListAdapter {
+    return this.currentProductEntries;
+  }
+
+  set productEntries(entries: ProductEntriesListAdapter) {
+    this.currentProductEntries = entries;
+  }
 
   async showList() {
     // var loadingTask:Symbol = this.app.loadingStarted('Listing entries');

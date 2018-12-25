@@ -21,7 +21,7 @@
       <button *ngIf="selectedLocation" ion-button (click)="openEntryForm()">
         <ion-icon name="add-circle"></ion-icon>
       </button>
-      <button [disabled]="productEntries.selected.length == 0" ion-button (click)="deleteAllTapped()">
+      <button [disabled]="!productEntries.selected || productEntries.selected.length == 0" ion-button (click)="deleteAllTapped()">
         <ion-icon name="trash"></ion-icon>
       </button>
       <button ion-button (click)="toggleSearchTapped()">
