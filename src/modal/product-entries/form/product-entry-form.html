@@ -3,16 +3,16 @@
     <ion-title *ngIf="!productEntry.id" translate>add product entry</ion-title>
     <ion-title *ngIf="productEntry.id" translate>edit product entry</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
       <ng-container>
-        <button *ngIf="productEntry.id" ion-button (click)="deleteEntry(productEntry)">
+        <ion-button *ngIf="productEntry.id" (click)="deleteEntry(productEntry)">
           <ion-icon name="trash"></ion-icon>
-        </button>
-        <button ion-button (click)="saveEntry(productEntry)">
+        </ion-button>
+        <ion-button (click)="saveEntry(productEntry)">
           <ion-icon name="checkmark-circle"></ion-icon>
-        </button>
+        </ion-button>
       </ng-container>
     </ion-buttons>
   </ion-toolbar>
@@ -24,9 +24,9 @@
       <span class="value">{{productEntry.location.name}}</span>
     </div>
     <div class="barcode-controls">
-      <button ion-button type="button" (click)="scanBarcode()">
+      <ion-button type="button" (click)="scanBarcode()">
         <ion-icon name="barcode"></ion-icon>
-      </button>
+      </ion-button>
       <ion-item #barcodeItem>
         <ion-input
           [(ngModel)]="productEntry.article.barcode"
@@ -89,18 +89,18 @@
           <img *ngIf="productEntry.article.hasAnyImage" [src]="productEntry.article.images[productEntry.article.images.length - 1].imageData" />
           <ng-container *ngIf="!productEntry.article.hasAnyImage" translate>There is no picture for this article.</ng-container>
       </div>
-      <button ion-button color="light" icon-left type="button" (click)="takePicture()">
+      <ion-button color="light" icon-left type="button" (click)="takePicture()">
         <ion-icon name="image"></ion-icon>
         <ng-container *ngIf="!productEntry.article.hasAnyImage" translate>take picture</ng-container>
         <ng-container *ngIf="productEntry.article.hasAnyImage" translate>take another picture</ng-container>
-      </button>
+      </ion-button>
     </div>
     <div class="submit-controls">
-      <button *ngIf="productEntry.id" color="light" ion-button icon-left type="button" (click)="cloneEntry(entryForm.valid)" translate>
+      <ion-button *ngIf="productEntry.id" color="light" icon-left type="button" (click)="cloneEntry(entryForm.valid)" translate>
         <ion-icon name="copy"></ion-icon>
         save as copy
-      </button>
-      <button ion-button type="submit" full translate>save</button>
+      </ion-button>
+      <ion-button type="submit" full translate>save</ion-button>
     </div>
   </form>
 </ion-content>

@@ -2,9 +2,9 @@
   <ion-toolbar>
     <ion-title translate>take a picture</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -12,5 +12,5 @@
   <div class="video-wall">
     <video autoplay #video width="100%" height="100%"></video>
   </div>
-  <button ion-button full translate (click)="takePicture()">take picture</button>
+  <ion-button full translate (click)="takePicture()">take picture</ion-button>
 </ion-content>

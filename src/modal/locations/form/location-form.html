@@ -3,13 +3,13 @@
     <ion-title [hidden]="location.id" translate>add location</ion-title>
     <ion-title [hidden]="!location.id">{{'edit location' | translate:location}}</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
       <ng-container *ngIf="location.id">
-        <button ion-button (click)="deleteTapped(location)">
+        <ion-button (click)="deleteTapped(location)">
           <ion-icon name="trash"></ion-icon>
-        </button>
+        </ion-button>
       </ng-container>
     </ion-buttons>
   </ion-toolbar>
@@ -32,7 +32,7 @@
             <div [hidden]="!name.errors.required" translate>Setting value is required</div>
       </div>
       
-      <button ion-button type="submit" full translate>save</button>
+      <ion-button type="submit" full translate>save</ion-button>
     </form>
   </ng-container>
   <div class="info" *ngIf="!location.ownedByCurrentUser">
@@ -41,10 +41,10 @@
       This location cannot be edited as it hasn't been created by you.
     </span>
     <div>
-      <button ion-button icon-left type="button" (click)="deleteTapped(location)" translate>
+      <ion-button icon-left type="button" (click)="deleteTapped(location)" translate>
         <ion-icon name="trash"></ion-icon>
         remove this location from your list
-      </button>
+      </ion-button>
     </div>
   </div>
 </ion-content>

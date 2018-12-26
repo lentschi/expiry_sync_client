@@ -2,12 +2,12 @@
   <ion-toolbar>
     <ion-title translate>locations</ion-title>
     <ion-buttons *ngIf="locations" start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
-      <button ion-button (click)="openLocationForm()">
+      </ion-button>
+      <ion-button (click)="openLocationForm()">
         <ion-icon name="add-circle"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -16,9 +16,9 @@
   <ion-list id="locations-list">
     <ion-item *ngFor="let location of locations" (click)="openLocationForm(location)">
       <span class="name">{{location.name}}</span>
-      <button *ngIf="location.serverId" ion-button item-right (click)="shareTapped($event, location)">
+      <ion-button *ngIf="location.serverId" item-right (click)="shareTapped($event, location)">
         <ion-icon name="share"></ion-icon>
-      </button>
+      </ion-button>
     </ion-item>
   </ion-list>
 </ion-content>

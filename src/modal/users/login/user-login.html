@@ -2,9 +2,9 @@
   <ion-toolbar>
     <ion-title translate>login</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -37,11 +37,11 @@
         <div class="validation-error">{{serverValidationError}}</div>
       </ng-container>
     </ng-container>
-    <button ion-button type="submit" full translate>login</button>
+    <ion-button type="submit" full translate>login</ion-button>
     <div class="other-options">
       <a class="forgot-password" target="_blank" [href]="forgotPasswordUrl" translate>Forgot your password?</a>
       <div class="label" translate>You don't want to synchronize with a server?</div>
-      <button ion-button type="button" (click)="dismiss()" translate>offline mode</button>
+      <ion-button type="button" (click)="dismiss()" translate>offline mode</ion-button>
     </div>
   </form>
 </ion-content>

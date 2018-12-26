@@ -2,9 +2,9 @@
   <ion-header>
     <ion-toolbar>
       <ion-buttons start>
-        <button ion-button (click)="dismiss()">
+        <ion-button (click)="dismiss()">
           <ion-icon name="arrow-back"></ion-icon>
-        </button>
+        </ion-button>
       </ion-buttons>
       <ion-title>{{'Share \"\" with others' | translate:location}}</ion-title>
     </ion-toolbar>
@@ -13,9 +13,9 @@
     <ion-list>
       <ion-item *ngFor="let share of shares">
         <span class="user-name">{{share.user.userName}}</span>
-        <button *ngIf="location.serverId && app.currentUser.loggedIn" ion-button item-right (click)="removeTapped(share)">
+        <ion-button *ngIf="location.serverId && app.currentUser.loggedIn" item-right (click)="removeTapped(share)">
           <ion-icon name="trash"></ion-icon>
-        </button>
+        </ion-button>
       </ion-item>
     </ion-list>
     <form *ngIf="app.currentUser.loggedIn" #shareForm="ngForm" class="list" (ngSubmit)="addShare(shareForm.valid)" novalidate>
@@ -34,7 +34,7 @@
           <div class="validation-error">{{serverValidationError}}</div>
         </ng-container>
       </ng-container>
-      <button ion-button type="submit" full translate>add</button>
+      <ion-button type="submit" full translate>add</ion-button>
     </form>
     <div class="info" *ngIf="!app.currentUser.loggedIn">
       <ion-icon name="information-circle"></ion-icon>

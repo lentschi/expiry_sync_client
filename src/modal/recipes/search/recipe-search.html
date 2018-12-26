@@ -2,9 +2,9 @@
   <ion-toolbar>
     <ion-title translate>recipe search</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -17,14 +17,14 @@
     </span>
   </div>
   <div class="select-helpers">
-    <button ion-button icon-left [disabled]="activeKeywords.length == 0" (click)="selectAll(false)" translate>
+    <ion-button icon-left [disabled]="activeKeywords.length == 0" (click)="selectAll(false)" translate>
       <ion-icon name="checkbox-outline"></ion-icon>
       deselect all
-    </button>
-    <button ion-button icon-left [disabled]="activeKeywords.length == keywords.length" (click)="selectAll()" translate>
+    </ion-button>
+    <ion-button icon-left [disabled]="activeKeywords.length == keywords.length" (click)="selectAll()" translate>
       <ion-icon name="done-all"></ion-icon>
       select all
-    </button>
+    </ion-button>
   </div>
-  <button ion-button [disabled]="activeKeywords.length == 0" (click)="searchTapped()" full translate>search</button>
+  <ion-button [disabled]="activeKeywords.length == 0" (click)="searchTapped()" full translate>search</ion-button>
 </ion-content>

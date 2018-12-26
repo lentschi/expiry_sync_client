@@ -5,12 +5,8 @@ import { ProductEntriesPage } from './product-entries/product-entries';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    component: ProductEntriesPage,
     pathMatch: 'full'
-  },
-  {
-    path: 'home',
-    component: ProductEntriesPage
   }
 ];
 

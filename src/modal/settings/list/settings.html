@@ -2,9 +2,9 @@
   <ion-toolbar>
     <ion-title translate>settings</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -12,7 +12,7 @@
   <ion-list>
     <ng-container *ngFor="let setting of settings">
       <ng-container *ngIf="setting.editable">
-        <button *ngIf="setting.settingConfig.editComponent" ion-item (click)="settingTapped($event, setting)">
+        <ion-button *ngIf="setting.settingConfig.editComponent" ion-item (click)="settingTapped($event, setting)">
           <div class="item-left">
             <setting-label [setting]="setting"></setting-label>
           </div>
@@ -24,7 +24,7 @@
               </ng-container>
             </ng-container>
           </div>
-        </button>
+        </ion-button>
         <ion-item *ngIf="setting.settingConfig.inlineEditableBoolean">
           <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
           <ion-checkbox [checked]="setting.value == '1'" (ionChange)="booleanValueChanged(setting)"></ion-checkbox>

@@ -1,8 +1,8 @@
 <ion-header id="product-entries-header">
   <ion-toolbar *ngIf="!showFilter">
-    <button ion-button menuToggle>
-      <ion-icon name="menu"></ion-icon>
-    </button>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
     <ion-title *ngIf="locations">
       <ion-item>
         <ion-label translate>location</ion-label>
@@ -18,27 +18,27 @@
       </ion-item>
     </ion-title>
     <ion-buttons *ngIf="productEntries" start>
-      <button *ngIf="selectedLocation" ion-button (click)="openEntryForm()">
+      <ion-button *ngIf="selectedLocation" (click)="openEntryForm()">
         <ion-icon name="add-circle"></ion-icon>
-      </button>
-      <button [disabled]="!productEntries.selected || productEntries.selected.length == 0" ion-button (click)="deleteAllTapped()">
+      </ion-button>
+      <ion-button [disabled]="productEntries.selected.length == 0" (click)="deleteAllTapped()">
         <ion-icon name="trash"></ion-icon>
-      </button>
-      <button ion-button (click)="toggleSearchTapped()">
+      </ion-button>
+      <ion-button (click)="toggleSearchTapped()">
         <ion-icon name="search"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar class="filter-bar" *ngIf="showFilter">
-    <button class="close-btn" (click)="toggleSearchTapped()">
+    <ion-button class="close-btn" (click)="toggleSearchTapped()">
       <ion-icon name="arrow-back"></ion-icon>
-    </button>
+    </ion-button>
     <ion-item>
       <ion-input [(ngModel)]="productEntries.filterValue" (keyup)="showListAndFilters()" maxlength="255" #filterField></ion-input>
     </ion-item>
-    <button class="clear-btn" *ngIf="productEntries.filterValue != ''" (click)="clearFilterValue()">
+    <ion-button class="clear-btn" *ngIf="productEntries.filterValue != ''" (click)="clearFilterValue()">
       <ion-icon name="close"></ion-icon>
-    </button>
+    </ion-button>
   </ion-toolbar>
 </ion-header>
 
@@ -105,7 +105,7 @@
         <ion-item class="no-products" *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
           <span class="label" *ngIf="productEntries.filterValue == ''" translate>There aren't any products in the list.</span>
           <span class="label" *ngIf="productEntries.filterValue != ''" translate>There are no products matching your search.</span>
-          <button *ngIf="selectedLocation" ion-button (click)="openEntryForm()" translate>Add one now</button>
+          <ion-button *ngIf="selectedLocation" (click)="openEntryForm()" translate>Add one now</ion-button>
         </ion-item>
         <ion-item class="no-products" *ngIf="!loadingAfterLocationSwitchDone">
           <span class="label" translate>Please wait...</span>

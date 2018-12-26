@@ -2,9 +2,9 @@
   <ion-toolbar>
     <ion-title translate>registration</ion-title>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
+      <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -54,13 +54,13 @@
         <div class="validation-error">{{serverValidationError}}</div>
       </ng-container>
     </ng-container>
-    <button ion-button type="submit" full translate>register</button>
+    <ion-button type="submit" full translate>register</ion-button>
     
     <div class="other-options">
       <div class="label" translate>You already have an account?</div>
-      <button ion-button type="button" (click)="loginInsteadTapped()" translate>login instead</button>
+      <ion-button type="button" (click)="loginInsteadTapped()" translate>login instead</ion-button>
       <div class="label" translate>You don't want to synchronize with a server?</div>
-      <button ion-button type="button" (click)="dismiss()" translate>offline mode</button>
+      <ion-button type="button" (click)="dismiss()" translate>offline mode</ion-button>
     </div>
   </form>
 </ion-content>
