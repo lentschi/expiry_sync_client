@@ -2,7 +2,7 @@
   .introduction {
     font-size: 15px;
     padding:10px;
-    border-bottom: 1px solid map-get($colors, light);
+    border-bottom: 1px solid var(--ion-color-light);
   }
 
   .keywords-container {

@@ -42,6 +42,7 @@ import { MomentModule } from 'angular2-moment';
 import { EllipsisModule } from 'ngx-ellipsis';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -107,6 +108,7 @@ export function createTranslateLoader(http: HttpClient) {
     HttpModule,
     HttpClientModule,
     EllipsisModule,
+    BrowserAnimationsModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

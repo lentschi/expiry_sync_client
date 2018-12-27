@@ -10,7 +10,8 @@ import { UiHelper } from 'src/utils/ui-helper';
 
 
 @Component({
-  templateUrl: 'user-login.html'
+  templateUrl: 'user-login.html',
+  styleUrls: ['user-login.scss']
 })
 export class UserLoginModal extends ExpirySyncController {
   user: User;

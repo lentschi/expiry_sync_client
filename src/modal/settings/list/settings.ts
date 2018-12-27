@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 
 import { NavController, NavParams, ModalController } from '@ionic/angular';
 import { SettingEditModal } from '../edit/setting-edit';
@@ -6,6 +6,8 @@ import { Setting } from 'src/app/models';
 
 @Component({
   templateUrl: 'settings.html',
+  styleUrls: ['settings.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SettingsModal {
   settings: Array<Setting>;

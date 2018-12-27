@@ -8,7 +8,7 @@
 #product-entries-form {
   .location {
     margin: 10px 0px 20px 16px;
-    color: map-get($colors, medium-dark);
+    color: var(--ion-color-medium-dark);
 
     .label {
       display:inline-block;

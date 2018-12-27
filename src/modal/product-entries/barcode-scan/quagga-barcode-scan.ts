@@ -5,7 +5,8 @@ import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
 import { ModalController } from '@ionic/angular';
 
 @Component({
-  templateUrl: 'quagga-barcode-scan.html'
+  templateUrl: 'quagga-barcode-scan.html',
+  styleUrls: ['quagga-barcode-scan.scss']
 })
 export class QuaggaBarcodeScanModal extends ExpirySyncController implements OnInit, OnDestroy {
   @ViewChild('videowall') videoWall: ElementRef;

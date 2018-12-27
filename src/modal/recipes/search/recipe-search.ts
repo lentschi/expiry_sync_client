@@ -10,7 +10,8 @@ interface RecipeKeyword {
 }
 
 @Component({
-  templateUrl: 'recipe-search.html'
+  templateUrl: 'recipe-search.html',
+  styleUrls: ['recipe-search.scss']
 })
 export class RecipeSearchModal extends ExpirySyncController {
   keywords: Array<RecipeKeyword>;

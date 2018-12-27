@@ -5,7 +5,8 @@ import { ModalController } from '@ionic/angular';
 
 
 @Component({
-  templateUrl: 'browser-cam.html'
+  templateUrl: 'browser-cam.html',
+  styleUrls: ['browser-cam.scss']
 })
 export class BrowserCamModal extends ExpirySyncController implements OnInit, OnDestroy {
   @ViewChild('video') video: ElementRef;

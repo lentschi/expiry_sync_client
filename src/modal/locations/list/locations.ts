@@ -10,7 +10,7 @@ import { ViewController } from '@ionic/core';
 import { Location } from 'src/app/models';
 
 @Component({
-  templateUrl: 'locations.html'
+  templateUrl: 'locations.html',
 })
 export class LocationsModal extends ExpirySyncController {
   locations: Array<Location>;

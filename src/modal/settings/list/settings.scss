@@ -1,6 +1,11 @@
 ion-content#settings {
   .item-note, .datetime-text {
-    color: map-get($colors, medium-dark);
+    color: var(--ion-color-medium);
+  }
+
+  .item-note, .item-left {
+    margin-top: 5px;
+    margin-bottom: 5px;
   }
 
   ion-item.time {
@@ -8,7 +13,7 @@ ion-content#settings {
       display:block;
       .input-wrapper {
         .label {
-          color: map-get($colors, dark);
+          color: var(--ion-color-dark);
           margin-bottom: 0px;
         }
 

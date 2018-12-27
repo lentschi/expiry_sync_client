@@ -9,7 +9,8 @@ import { UiHelper } from 'src/utils/ui-helper';
 import { ModalController } from '@ionic/angular';
 
 @Component({
-  templateUrl: 'user-registration.html'
+  templateUrl: 'user-registration.html',
+  styleUrls: ['user-registration.scss']
 })
 export class UserRegistrationModal extends ExpirySyncController {
   user: User;

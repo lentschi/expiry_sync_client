@@ -42,7 +42,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content (window:resize)="enableDisableMenuPoints($event)" id="product-entries" scroll="false">
+<ion-content (window:resize)="enableDisableMenuPoints()" id="product-entries" scroll="false">
   <div id="wrapper">
     <div id="product-entries-list-header">
       <div id="list-sorters" [class.sort-ascending]="productEntries.sortAscending" *ngIf="productEntries.length > 0">
@@ -97,9 +97,9 @@
               <span class="expiration-date">{{productEntry.expirationDate | amDateFormat:'l'}}</span>
             </span>
           </ion-item>
-          <ion-item-options side="left" (ionSwipe)="productEntrySwipedLeft(productEntry)">
+          <ion-item-options side="start" (ionSwipe)="productEntrySwipedLeft(productEntry)">
           </ion-item-options>
-          <ion-item-options side="right" (ionSwipe)="productEntrySwipedRight(productEntry)">
+          <ion-item-options side="end" (ionSwipe)="productEntrySwipedRight(productEntry)">
           </ion-item-options>
         </ion-item-sliding>
         <ion-item class="no-products" *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">

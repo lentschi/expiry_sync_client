@@ -9,7 +9,8 @@ import { UiHelper } from 'src/utils/ui-helper';
 import { ValidationError, LocationShareRemovalRefused } from 'src/utils/api-server';
 
 @Component({
-  templateUrl: 'location-shares.html'
+  templateUrl: 'location-shares.html',
+  styleUrls: ['location-shares.scss']
 })
 export class LocationSharesModal extends ExpirySyncController {
   app: ExpirySync;

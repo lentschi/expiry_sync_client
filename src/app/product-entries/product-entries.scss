@@ -30,7 +30,7 @@ ion-header#product-entries-header {
       .select-text {
         font-size: 2rem;
         font-weight: 500;
-        color: map-get($colors, ionic-dark);
+        color: var(ion-color-dark);
       }
 
       ion-select.select-ios {
@@ -93,7 +93,7 @@ ion-content#product-entries {
    * Table header (sort buttons)
    */
   #product-entries-list-header {
-    border-bottom: 1px solid map-get($colors, dark);
+    border-bottom: 1px solid var(--ion-color-dark);
     font-size: 16px;
 
     #list-sorters {
@@ -101,7 +101,7 @@ ion-content#product-entries {
         display:none;
       }
 
-      background-color: map-get($colors, light);
+      background-color: var(--ion-color-light);
       overflow: hidden;
 
       .amount, .name, .expiration, .product-entry-selection, .creation, .location {
@@ -120,7 +120,7 @@ ion-content#product-entries {
       }
 
       .active {
-        color: map-get($colors, primary);
+        color: var(--ion-color-primary);
       }
 
       .active::after {
@@ -212,16 +212,16 @@ ion-content#product-entries {
       }
 
       ion-item.gone-bad {
-        color: map-get($colors, bad);
+        color: var(--ion-color-bad);
       }
 
       ion-item.gone-medium {
-        color: map-get($colors, medium-danger);
+        color: var(--ion-color-medium-danger);
       }
 
       ion-item.no-products {
         .label {
-          color: map-get($colors, medium-dark);
+          color: var(--ion-color-medium-dark);
           display: block;
           margin-bottom: 30px;
           text-align: center;
@@ -257,7 +257,7 @@ ion-content#product-entries {
 
       .creation {
         ion-icon.icon {
-          color: map-get($colors, medium-dark);
+          color: var(--ion-color-medium-dark);
           font-size: 18px;
           margin-right: 3px;
         }
@@ -318,10 +318,11 @@ ion-content#product-entries {
           margin-left: 1%;
 
           input {
-            margin: $checkbox-ios-item-left-margin;
-            width: $checkbox-ios-icon-size;
+            --size: --ion-checkbox-size;
+
+            // TODO: UPGRADE
+            // margin: $checkbox-ios-item-left-margin;
             max-width: 100%;
-            height: $checkbox-ios-icon-size;
             display:inline-block;
           }
         }
@@ -330,7 +331,7 @@ ion-content#product-entries {
           width:10%;
           max-width: 40px;
           padding-top:11px;
-          color: map-get($colors, medium-dark);
+          color: var(--ion-color-medium-dark);
         }
 
         .name {

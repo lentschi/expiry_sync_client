@@ -12,19 +12,21 @@
   <ion-list>
     <ng-container *ngFor="let setting of settings">
       <ng-container *ngIf="setting.editable">
-        <ion-button *ngIf="setting.settingConfig.editComponent" ion-item (click)="settingTapped($event, setting)">
-          <div class="item-left">
-            <setting-label [setting]="setting"></setting-label>
-          </div>
-          <div class="item-note" *ngIf="!setting.settingConfig.choices">{{setting.value}}</div>
-          <div class="item-note" *ngIf="setting.settingConfig.choices">
-            <ng-container *ngFor="let choice of setting.settingConfig.choices">
-              <ng-container *ngIf="choice.key == setting.value">
-                {{choice.label}}
+        <ion-item *ngIf="setting.settingConfig.editComponent" (click)="settingTapped($event, setting)">
+          <div>
+            <div class="item-left">
+              <setting-label [setting]="setting"></setting-label>
+            </div>
+            <div class="item-note" *ngIf="!setting.settingConfig.choices">{{setting.value}}</div>
+            <div class="item-note" *ngIf="setting.settingConfig.choices">
+              <ng-container *ngFor="let choice of setting.settingConfig.choices">
+                <ng-container *ngIf="choice.key == setting.value">
+                  {{choice.label}}
+                </ng-container>
               </ng-container>
-            </ng-container>
+            </div>
           </div>
-        </ion-button>
+        </ion-item>
         <ion-item *ngIf="setting.settingConfig.inlineEditableBoolean">
           <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
           <ion-checkbox [checked]="setting.value == '1'" (ionChange)="booleanValueChanged(setting)"></ion-checkbox>

@@ -10,7 +10,8 @@ import { ApiServer, ApiServerCall } from 'src/utils/api-server';
 
 
 @Component({
-  templateUrl: 'alternate-servers-choice.html'
+  templateUrl: 'alternate-servers-choice.html',
+  styleUrls: ['alternate-servers-choice.scss']
 })
 export class AlternateServersChoiceModal extends ExpirySyncController {
   alternateServers: Array<AlternateServer>;

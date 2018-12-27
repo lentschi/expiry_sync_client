@@ -19,7 +19,8 @@ declare var cloudSky;
 declare var navigator;
 
 @Component({
-  templateUrl: 'product-entry-form.html'
+  templateUrl: 'product-entry-form.html',
+  styleUrls: ['product-entry-form.scss']
 })
 export class ProductEntryFormModal extends ExpirySyncController {
   static MAX_DAYS_UNTIL_EXPIRATION_DATE = 10000;

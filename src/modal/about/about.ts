@@ -6,7 +6,8 @@ import { Setting } from 'src/app/models';
 import { ExpirySync } from 'src/app/app.expiry-sync';
 
 @Component({
-  templateUrl: 'about.html'
+  templateUrl: 'about.html',
+  styleUrls: ['about.scss']
 })
 export class AboutModal extends ExpirySyncController {
   constructor(translate: TranslateService, private modalCtrl: ModalController) {

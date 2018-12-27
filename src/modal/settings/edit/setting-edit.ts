@@ -1,4 +1,4 @@
-import { Component, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef, AfterViewChecked, OnDestroy } from '@angular/core';
+import { Component, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef, AfterViewChecked, OnDestroy, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Setting } from 'src/app/models';
 import { SettingEditElement } from './types/setting-edit-element';
@@ -6,7 +6,7 @@ import { SettingEditElement } from './types/setting-edit-element';
 @Component({
   templateUrl: 'setting-edit.html'
 })
-export class SettingEditModal implements AfterViewChecked, OnDestroy {
+export class SettingEditModal implements AfterViewChecked, OnDestroy, OnInit {
   setting: Setting;
   settingKey: string;
   @ViewChild('settingEditContainer', { read: ViewContainerRef }) settingEditContainer: ViewContainerRef;
@@ -17,6 +17,9 @@ export class SettingEditModal implements AfterViewChecked, OnDestroy {
     private modalCtrl: ModalController,
     private componentFactoryResolver: ComponentFactoryResolver
   ) {
+  }
+
+  ngOnInit() {
     // Retrieve the setting we want to edit from the db:
     Setting.findBy('key', this.settingKey).then((setting: Setting) => {
       this.setting = setting;

@@ -15,6 +15,7 @@ import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/p
 
 @Component({
   selector: 'product-entries',
+  styleUrls: ['product-entries.scss'],
   templateUrl: 'product-entries.html',
   animations: [
     trigger('addRemoveAnimation', [
