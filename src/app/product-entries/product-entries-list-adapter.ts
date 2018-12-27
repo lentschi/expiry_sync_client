@@ -10,6 +10,16 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
   sortBy = 'expirationDate';
   sortAscending = true;
 
+  // ES5 compatibility:
+  constructor(...items: ProductEntry[]) {
+    super(...items);
+    Object.setPrototypeOf(this, ProductEntriesListAdapter.prototype);
+  }
+
+  getFirst() {
+      return this[0];
+  }
+
   /**
    * set the array's values
    * If an entry's attributes stay the same, ensure that it is not replaced

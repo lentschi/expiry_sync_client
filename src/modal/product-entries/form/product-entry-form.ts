@@ -189,10 +189,9 @@ export class ProductEntryFormModal extends ExpirySyncController {
       this.barcodeScanner.scan({
         prompt: await this.translate('Place the barcode inside the scan area or press the "back" button to enter the product manually'),
       }).then(async (barcodeData) => {
-        // TODO: UPGRADE: https://ionicframework.com/docs/native/app-version/?
-        // const versions = this.platform.versions();
-        const versions = {android: {major: 7}};
-        if (barcodeData.cancelled && versions.android && versions.android.major > 6) {
+        const versions = this.device.version ? this.device.version.split('.') : [];
+        const majorVersion = versions.length > 0 ? parseInt(versions[0], 10) : 0;
+        if (barcodeData.cancelled && this.platform.is('android') && majorVersion > 6) {
           this.app.preventNextBackButton = true;
           await this.viewChangeOccurred();
           this.focusBarcodeInput();

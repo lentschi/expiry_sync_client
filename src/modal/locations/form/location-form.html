@@ -2,7 +2,7 @@
   <ion-toolbar *ngIf="location">
     <ion-title [hidden]="location.id" translate>add location</ion-title>
     <ion-title [hidden]="!location.id">{{'edit location' | translate:location}}</ion-title>
-    <ion-buttons start>
+    <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>

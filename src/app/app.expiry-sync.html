@@ -10,7 +10,7 @@
         <ion-list>
           <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
             <ion-item [routerDirection]="'root'" [routerLink]="[p.url]">
-              <ion-icon slot="start" [name]="p.icon"></ion-icon>
+              <ion-icon slot="start" slot="start"  [name]="p.icon"></ion-icon>
               <ion-label>
                 {{p.title}}
               </ion-label>
@@ -25,7 +25,7 @@
 
 <ion-app>
   <ion-split-pane>
-    <ion-menu side="start">
+    <ion-menu>
       <ion-header>
         <ion-toolbar>
           <ion-title>Menu</ion-title>
@@ -39,57 +39,57 @@
               <ion-item (click)="openMenuPoint(menuPoint)">
                 <ng-container [ngSwitch]="menuPoint.id">
                   <ng-container *ngSwitchCase="menuPointIds.locationList">
-                    <ion-icon name="home"></ion-icon>
-                    <div class="label" translate>locations</div>
+                    <ion-icon slot="start" name="home"></ion-icon>
+                    <ion-label translate>locations</ion-label>
                   </ng-container>
                   
                   <ng-container *ngSwitchCase="menuPointIds.settings">
-                    <ion-icon name="settings"></ion-icon>
-                    <div class="label" translate>settings</div>
+                    <ion-icon slot="start" name="settings"></ion-icon>
+                    <ion-label translate>settings</ion-label>
                   </ng-container>        
                   <ng-container *ngSwitchCase="menuPointIds.selectAll">
-                    <ion-icon name="done-all"></ion-icon>
-                    <div class="label" translate>select all products</div>
+                    <ion-icon slot="start" name="done-all"></ion-icon>
+                    <ion-label translate>select all products</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.deselectAll">
-                    <ion-icon name="checkbox-outline"></ion-icon>
-                    <div class="label" translate>deselect all products</div>
+                    <ion-icon slot="start" name="checkbox-outline"></ion-icon>
+                    <ion-label translate>deselect all products</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.filterAllUsers">
-                    <ion-icon name="people"></ion-icon>
-                    <div class="label" translate>show everyone's products</div>
+                    <ion-icon slot="start" name="people"></ion-icon>
+                    <ion-label translate>show everyone's products</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.filterCurrentUser">
-                    <ion-icon name="contact"></ion-icon>
-                    <div class="label" translate>show own products only</div>
+                    <ion-icon slot="start" name="contact"></ion-icon>
+                    <ion-label translate>show own products only</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.recipeSearch">
-                    <ion-icon name="list-box"></ion-icon>
-                    <div class="label" translate>recipe search</div>
+                    <ion-icon slot="start" name="list-box"></ion-icon>
+                    <ion-label translate>recipe search</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.moveEntriesToAnotherLocation">
-                    <ion-icon name="move"></ion-icon>
-                    <div class="label" translate>move products</div>
+                    <ion-icon slot="start" name="move"></ion-icon>
+                    <ion-label translate>move products</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.synchronize">
-                    <ion-icon name="sync"></ion-icon>
-                    <div class="label" translate>synchronize</div>
+                    <ion-icon slot="start" name="sync"></ion-icon>
+                    <ion-label translate>synchronize</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.registration">
-                    <ion-icon name="person-add"></ion-icon>
-                    <div class="label" translate>register</div>
+                    <ion-icon slot="start" name="person-add"></ion-icon>
+                    <ion-label translate>register</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.login">
-                    <ion-icon name="log-in"></ion-icon>
-                    <div class="label" translate>login</div>
+                    <ion-icon slot="start" name="log-in"></ion-icon>
+                    <ion-label translate>login</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.logout">
-                    <ion-icon name="log-out"></ion-icon>
-                    <div class="label no-first-upper">{{'Logout' | translate:currentUser}}</div>
+                    <ion-icon slot="start" name="log-out"></ion-icon>
+                    <ion-label class="no-first-upper">{{'Logout' | translate:currentUser}}</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.about">
-                    <ion-icon name="information-circle"></ion-icon>
-                    <div class="label" translate>about</div>
+                    <ion-icon slot="start" name="information-circle"></ion-icon>
+                    <ion-label translate>about</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchDefault>TODO: {{menuPoint.id}}</ng-container>
                 </ng-container>

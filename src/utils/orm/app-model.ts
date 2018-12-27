@@ -1,13 +1,14 @@
-///<reference path="../../../node_modules/reflect-metadata/reflect-metadata.d.ts"/>"
 declare var persistence: any;
 
 import { QueryCollection } from './query-collection';
 import { RecordNotFoundError } from './errors/record-not-found-error';
+import 'reflect-metadata';
 
 export function Column(colType?: string) {
   return function (object: any, propertyName: string) {
     if (!colType) {
       const meta = Reflect.getMetadata('design:type', object, propertyName);
+      // const meta = {name: 'STRING'};
       const typeName: string = meta.name.toLowerCase();
       switch (typeName) {
         case 'number': colType = 'INT'; break;
@@ -35,6 +36,7 @@ export function HasOne(typeName?: string) {
 
     if (!typeName) {
       const meta = Reflect.getMetadata('design:type', object, propertyName);
+      // const meta = {name: 'Lala'};
       typeName = meta.name;
     }
 

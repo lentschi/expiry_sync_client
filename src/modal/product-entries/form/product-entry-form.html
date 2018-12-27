@@ -2,7 +2,7 @@
   <ion-toolbar *ngIf="productEntry">
     <ion-title *ngIf="!productEntry.id" translate>add product entry</ion-title>
     <ion-title *ngIf="productEntry.id" translate>edit product entry</ion-title>
-    <ion-buttons start>
+    <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
