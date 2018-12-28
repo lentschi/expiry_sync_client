@@ -16,7 +16,7 @@
   <ion-list id="locations-list">
     <ion-item *ngFor="let location of locations" (click)="openLocationForm(location)">
       <span class="name">{{location.name}}</span>
-      <ion-button *ngIf="location.serverId" item-right (click)="shareTapped($event, location)">
+      <ion-button *ngIf="location.serverId" slot="end" (click)="shareTapped($event, location)">
         <ion-icon name="share"></ion-icon>
       </ion-button>
     </ion-item>

@@ -90,5 +90,6 @@
     <plugin name="de.appplant.cordova.plugin.local-notification" spec="~0.8.5" />
     <plugin name="phonegap-plugin-barcodescanner" spec="~8.0.1" />
     <plugin name="cordova-plugin-cszbar" spec="git://github.com/lentschi/csZBar.git#b13870816b24c788f2222ebf814c4fd46871608d" />
+    <plugin name="cordova.custom.plugins.exitapp" spec="~1.0.0" />
     <engine name="android" spec="7.1.4" />
 </widget>

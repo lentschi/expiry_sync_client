@@ -57,11 +57,6 @@ export class LocationsModal extends ExpirySyncController {
   }
 
   async openLocationForm(location?: Location) {
-    const params: any = {};
-    if (location) {
-      params.id = location.id;
-    }
-
     const modal = await this.modalCtrl.create({
       component: LocationFormModal,
       componentProps: { locationId: location ? location.id : null }

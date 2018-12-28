@@ -11,8 +11,10 @@
     <div id="list-wrapper">
       <ion-list *ngIf="alternateServers">
         <ion-item *ngFor="let alternateServer of alternateServers" (click)="serverTapped(alternateServer)">
-          <div class="name">{{alternateServer.name}}</div>
-          <div class="description">{{alternateServer.description}}</div>
+          <div>
+            <div class="name">{{alternateServer.name}}</div>
+            <div class="description">{{alternateServer.description}}</div>
+          </div>
         </ion-item>
       </ion-list>
     </div>

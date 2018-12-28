@@ -3,49 +3,54 @@ html, body {
   margin:0;
 }
 
-.platform-android ion-header#product-entries-header {
-  height:58px; //<- required for AOT-compilation for some inexplicable reason
+#product-entries-header {
+  ion-toolbar {
+    --padding-top:0;
+    --padding-end:0;
+    --padding-bottom:0;
+    --padding-start:0;
+  }
+
+  ion-item {
+    --border-width: 0 0 0 0;
+  }
 }
 
-ion-header#product-entries-header {
-    ion-select{
-      &.no-location-selected .select-text {
-        font-style: italic;
-        padding-right: 3px;
-      }
-      &.select-md {
-        max-width: none;
-        padding-left:0;
-      }
-    }
+// .platform-android .product-entries-header {
+//   height:58px; //<- required for AOT-compilation for some inexplicable reason
+// }
 
-    .item-select {
-      background: 0;
+#product-entries-header {
+    .product-entries-header { 
+      display: flex;
+    }
+    &.no-location-selected .select-text {
+      font-style: italic;
+      padding-right: 3px;
+    }
+    &.select-md {
+      max-width: none;
       padding-left:0;
-
-      ion-label {
-        display: none;
-      }
-
-      .select-text {
-        font-size: 2rem;
-        font-weight: 500;
-        color: var(ion-color-dark);
-      }
-
-      ion-select.select-ios {
-        padding-right:0px;
-        max-width: none;
-
-        .select-icon {
-          width: 15px;
-        }
-      }
     }
 
-    .item-md.item-select {
-      .item-inner {
-        border:0;
+
+    ion-label {
+      display: none;
+    }
+
+    .select-text {
+      // TODO: UPGRADE: Not possible without overriding ion-select
+      font-size: 2rem;
+      font-weight: 500;
+      color: var(ion-color-ionic-dark);
+    }
+
+    ion-select.select-ios {
+      padding-right:0px;
+      max-width: none;
+
+      .select-icon {
+        width: 15px;
       }
     }
 
@@ -54,10 +59,8 @@ ion-header#product-entries-header {
     }
 
     .filter-bar {
-      .toolbar-content {
-        display: flex;
-        align-items: center;
-      }
+      display: flex;
+      align-items: center;
 
       ion-item {
         flex:1;
@@ -73,7 +76,12 @@ ion-header#product-entries-header {
     }
 }
 
-ion-content#product-entries {
+
+ion-content#product-entries { 
+  ion-item {
+    --padding-start: 0;
+  }
+
   #wrapper {
     display:flex;
     flex-direction: column;
@@ -124,7 +132,7 @@ ion-content#product-entries {
       }
 
       .active::after {
-        content: "\f28c";
+        content: "↑";
         speak:none;
         font-family: "Ionicons";
         padding-left: 2px;
@@ -178,7 +186,7 @@ ion-content#product-entries {
     }
 
     #list-sorters.sort-ascending .active::after {
-      content: "\f27e";
+      content: "↓";
     }
   }
 
@@ -199,6 +207,11 @@ ion-content#product-entries {
         padding-right: 0;
       }
 
+      .product-entry-wrapper {
+        width: 100%;
+      }
+
+      // TODO: UPGRADE: These are shadow DOMed:
       .item-md .item-inner {
         padding-right: 0;
       }
@@ -212,14 +225,18 @@ ion-content#product-entries {
       }
 
       ion-item.gone-bad {
-        color: var(--ion-color-bad);
+        color: var(--color-bad);
       }
 
       ion-item.gone-medium {
-        color: var(--ion-color-medium-danger);
+        color: var(--color-medium-danger);
       }
 
-      ion-item.no-products {
+      .no-products {
+        text-align: center;
+        width: 100%;
+        margin: 10px;
+
         .label {
           color: var(--ion-color-medium-dark);
           display: block;
@@ -227,12 +244,6 @@ ion-content#product-entries {
           text-align: center;
           font-size: 20px;
           white-space: inherit;
-        }
-
-        .button-md {
-          display: inline-block;
-          text-align: center;
-          font-size: 15px;
         }
       }
 
@@ -287,6 +298,10 @@ ion-content#product-entries {
         padding: 2px;
       }
 
+      .expiration .label {
+        margin-right: 5px;
+      }
+
 
       @media (max-width: 350px) {
         .amount {
@@ -318,10 +333,11 @@ ion-content#product-entries {
           margin-left: 1%;
 
           input {
-            --size: --ion-checkbox-size;
+            // TODO: UPGRADE - Derive this from ionic as it used to be
+            width: 21px;
+            height: 21px;
+            margin: 8px 16px 8px 2px;
 
-            // TODO: UPGRADE
-            // margin: $checkbox-ios-item-left-margin;
             max-width: 100%;
             display:inline-block;
           }
@@ -361,7 +377,7 @@ ion-content#product-entries {
       @media (min-width: 350px) and (max-width: 640px) {
         .creation {
           display:inline-block;
-          width: 100%;
+          // width: 100%;
 
           &.inline {
             width: auto;
@@ -380,7 +396,7 @@ ion-content#product-entries {
 
         .expiration {
           position:relative;
-          margin-top:-50px;
+          margin-top:-35px;
         }
       }
 

@@ -13,6 +13,9 @@ import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-en
 import { RecipeSearchModal } from 'src/modal/recipes/search/recipe-search';
 import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/product-entry-move-form';
 
+// TODO-no-commit
+declare var navigator: any;
+
 @Component({
   selector: 'product-entries',
   styleUrls: ['product-entries.scss'],

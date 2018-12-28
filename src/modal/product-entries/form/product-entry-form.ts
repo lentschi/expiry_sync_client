@@ -191,7 +191,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
       }).then(async (barcodeData) => {
         const versions = this.device.version ? this.device.version.split('.') : [];
         const majorVersion = versions.length > 0 ? parseInt(versions[0], 10) : 0;
-        if (barcodeData.cancelled && this.platform.is('android') && majorVersion > 6) {
+        if (barcodeData.cancelled && this.device.platform && this.device.platform.toLowerCase() === 'android' && majorVersion > 6) {
           this.app.preventNextBackButton = true;
           await this.viewChangeOccurred();
           this.focusBarcodeInput();

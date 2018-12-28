@@ -51,26 +51,6 @@ export class SettingsModal {
   }
 
   async timeValueChanged(setting: Setting) {
-    // TODO: Remove all this after upgrading to ionic-angular 3.1.1:
-    // (s. https://github.com/driftyco/ionic/issues/11503)
-    let hour: string = (<any>setting.value).hour;
-    if (typeof (hour) === 'undefined') {
-      return;
-    }
-    hour = String(hour);
-    if (hour.length === 1) {
-      hour = '0' + hour;
-    }
-    let minute: string = (<any>setting.value).minute;
-    if (typeof (minute) === 'undefined') {
-      return;
-    }
-    minute = String(minute);
-    if (minute.length === 1) {
-      minute = '0' + minute;
-    }
-    setting.value = `${hour}:${minute}`;
-
     await Setting.set(setting.key, setting.value);
   }
 

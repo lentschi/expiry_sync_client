@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NavParams, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
@@ -13,13 +13,15 @@ interface RecipeKeyword {
   templateUrl: 'recipe-search.html',
   styleUrls: ['recipe-search.scss']
 })
-export class RecipeSearchModal extends ExpirySyncController {
+export class RecipeSearchModal extends ExpirySyncController implements OnInit {
   keywords: Array<RecipeKeyword>;
   selectedProductEntries: ProductEntry[];
 
   constructor(private modalCtrl: ModalController, translate: TranslateService) {
     super(translate);
+  }
 
+  ngOnInit() {
     this.keywords = [];
     for (const productEntry of this.selectedProductEntries) {
       const articleWords = productEntry.article.name.split(/\s/g);

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -10,7 +10,7 @@ import { UiHelper } from 'src/utils/ui-helper';
 @Component({
   templateUrl: 'location-form.html'
 })
-export class LocationFormModal extends ExpirySyncController {
+export class LocationFormModal extends ExpirySyncController implements OnInit {
   location: Location;
   locationId: string;
   locationForm: NgForm;
@@ -23,10 +23,9 @@ export class LocationFormModal extends ExpirySyncController {
     translate: TranslateService
   ) {
     super(translate);
-    this.initialize();
   }
 
-  private async initialize() {
+  async ngOnInit() {
     this.app = ExpirySync.getInstance();
 
     if (this.locationId) {

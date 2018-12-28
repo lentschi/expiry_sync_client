@@ -23,8 +23,8 @@ import { LoadingOptions } from '@ionic/core';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
 
-declare var window;
-declare var cordova;
+declare var window: any;
+declare var cordova: any;
 
 /**
  * The main menu's menu points
@@ -483,34 +483,38 @@ export class ExpirySync extends ExpirySyncController {
       this.scheduleReminder();
     });
 
-    // TODO: UPGRADE:
-
     // handle the wakeup plugin's events:
-    // if (typeof (window.plugins) !== 'undefined') {
-    //   window.plugins.intent.setNewIntentHandler(async intent => {
-    //     if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
-    //       // the app has been running and a wakeup occurred
-    //       // -> show the reminder:
-    //       await this.showReminder();
-    //       if (this.exitAfterReminder) {
-    //         // the app was in background when the wakeup occurred
-    //         // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
-    //         this.platform.exitApp();
-    //       }
-    //     }
-    //   });
+    if (typeof (window.plugins) !== 'undefined') {
+      console.log('Intent plugin found');
+      window.plugins.intent.setNewIntentHandler(async intent => {
+        console.log('New intent received: ' + JSON.stringify(intent));
+        if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
+          // the app has been running and a wakeup occurred
+          // -> show the reminder:
+          await this.showReminder();
+          if (this.exitAfterReminder) {
+            // the app was in background when the wakeup occurred
+            // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
+            window.navigator.app.exitApp();
+          }
+        }
+      });
 
-    //   window.plugins.intent.getCordovaIntent(async intent => {
-    //     if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
-    //       // the app has not been running and a wakeup occurred
-    //       // -> show the reminder and then exit the app again:
-    //       await this.showReminder();
-    //       this.platform.exitApp();
-    //     }
-    //   }, () => {
-    //     console.error('unknown cdvintent error');
-    //   });
-    // }
+      window.plugins.intent.getCordovaIntent(async intent => {
+        console.log('Inital intent: ' + JSON.stringify(intent) + ', ' + JSON.stringify(!!window.navigator)
+          + ', ' + JSON.stringify(!!window.navigator.app) + ', ' + JSON.stringify(!!window.navigator.app.exitApp));
+        if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
+          // the app has not been running and a wakeup occurred
+          // -> show the reminder and then exit the app again:
+          await this.showReminder();
+          window.navigator.app.exitApp();
+        }
+      }, () => {
+        console.error('unknown cdvintent error');
+      });
+    } else {
+      console.log('No intent plugin');
+    }
   }
 
   /**
@@ -739,7 +743,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   private showServerChoice(): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
-      const modal = await this.modalCtrl.create({component: AlternateServersChoiceModal});
+      const modal = await this.modalCtrl.create({ component: AlternateServersChoiceModal });
       modal.onDidDismiss().then(async (event) => {
         const serverSelected: boolean = event.data;
         await Setting.set('serverChosen', '1');
@@ -948,6 +952,8 @@ export class ExpirySync extends ExpirySyncController {
         }
         this.showLoadingOverlay = false;
         console.log('All loading done');
+      } else {
+        console.log('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
       }
     }, 1);
   }
@@ -972,7 +978,7 @@ export class ExpirySync extends ExpirySyncController {
       if (menuPoint.component) {
         // menu point configured to open a modal:
         if (menuPoint.modal) {
-          const modal = await this.modalCtrl.create({component: menuPoint.component, componentProps: data});
+          const modal = await this.modalCtrl.create({ component: menuPoint.component, componentProps: data });
           modal.onDidDismiss().then((...args: any[]) => {
             if (menuPoint.onDidDismiss) {
               menuPoint.onDidDismiss.apply(this, args);
@@ -994,7 +1000,7 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   get runningInBrowser(): boolean {
-    return (this.platform.is('desktop') || !this.device.platform || this.device.platform === 'browser');
+    return (!this.device.platform || this.device.platform.toLowerCase() === 'browser');
   }
 
   async detectVersion() {

@@ -23,10 +23,10 @@ export class Location extends AppModel {
   name: string;
 
   @Column()
-  isSelected = false;
+  isSelected: boolean;
 
   @Column()
-  inSync = false;
+  inSync: boolean;
 
   @Column('DATE')
   createdAt: Date;
