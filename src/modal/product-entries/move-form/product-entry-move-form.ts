@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { NavParams, Events, ModalController } from '@ionic/angular';
+import { Events, ModalController } from '@ionic/angular';
 import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
 import { ProductEntry, Location } from 'src/app/models';
 import { UiHelper } from 'src/utils/ui-helper';
@@ -9,23 +9,25 @@ import { ExpirySync } from 'src/app/app.expiry-sync';
 @Component({
   templateUrl: 'product-entry-move-form.html'
 })
-export class ProductEntryMoveFormModal extends ExpirySyncController {
+export class ProductEntryMoveFormModal extends ExpirySyncController implements OnInit {
   productEntries: Array<ProductEntry>;
+  allLocations: Array<Location>;
   locations: Array<Location>;
   currentLocation: Location;
   selectedLocationId: string;
 
   constructor(
     translate: TranslateService,
-    params: NavParams,
     private modalCtrl: ModalController,
     private uiHelper: UiHelper,
     private events: Events
   ) {
     super(translate);
+  }
 
+  ngOnInit() {
     this.locations = [];
-    for (const location of this.locations) {
+    for (const location of this.allLocations) {
       if (location.id !== this.currentLocation.id) {
         this.locations.push(location);
         if (!this.selectedLocationId) {
@@ -34,7 +36,6 @@ export class ProductEntryMoveFormModal extends ExpirySyncController {
       }
     }
   }
-
 
   dismiss() {
     this.modalCtrl.dismiss();

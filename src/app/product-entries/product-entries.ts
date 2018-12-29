@@ -381,7 +381,7 @@ export class ProductEntriesPage extends ExpirySyncController {
             component: ProductEntryMoveFormModal,
             componentProps: {
               productEntries: this.productEntries.selected,
-              locations: this.locations,
+              allLocations: this.locations,
               currentLocation: this.selectedLocation
             }
           });

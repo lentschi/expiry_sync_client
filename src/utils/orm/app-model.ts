@@ -270,7 +270,15 @@ export class AppModel {
 
     for (const propertyName of Object.keys(modelClass.typeMap)) {
       try {
-        this.internalInstance[propertyName] = this[propertyName];
+        const propertyType = modelClass.typeMap[propertyName];
+        let propertyValue = this[propertyName];
+        if (propertyType === 'BOOL' && typeof propertyValue === 'undefined') {
+          // persistencejs would handle undefined as NULL, but for booleans
+          // we want false here:
+          propertyValue = false;
+        }
+
+        this.internalInstance[propertyName] = propertyValue;
       } catch (e) {
         console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance);
       }

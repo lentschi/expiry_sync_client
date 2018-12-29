@@ -9,12 +9,12 @@ export class QueryCollection {
    */
   constructor(private persistenceCollection, private modelClass, private internalEntity) { }
 
-  filter(property:string, operator:string, value:any):QueryCollection {
+  filter(property: string, operator: string, value: any): QueryCollection {
     this.persistenceCollection = this.persistenceCollection.filter(property, operator, value);
     return this;
   }
 
-  order(property:string, ascending?:boolean):QueryCollection {
+  order(property: string, ascending?: boolean): QueryCollection {
     if (ascending === undefined) {
       ascending = true;
     }
@@ -22,10 +22,10 @@ export class QueryCollection {
     return this;
   }
 
-  list():Promise<Array<AppModel>> {
+  list(): Promise<Array<AppModel>> {
     return new Promise<Array<AppModel>>((resolve, reject) => {
       this.persistenceCollection.list((results) => {
-        let modelInstances:Array<AppModel> = [];
+        const modelInstances: Array<AppModel> = [];
         results.forEach((persistenceInstance) => {
           modelInstances.push(this.modelClass.createFromPersistenceInstance(persistenceInstance));
         });
@@ -35,23 +35,22 @@ export class QueryCollection {
     });
   }
 
-  one():Promise<AppModel> {
+  one(): Promise<AppModel> {
     return new Promise<AppModel>((resolve, reject) => {
       this.persistenceCollection.one((persistenceInstance) => {
         if (!persistenceInstance) {
           reject(new RecordNotFoundError());
-        }
-        else {
-          let modelInstance:AppModel = this.modelClass.createFromPersistenceInstance(persistenceInstance);
+        } else {
+          const modelInstance: AppModel = this.modelClass.createFromPersistenceInstance(persistenceInstance);
           resolve(modelInstance);
         }
       });
     });
   }
 
-  delete():Promise<void> {
+  delete(): Promise<void> {
     return new Promise<void>(resolve => {
-      this.persistenceCollection.list(async(results) => {
+      this.persistenceCollection.list(async (results) => {
         results.forEach((persistenceInstance) => {
           persistence.remove(persistenceInstance);
         });
@@ -62,9 +61,9 @@ export class QueryCollection {
     });
   }
 
-  count():Promise<number> {
+  count(): Promise<number> {
     return new Promise<number>(resolve => {
-      this.persistenceCollection.list(async(results) => {
+      this.persistenceCollection.list(async (results) => {
         let count = 0;
         results.forEach((persistenceInstance) => {
           count++;
@@ -75,17 +74,17 @@ export class QueryCollection {
     });
   }
 
-  updateField(propertyName:string, value:any):Promise<void> {
-    return this.update([{propertyName, value}]);
+  updateField(propertyName: string, value: any): Promise<void> {
+    return this.update([{ propertyName, value }]);
   }
 
-  update(values:Array<{propertyName:string, value:any}>):Promise<void> {
+  update(values: Array<{ propertyName: string, value: any }>): Promise<void> {
     return new Promise<void>(resolve => {
-      this.persistenceCollection.list(async(results) => {
+      this.persistenceCollection.list(async (results) => {
         results.forEach((persistenceInstance) => {
-          for (let value of values) {
+          for (const value of values) {
             if (typeof persistenceInstance[value.propertyName] === 'undefined') {
-              throw `No such property: '${value.propertyName}'`;
+              throw new Error(`No such property: '${value.propertyName}'`);
             }
             persistenceInstance[value.propertyName] = value.value;
           }
@@ -97,10 +96,10 @@ export class QueryCollection {
     });
   }
 
-  prefetch(propertyName:string):QueryCollection {
-    let relationName:string = this.modelClass.hasOneRelations[propertyName];
+  prefetch(propertyName: string): QueryCollection {
+    const relationName: string = this.modelClass.hasOneRelations[propertyName];
     if (!relationName) {
-      throw "Not a hasOne relation: " + propertyName;
+      throw new Error('Not a hasOne relation: ' + propertyName);
     }
 
     this.internalEntity.hasOne(AppModel.buildForeignKeyName(propertyName), AppModel.getModelClass(relationName).internalEntity);

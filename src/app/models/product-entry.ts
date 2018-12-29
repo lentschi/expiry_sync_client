@@ -76,10 +76,10 @@ export class ProductEntry extends AppModel {
   description: string;
 
   @Column()
-  freeToTake = false;
+  freeToTake: boolean;
 
   @Column()
-  inSync = false;
+  inSync: boolean;
 
   @Column('DATE')
   expirationDate: Date = new Date();
