@@ -16,7 +16,7 @@ import { UiHelper } from 'src/utils/ui-helper';
 export class UserLoginModal extends ExpirySyncController {
   user: User;
   loginForm: NgForm;
-  serverValidationErrors = {};
+  serverValidationErrors: any = {};
   error: Error;
   private app: ExpirySync;
   @ViewChild('loginForm') currentForm: NgForm;

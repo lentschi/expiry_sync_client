@@ -18,7 +18,7 @@
   <ng-container *ngIf="location.ownedByCurrentUser">
     <form #locationForm="ngForm" class="list" (ngSubmit)="submitTapped(locationForm.valid)" novalidate>
       <ion-item>
-        <ion-label stacked translate>name</ion-label>
+        <ion-label position="floating" translate>name</ion-label>
         <ion-input 
           required 
           [(ngModel)]="location.name" 
@@ -32,7 +32,7 @@
             <div [hidden]="!name.errors.required" translate>Setting value is required</div>
       </div>
       
-      <ion-button type="submit" full translate>save</ion-button>
+      <ion-button type="submit" expand="full" translate>save</ion-button>
     </form>
   </ng-container>
   <div class="info" *ngIf="!location.ownedByCurrentUser">

@@ -14,8 +14,26 @@ html, body {
   ion-item {
     --border-width: 0 0 0 0;
   }
+
+  ion-select {
+    --padding-start: 0;
+    font-size: 1.35rem;
+    font-weight: 500;
+
+    &.no-location-selected {
+      font-style: italic;
+      padding-right: 3px;
+    }
+
+    // TODO: Upgrade: Check what this did:
+    // &.select-md {
+    //   max-width: none;
+    //   padding-left:0;
+    // }
+  }
 }
 
+// TODO: Upgrade: Check if this is still required:
 // .platform-android .product-entries-header {
 //   height:58px; //<- required for AOT-compilation for some inexplicable reason
 // }
@@ -24,25 +42,9 @@ html, body {
     .product-entries-header { 
       display: flex;
     }
-    &.no-location-selected .select-text {
-      font-style: italic;
-      padding-right: 3px;
-    }
-    &.select-md {
-      max-width: none;
-      padding-left:0;
-    }
-
-
+    
     ion-label {
       display: none;
-    }
-
-    .select-text {
-      // TODO: UPGRADE: Not possible without overriding ion-select
-      font-size: 2rem;
-      font-weight: 500;
-      color: var(ion-color-ionic-dark);
     }
 
     ion-select.select-ios {

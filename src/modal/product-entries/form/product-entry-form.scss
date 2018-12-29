@@ -44,6 +44,9 @@
     text-align: center;
     margin: 20px 0px;
 
+    ion-button {
+      margin-top: 15px;
+    }
 
     .image-wrapper {
       padding:0;
@@ -52,7 +55,7 @@
 
   .submit-controls {
     text-align: center;
-    button[type="button"] {
+    ion-button[type="button"] {
       margin: 20px 0px;
     }
   }

@@ -248,8 +248,7 @@ export class ExpirySync extends ExpirySyncController {
    * Exit menu button has been tapped in the main menu
    */
   exitTapped() {
-    // TODO: UPGRADE:
-    // this.platform.exit();
+    window.navigator.app.exit();
   }
 
   private async hasLocalChanges(): Promise<boolean> {
@@ -435,43 +434,40 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   private handleBackButton() {
-    // TODO: UPGRADE
-    // this.platform.registerBackButtonAction(e => {
-    //   if (this.preventNextBackButton) {
-    //     this.preventNextBackButton = false;
-    //     return;
-    //   }
-    //   if (this.nav.canGoBack()) {
-    //     this.nav.pop()
-    //     return;
-    //   }
+    // TODO: UPGRADE: Check if this works:
+    this.platform.backButton.subscribe(async (e) => {
+      if (this.preventNextBackButton) {
+        this.preventNextBackButton = false;
+        return;
+      }
+      if (this.nav.canGoBack()) {
+        this.nav.pop();
+        return;
+      }
 
-    //   // Don't do anything while a loader is open:
-    //   let activePortal = this.app._loadingPortal.getActive();
-    //   if (activePortal) {
-    //     if (this.loaderBackButtonCallback) {
-    //       this.loaderBackButtonCallback();
-    //     }
-    //     return;
-    //   }
+      // Don't do anything while a loader is open:
+      const loader = await this.loadingCtrl.getTop();
+      if (loader) {
+        if (this.loaderBackButtonCallback) {
+          this.loaderBackButtonCallback();
+        }
+        return;
+      }
 
-    //   // Close modals, or remove toasts/overlays if any:
-    //   activePortal = this.app._modalPortal.getActive() ||
-    //     this.app._toastPortal.getActive() ||
-    //     this.app._overlayPortal.getActive();
+      // Close modals, or remove toasts/overlays if any:
+      const modal = await this.modalCtrl.getTop();
+      if (modal) {
+        return modal.dismiss();
+      }
 
-    //   if (activePortal) {
-    //     return activePortal.dismiss();
-    //   }
+      // Close menu if open:
+      if (this.menuCtrl.isOpen()) {
+        this.menuCtrl.close();
+        return;
+      }
 
-    //   // Close menu if open:
-    //   if (this.menuCtrl.isOpen()) {
-    //     this.menuCtrl.close();
-    //     return;
-    //   }
-
-    //   this.platform.exitApp();
-    // }, 101);
+      window.navigator.app.exit();
+    });
   }
 
   /**

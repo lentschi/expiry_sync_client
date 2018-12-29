@@ -11,7 +11,7 @@
 <ion-content id="user-registration" *ngIf="user">
   <form #registrationForm="ngForm" class="list" (ngSubmit)="register(registrationForm.valid)" novalidate>
     <ion-item [class.server-validation-error]="serverValidationErrors.username">
-      <ion-label stacked translate>user name</ion-label>
+      <ion-label position="floating" translate>user name</ion-label>
       <ion-input 
         required 
         [(ngModel)]="user.userName" 
@@ -31,13 +31,12 @@
       </ng-container>
     </ng-container>
     <ion-item  [class.server-validation-error]="serverValidationErrors.email">
-      <ion-label stacked translate>email</ion-label>
+      <ion-label position="floating"><span translate>email</span>{{' (' + ('optional' | translate) + ')'}}</ion-label>
       <ion-input 
         [(ngModel)]="user.email" 
         name="email" 
         maxlength="255"
         #email="ngModel" 
-        [placeholder]="'optional' | translate" 
         type="email"></ion-input>
     </ion-item>
     <ng-container *ngIf="serverValidationErrors.email">
@@ -46,7 +45,7 @@
       </ng-container>
     </ng-container>
     <ion-item [class.server-validation-error]="serverValidationErrors.password">
-      <ion-label stacked translate>password</ion-label>
+      <ion-label position="floating" translate>password</ion-label>
       <ion-input type="password" [(ngModel)]="user.password" name="password" #password="ngModel" maxlength="255"></ion-input>
     </ion-item>
     <ng-container *ngIf="serverValidationErrors.password">
@@ -54,7 +53,7 @@
         <div class="validation-error">{{serverValidationError}}</div>
       </ng-container>
     </ng-container>
-    <ion-button type="submit" full translate>register</ion-button>
+    <ion-button type="submit" expand="full" translate>register</ion-button>
     
     <div class="other-options">
       <div class="label" translate>You already have an account?</div>

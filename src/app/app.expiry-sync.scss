@@ -15,7 +15,18 @@
 // for the .md, .ios, or .wp mode classes. The mode class is
 // automatically applied to the <body> element in the app.
 
-.translation {
+  form {
+    .item.sc-ion-label-md-h, .item .sc-ion-label-md-h {
+      --color: var(--ion-color-medium-shade);
+    }
+  }
+
+  // TODO: Not working for some reason:
+  input::placeholder {
+    color: var(--ion-color-medium-shade);
+  }
+
+  .translation {
     display:none;
   }
   
@@ -56,25 +67,25 @@
   }
   
   @media (min-width: 365px) {
-    .item-label-stacked {
-      .label-md[stacked] {
-          align-self: inherit;
-          pointer-events: none;
-          font-size: 16px;
-          margin: 13px 8px 13px 0;
-          flex: initial;
-          width:40%;
-      }
+    // .item-label-stacked {
+    //   .label-md[stacked] {
+    //       align-self: inherit;
+    //       pointer-events: none;
+    //       font-size: 16px;
+    //       margin: 13px 8px 13px 0;
+    //       flex: initial;
+    //       width:40%;
+    //   }
   
-      ion-datetime {
-        width: inherit;
-        padding-left: inhertit;
-      }
+    //   ion-datetime {
+    //     width: inherit;
+    //     padding-left: inhertit;
+    //   }
   
-      .input-wrapper {
-        flex-direction: inherit;
-      }
-    }
+    //   .input-wrapper {
+    //     flex-direction: inherit;
+    //   }
+    // }
   }
   
   #loadingOverlay {

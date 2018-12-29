@@ -38,7 +38,7 @@
       </ion-item>
     </div>
     <ion-item #articleNameItem>
-      <ion-label stacked translate>name</ion-label>
+      <ion-label position="floating" translate>name</ion-label>
       <ion-input [(ngModel)]="productEntry.article.name" name="name" maxlength="255" #name="ngModel" required></ion-input>
     </ion-item>
     <div *ngIf="name.errors && (name.dirty || name.touched)"
@@ -46,7 +46,7 @@
           <div [hidden]="!name.errors.required" translate>Name is required</div>
     </div>
     <ion-item>
-      <ion-label stacked translate>expiration date</ion-label>
+      <ion-label position="floating" translate>expiration date</ion-label>
       <ion-datetime
         displayFormat="{{dateFormat}}"
         max="{{maxExpirationDate}}"
@@ -59,7 +59,7 @@
         #expirationDate="ngModel"></ion-datetime>
     </ion-item>
     <ion-item>
-      <ion-label stacked translate>amount</ion-label>
+      <ion-label position="floating" translate>amount</ion-label>
       <ion-input
         type="number"
         validateGreaterThan="0"
@@ -77,7 +77,7 @@
           <div [hidden]="!amount.errors.validateInteger" translate>Amount must be an integer</div>
     </div>
     <ion-item>
-      <ion-label stacked translate>description</ion-label>
+      <ion-label position="floating" translate>description</ion-label>
       <ion-input [(ngModel)]="productEntry.description" name="description" maxlength="255" #description="ngModel"></ion-input>
     </ion-item>
     <ion-item *ngIf="productEntry.ownedByCurrentUser">
@@ -100,7 +100,7 @@
         <ion-icon name="copy"></ion-icon>
         save as copy
       </ion-button>
-      <ion-button type="submit" full translate>save</ion-button>
+      <ion-button type="submit" expand="full" translate>save</ion-button>
     </div>
   </form>
 </ion-content>
