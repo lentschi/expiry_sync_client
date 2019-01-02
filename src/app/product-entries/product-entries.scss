@@ -276,6 +276,8 @@ ion-content#product-entries {
         }
 
         &.free-to-take {
+          margin-right: 5px;
+          margin-top: 5px;
           .label {
             display:none;
           }
@@ -379,7 +381,6 @@ ion-content#product-entries {
       @media (min-width: 350px) and (max-width: 640px) {
         .creation {
           display:inline-block;
-          // width: 100%;
 
           &.inline {
             width: auto;
@@ -393,7 +394,6 @@ ion-content#product-entries {
 
         .location {
           display:inline-block;
-          width: 100%;
         }
 
         .expiration {

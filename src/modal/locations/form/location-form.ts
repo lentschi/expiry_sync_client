@@ -80,8 +80,8 @@ export class LocationFormModal extends ExpirySyncController implements OnInit {
 
     const task: Symbol = this.app.loadingStarted('Saving location');
     this.location.inSync = false;
-    await this.location.save();
     this.modalCtrl.dismiss(this.location);
+    await this.location.save();
     this.app.loadingDone(task);
   }
 }

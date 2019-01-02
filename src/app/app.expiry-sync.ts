@@ -110,11 +110,6 @@ export class ExpirySync extends ExpirySyncController {
   currentUser: User;
 
   /**
-   * Show/hide the loading overlay (prevents clicks to the background if the loader is visible)
-   */
-  showLoadingOverlay = false;
-
-  /**
    * List of menu points to be shown in the main menu
    */
   menuPoints: Array<MenuPointConfig>;
@@ -906,19 +901,17 @@ export class ExpirySync extends ExpirySyncController {
       options.message = this.translateSvc.instant('Please wait...');
     }
 
-    this.showLoadingOverlay = true;
-    setTimeout(async () => {
-      if (this.showLoadingOverlay) {
-        if (!this.loader) {
-          this.loader = await this.loadingCtrl.create(options);
-          this.loader.present();
-        } else if (forceReopening) {
-          this.loader.dismiss();
-          this.loader = await this.loadingCtrl.create(options);
-          this.loader.present();
-        }
-      }
-    }, 200);
+    if (this.loader && forceReopening) {
+      this.loader.dismiss();
+      this.loader = null;
+    }
+
+    if (!this.loader) {
+      this.loadingCtrl.create(options).then(loader => {
+        this.loader = loader;
+        this.loader.present();
+      });
+    }
 
     this.loadingTasks.push(task);
     return task;
@@ -946,7 +939,6 @@ export class ExpirySync extends ExpirySyncController {
           this.loader.dismiss();
           this.loader = null;
         }
-        this.showLoadingOverlay = false;
         console.log('All loading done');
       } else {
         console.log('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
