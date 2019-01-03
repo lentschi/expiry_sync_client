@@ -25,7 +25,20 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadlessNoSandbox'],
+	 	customLaunchers: {
+			ChromeHeadlessNoSandbox: {
+				base: 'ChromeHeadless',
+				flags: ['--no-sandbox']
+			}
+    },
+    files: [
+      {pattern: '../www/assets/js/persistencejs/persistence.js', watched: false},
+      {pattern: '../www/assets/js/persistencejs/persistence.store.sql.js', watched: false},
+      {pattern: '../www/assets/js/persistencejs/persistence.store.websql.js', watched: false},
+      {pattern: '../www/assets/js/persistencejs/persistence.store.cordovasql.js', watched: false},
+      {pattern: '../www/assets/js/persistencejs/persistence.migrations.js', watched: false}
+    ],
     singleRun: false
   });
 };

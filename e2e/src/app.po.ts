@@ -9,7 +9,13 @@ export class AppPage {
     return browser.getTitle();
   }
 
-  getPageOneTitleText() {
-    return element(by.tagName('app-home')).element(by.deepCss('ion-title')).getText();
+  async getPageOneTitleText() {
+    debugger;
+    
+    const labelElement = element(by.deepCss('ion-label'));
+    const html = await labelElement.getAttribute('outerHTML');
+    const textContent = await labelElement.getAttribute('textContent');
+    const text = await labelElement.getText();
+    return text;
   }
 }
