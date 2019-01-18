@@ -7,12 +7,13 @@ import { SettingEditIntegerElement } from '../../modal/settings/edit/types/integ
 import { SettingSelectElement } from '../../modal/settings/edit/types/select/setting-select';
 import { SettingEditElement } from '../../modal/settings/edit/types/setting-edit-element';
 import { Type } from '@angular/core';
+import { environment } from 'src/environments/environment';
+import * as moment from 'moment';
+import 'moment/min/locales';
 
 declare var SharedPreferences: any;
 declare var cordova: any;
 
-import * as moment from 'moment';
-import 'moment/min/locales';
 
 export interface SettingConfiguration {
   default: string;
@@ -72,7 +73,7 @@ export class Setting extends AppModel {
     },
     // searchUrl: {default: 'http://www.chefkoch.de/rs/s0/{{ingredients}}/Rezepte.html', editComponent: SettingEditStringElement},
     searchUrl: { default: 'http://www.google.com/#q={{recipeTranslation}}%20{{ingredients}}', editComponent: SettingEditStringElement },
-    host: { default: 'https://expiry-sync-web.local', editComponent: SettingEditStringElement },
+    host: { default: environment.defaultServerUrl, editComponent: SettingEditStringElement },
     lastSync: { default: '' },
     serverChosen: { default: '0' },
     lastUserId: { default: '' },

@@ -1,8 +1,17 @@
-const { Given } = require('cucumber');
-const chai = require('chai').use(require('chai-as-promised'));
-const { exec } = require('child_process');
-const chExpect = chai.expect;
+
+import { Before, Given, setDefaultTimeout } from 'cucumber';
+import { ServerUtils } from './utils/server-utils';
+
+
+
+
+setDefaultTimeout(30000);
+
+Before(async () => {
+});
 
 Given(/^the ExpirySync API server is in its pristine state and running$/, async () => {
-    await chExpect('lala').to.eventually.equal('Google');
+    const utils = new ServerUtils();
+    await utils.runFrontend();
+    await utils.runBackend();
 });

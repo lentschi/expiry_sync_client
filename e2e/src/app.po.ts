@@ -10,8 +10,6 @@ export class AppPage {
   }
 
   async getPageOneTitleText() {
-    debugger;
-    
     const labelElement = element(by.deepCss('ion-label'));
     const html = await labelElement.getAttribute('outerHTML');
     const textContent = await labelElement.getAttribute('textContent');

@@ -11,15 +11,15 @@ exports.config = {
   capabilities: {
     'browserName': 'chrome',
     chromeOptions: {
-      args: ['--headless', '--no-sandbox']
+      args: ['--no-sandbox']
     }
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'https://expiry-sync-app.local:9002/',
   framework: 'custom',  // set to "custom" instead of cucumber.
   frameworkPath: require.resolve('protractor-cucumber-framework'),
   specs: [
-    './features/**/*.feature'     // Specs here are the cucumber feature files
+    './features/users/registration.feature'     // Specs here are the cucumber feature files
   ],
   cucumberOpts: {
     compiler: "ts:ts-node/register",
@@ -37,5 +37,8 @@ exports.config = {
   },
   onPrepare() {
     browser.manage().window().maximize(); // maximize the browser before executing the feature files
+    require('ts-node').register({
+      project: 'e2e/tsconfig.e2e.json'
+    });
   }
 };

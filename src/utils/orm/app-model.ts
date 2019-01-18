@@ -36,7 +36,6 @@ export function HasOne(typeName?: string) {
 
     if (!typeName) {
       const meta = Reflect.getMetadata('design:type', object, propertyName);
-      // const meta = {name: 'Lala'};
       typeName = meta.name;
     }
 
