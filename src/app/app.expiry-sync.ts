@@ -773,14 +773,12 @@ export class ExpirySync extends ExpirySyncController {
         let loginMenuPoint;
         const params: any = {};
 
-        if (openRegistrationOnFailure) {
+        if (openRegistrationOnFailure  || !user || !user.login) {
           loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.registration);
         } else {
           loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.login);
-          if (user && user.login) {
-            // We tried with a seemingly valid user -> display errors:
-            params.error = e;
-          }
+          // We tried with a seemingly valid user -> display errors:
+          params.error = e;
         }
         this.openMenuPoint(loginMenuPoint, params);
       }

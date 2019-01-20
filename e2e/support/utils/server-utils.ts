@@ -1,14 +1,23 @@
 import { spawn } from 'child_process';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-// import * as util from 'util';
 
 
 const expect = chai.use(chaiAsPromised).expect;
 
 export class ServerUtils {
-    public async runBackend() {
-        const child = spawn('./e2e/support/scripts/run_server.sh');
+    private static singletonInstance: ServerUtils;
+
+    public static singleton(): ServerUtils {
+        if (!ServerUtils.singletonInstance) {
+            ServerUtils.singletonInstance = new ServerUtils();
+        }
+
+        return ServerUtils.singletonInstance;
+    }
+
+    private async run(command: string) {
+        const child = spawn(command);
         const exit = new Promise(resolve => {
             child.on('exit', code => {
                 resolve(code);
@@ -16,24 +25,22 @@ export class ServerUtils {
         });
 
         await expect(exit).to.eventually.equal(0);
+        console.log(`Command '${command}' successfuly executed.`);
+    }
 
-        //   for await (const data of child.stdout) {
-        //     console.log(`stdout from the child: ${data}`);
-        //   }
-        //   throw new Error('DONE');
-        //   const spawnChildEvent = util.promisify(child.on);
-        //   const code = await spawnChildEvent('exit');
-        //   throw new Error('Exit code: ' + code);
+    public async runBackend() {
+        await this.run('./e2e/support/scripts/run_server.sh');
     }
 
     public async runFrontend() {
-        const child = spawn('./e2e/support/scripts/run_client.sh');
-        const exit = new Promise(resolve => {
-            child.on('exit', code => {
-                resolve(code);
-            });
-        });
+        await this.run('./e2e/support/scripts/run_client.sh');
+    }
 
-        await expect(exit).to.eventually.equal(0);
+    public async stopBackend() {
+        await this.run('./e2e/support/scripts/stop_server.sh');
+    }
+
+    public async stopFrontend() {
+        await this.run('./e2e/support/scripts/stop_client.sh');
     }
 }

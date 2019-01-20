@@ -19,7 +19,7 @@ exports.config = {
   framework: 'custom',  // set to "custom" instead of cucumber.
   frameworkPath: require.resolve('protractor-cucumber-framework'),
   specs: [
-    './features/users/registration.feature'     // Specs here are the cucumber feature files
+    './features/users/login.feature'     // Specs here are the cucumber feature files
   ],
   cucumberOpts: {
     compiler: "ts:ts-node/register",

@@ -75,7 +75,7 @@ export class Setting extends AppModel {
     searchUrl: { default: 'http://www.google.com/#q={{recipeTranslation}}%20{{ingredients}}', editComponent: SettingEditStringElement },
     host: { default: environment.defaultServerUrl, editComponent: SettingEditStringElement },
     lastSync: { default: '' },
-    serverChosen: { default: '0' },
+    serverChosen: { default: environment.defaultServerChosen ? '1' : '0' },
     lastUserId: { default: '' },
     syncInterval: { default: '5000' },
   };

@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  defaultServerUrl: 'https://expiry-sync-web.local'
+  defaultServerUrl: 'https://expiry-sync-web.local',
+  defaultServerChosen: false
 };
 
 /*

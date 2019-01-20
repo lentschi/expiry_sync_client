@@ -57,7 +57,7 @@ export class UiHelper {
   async toast(message: string, cssClass?: string): Promise<HTMLIonToastElement> {
     const toast = await this.toastCtrl.create({
       message: message,
-      duration: 3000,
+      duration: 300000, // TODO-no-commit
       cssClass: cssClass
     });
 
