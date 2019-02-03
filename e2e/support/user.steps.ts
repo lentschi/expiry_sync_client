@@ -1,7 +1,7 @@
 import { browser, element, by, until } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { fillAndSubmitForm, shouldSeeToast as seeToast, shouldSeeMenuPoint } from './utils/ui-utils';
+import { fillAndSubmitForm, shouldSeeToast as seeToast, shouldSeeMenuPoint, tapMenuPoint } from './utils/ui-utils';
 import { ScenarioMemory } from './utils/scenario-memory';
 import { UserSamples } from './samples/user-samples';
 import { Given, Then, Step, When } from './utils/cucumber-wrapper';
@@ -84,8 +84,27 @@ When(/^I try to login (as that user|with the same user as on the first device|wi
     memory.memorize(userData, 'that user');
 });
 
+When(/^I try to log out$/, async() => {
+    tapMenuPoint('Logout');
+});
+
+Then(/^logout should be successful$/, async () => {
+    await seeToast('You have been logged out');
+});
+
 
 Then (/^I should be logged in as that user$/, async() => {
     const thatUser = memory.recall('that user');
     await shouldSeeMenuPoint(`Logout "${thatUser.account_name}"`);
+});
+
+Given(/^I am logged in as that user$/, async() => {
+    try {
+        await shouldSeeMenuPoint('Logout');
+        await Step(this, 'I try to log out');
+        await Step(this, 'logout should be successful');
+    } catch (e) { }
+
+    await Step(this, 'I try to login as that user');
+    await Step(this, 'I should be logged in as that user');
 });

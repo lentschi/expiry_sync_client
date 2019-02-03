@@ -905,10 +905,11 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     if (!this.loader) {
-      this.loadingCtrl.create(options).then(loader => {
-        this.loader = loader;
-        this.loader.present();
-      });
+      // TODO-no-commit
+      // this.loadingCtrl.create(options).then(loader => {
+      //   this.loader = loader;
+      //   this.loader.present();
+      // });
     }
 
     this.loadingTasks.push(task);
