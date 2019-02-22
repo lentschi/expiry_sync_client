@@ -48,9 +48,11 @@ export async function getElement(
 
             found = true;
         } catch (e) {
-            staleElementError = e;
-            staleElementErrorCount++;
-            timeout = 1;
+            if (!e.name || e.name !== 'TimeoutError') {
+                staleElementError = e;
+                staleElementErrorCount++;
+                timeout = 1;
+            }
         }
     } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
@@ -82,9 +84,10 @@ export async function ensureDisappearance(locator: Locator,
             }, timeout);
             disappeared = true;
         } catch (e) {
-            staleElementError = e;
-            staleElementErrorCount++;
-            timeout = 1;
+            if (!e.name || e.name !== 'TimeoutError') {
+                staleElementError = e;
+                staleElementErrorCount++;
+            }
         }
     } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
@@ -94,12 +97,15 @@ export async function ensureDisappearance(locator: Locator,
 }
 
 export async function click(
-    locator: Locator,
-    errorMessage: string = 'Timeout waiting for element',
-    waitForVisibility = true,
-    extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
-    timeout = 3000): Promise<ElementFinder> {
-    const target = await getElement(locator, errorMessage, waitForVisibility, extraCondition, timeout);
+        locator: Locator,
+        errorMessage: string = 'Timeout waiting for element',
+        extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
+        timeout = 3000): Promise<ElementFinder> {
+    const target: ElementFinder = await getElement(locator, errorMessage, false, extraCondition, timeout);
+    if (!await target.isDisplayed()) {
+        await browser.executeScript('arguments[0].scrollIntoView();', await target.getWebElement());
+        await browser.sleep(400); // <- Unsure why this is required
+    }
     await target.click();
     return target;
 }
@@ -108,6 +114,7 @@ export async function getSingularElement(
         elem: ElementFinder,
         errorMessage: string | boolean = 'Timeout waiting for element',
         waitForVisibility = true,
+        extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
         timeout = 3000,
         maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
     let found = false;
@@ -127,14 +134,20 @@ export async function getSingularElement(
                     return false;
                 }
 
+                if (extraCondition && (! await extraCondition(elem))) {
+                    return false;
+                }
+
                 return true;
             }, timeout);
 
             found = true;
         } catch (e) {
-            staleElementError = e;
-            staleElementErrorCount++;
-            timeout = 1;
+            if (!e.name || e.name !== 'TimeoutError') {
+                staleElementError = e;
+                staleElementErrorCount++;
+                timeout = 1;
+            }
         }
     } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
@@ -146,11 +159,15 @@ export async function getSingularElement(
     return found ? elem : null;
 }
 
-export async function getFormField(label: string): Promise<ElementFinder> {
-    return await getSingularElement(
-        element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input`))
-        .element(by.css_sr('::sr .native-input'))
-    );
+export async function getFormField(
+        label: string,
+        errorMessage: string | boolean = 'Timeout waiting for element',
+        waitForVisibility = true,
+        extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null
+    ): Promise<ElementFinder> {
+    const elem = element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input`))
+        .element(by.css_sr('::sr .native-input'));
+    return await getSingularElement(elem, errorMessage, waitForVisibility, extraCondition);
 }
 
 
@@ -284,4 +301,9 @@ export async function initializeBrowser() {
         }
         return matches;
     });
+}
+
+export async function inputWithValue(currentInput) {
+    const value = await currentInput.getAttribute('value');
+    return value !== '';
 }
