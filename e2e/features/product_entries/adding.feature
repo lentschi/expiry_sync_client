@@ -7,7 +7,7 @@ Background:
 		And there exists a user
 		And I am logged in as that user
 
-@fit
+@fit @emulated_camera
 Scenario: Add a product entry with valid data by scanning a barcode existing on one of the remotes
     When I open the add product screen
     Then barcode scanning should start automatically
