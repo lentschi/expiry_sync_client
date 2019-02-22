@@ -10,7 +10,7 @@ if [ ! -f /tmp/rails-test.pid ]; then
     rm /srv/config/rails || true
     ln -s /srv/web_config/rails /srv/config/rails
 
-    bundle exec rake db:migrate RAILS_ENV=test || bundle exec rake db:setup && bundle exec rake db:migrate RAILS_ENV=test
+    bundle exec rake db:migrate RAILS_ENV=test || bundle exec rake db:setup RAILS_ENV=test && bundle exec rake db:migrate RAILS_ENV=test
     cp -Rfp db/test.sqlite3 /tmp
 
     EMAIL_LINK_HOST="expiry-sync-web.local" authbind --deep bundle exec thin start \
