@@ -2,6 +2,7 @@ import { element, by, browser, ExpectedConditions, ElementFinder, Locator } from
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { setDefaultTimeout } from 'cucumber';
+import * as moment from 'moment';
 
 
 const expect = chai.use(chaiAsPromised).expect;
@@ -11,30 +12,47 @@ export async function getElement(
     locator: Locator,
     errorMessage: string | boolean = 'Timeout waiting for element',
     waitForVisibility = true,
-    timeout = 3000): Promise<ElementFinder> {
+    extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
+    timeout = 3000,
+    maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
     let foundElement: ElementFinder;
     let found = false;
-    try {
-        await browser.wait(async () => {
-            const allElements = element.all(locator);
-            for (let i = 0; i < await allElements.count(); i++) {
-                const currentElem = allElements.get(i);
-                if (!await currentElem.isPresent()) {
-                    continue;
+    let staleElementError: Error;
+    let staleElementErrorCount = 0;
+
+    do {
+        staleElementError = null;
+        try {
+            staleElementError = null;
+            await browser.wait(async () => {
+                const allElements = element.all(locator);
+                for (let i = 0; i < await allElements.count(); i++) {
+                    const currentElem = allElements.get(i);
+                    if (!await currentElem.isPresent()) {
+                        continue;
+                    }
+
+                    if (waitForVisibility && !await currentElem.isDisplayed()) {
+                        continue;
+                    }
+
+                    if (extraCondition && (! await extraCondition(currentElem))) {
+                        continue;
+                    }
+
+                    foundElement = currentElem;
+                    break;
                 }
+                return !!foundElement;
+            }, timeout);
 
-                if (waitForVisibility && !await currentElem.isDisplayed()) {
-                    continue;
-                }
-
-                foundElement = currentElem;
-                break;
-            }
-            return !!foundElement;
-        }, timeout);
-
-        found = true;
-    } catch (e) { }
+            found = true;
+        } catch (e) {
+            staleElementError = e;
+            staleElementErrorCount++;
+            timeout = 1;
+        }
+    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
     if (!found && errorMessage !== false) {
         assert.fail(errorMessage + ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`);
@@ -46,18 +64,29 @@ export async function getElement(
 export async function ensureDisappearance(locator: Locator,
         errorMessage: string | boolean = 'Timeout waiting for element',
         hidingIsEnough = false,
-        timeout = 3000) {
+        timeout = 3000,
+        maxRetriesDueToStaleElements = 3) {
     let disappeared = false;
-    try {
-        await browser.wait(async () => {
-            const elem = element(locator);
-            const present = await elem.isPresent();
-            const displayed = present && (await elem.isDisplayed());
+    let staleElementError: Error;
+    let staleElementErrorCount = 0;
 
-            return !present || (hidingIsEnough && !displayed);
-        }, timeout);
-        disappeared = true;
-    } catch (e) {}
+    do {
+        staleElementError = null;
+        try {
+            await browser.wait(async () => {
+                const elem = element(locator);
+                const present = await elem.isPresent();
+                const displayed = present && (await elem.isDisplayed());
+
+                return !present || (hidingIsEnough && !displayed);
+            }, timeout);
+            disappeared = true;
+        } catch (e) {
+            staleElementError = e;
+            staleElementErrorCount++;
+            timeout = 1;
+        }
+    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
     if (!disappeared) {
         assert.fail(errorMessage + ` (Locator ${locator.toString()} still returned something after ${timeout} ms)`);
@@ -68,18 +97,115 @@ export async function click(
     locator: Locator,
     errorMessage: string = 'Timeout waiting for element',
     waitForVisibility = true,
+    extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
     timeout = 3000): Promise<ElementFinder> {
-    const target = await getElement(locator, errorMessage, waitForVisibility, timeout);
+    const target = await getElement(locator, errorMessage, waitForVisibility, extraCondition, timeout);
     await target.click();
     return target;
 }
 
+export async function getSingularElement(
+        elem: ElementFinder,
+        errorMessage: string | boolean = 'Timeout waiting for element',
+        waitForVisibility = true,
+        timeout = 3000,
+        maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
+    let found = false;
+    let staleElementError: Error;
+    let staleElementErrorCount = 0;
+
+    do {
+        staleElementError = null;
+        try {
+            staleElementError = null;
+            await browser.wait(async () => {
+                if (!await elem.isPresent()) {
+                    return false;
+                }
+
+                if (waitForVisibility && !await elem.isDisplayed()) {
+                    return false;
+                }
+
+                return true;
+            }, timeout);
+
+            found = true;
+        } catch (e) {
+            staleElementError = e;
+            staleElementErrorCount++;
+            timeout = 1;
+        }
+    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
+
+    if (!found && errorMessage !== false) {
+        assert.fail(errorMessage + ` (getSingularElement did not return anything within ${timeout} ms)`);
+    }
+
+    // TODO: Ensure that there's only one of the kind
+    return found ? elem : null;
+}
+
+export async function getFormField(label: string): Promise<ElementFinder> {
+    return await getSingularElement(
+        element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input`))
+        .element(by.css_sr('::sr .native-input'))
+    );
+}
+
 
 export async function fillField(label: string, value: string) {
-    const input = element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input`))
-        .element(by.css_sr('::sr .native-input'));
+    const input = await getFormField(label);
     await input.clear();
     await input.sendKeys(value);
+}
+
+export async function fillDateField(label: string, value: Date) {
+    const dateButton = await getSingularElement(
+        element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-datetime`))
+        .element(by.css_sr('::sr button'))
+    );
+    await dateButton.click();
+    const doneButton = await getElement(by.xpath('//button[contains(.,"done")]'), 'Datepicker could not be opened');
+
+    const date = moment(value);
+
+    let currentDay: string, currentMonth: string, currentYear: string;
+    const selectedButtons = element.all(by.xpath('//button[contains(@class, "picker-opt-selected")]'));
+    for (let i = 0; i < await selectedButtons.count(); i++) {
+        const currentButton = selectedButtons.get(i);
+        switch (i) {
+            case 1: currentDay = await currentButton.getText();     break;
+            case 0: currentMonth = await currentButton.getText();   break;
+            case 2: currentYear = await currentButton.getText();    break;
+        }
+    }
+
+
+    const currentDate = moment(`${currentMonth}/${currentDay}/${currentYear}`, 'MMM/DD/YYYY');
+
+    while (currentDate.year() !== date.year()) {
+        const add = currentDate.year() < date.year() ? 1 : -1;
+        await click(
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'year').format('YYYY')}")]`)
+        );
+    }
+
+    while (currentDate.month() !== date.month()) {
+        const add = currentDate.month() < date.month() ? 1 : -1;
+        await click(
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'month').format('MMM')}")]`)
+        );
+    }
+
+    while (currentDate.date() !== date.date()) {
+        const add = currentDate.date() < date.date() ? 1 : -1;
+        await click(
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'day').format('DD')}")]`)
+        );
+    }
+
+    await doneButton.click();
 }
 
 export async function fillFields(fields: { [label: string]: string }) {

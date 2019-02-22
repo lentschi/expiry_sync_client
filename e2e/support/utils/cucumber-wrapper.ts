@@ -34,3 +34,8 @@ export async function Step(world: World, step: string) {
 
     throw new Error(`Pattern '${step}' doesn't match any known step.`);
 }
+
+export function cucumberPending(pendingMessage: string): string {
+    console.error('PENDING: ' + pendingMessage);
+    return 'pending;';
+}
