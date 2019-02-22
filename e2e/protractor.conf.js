@@ -32,9 +32,9 @@ exports.config = {
       binary: '/usr/bin/google-chrome-stable',
       args: [
         '--no-sandbox', 
-        '--headless',
+        // '--headless',
         '--allow-file-access', 
-        '--use-file-for-fake-video-capture=//srv//project//out.y4m', 
+        '--use-file-for-fake-video-capture=//tmp//e2e.y4m', 
         '--use-fake-device-for-media-stream',
         '--use-fake-ui-for-media-stream',
         '--disable-infobars'
@@ -62,7 +62,7 @@ exports.config = {
   //     },
   //   ], 
   directConnect: true,
-  baseUrl: 'https://expiry-sync-app.local:9002/',
+  baseUrl: 'https://localhost:9002/',
   framework: 'custom',  // set to "custom" instead of cucumber.
   frameworkPath: require.resolve('protractor-cucumber-framework'),
   specs: [
