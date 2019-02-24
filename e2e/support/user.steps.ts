@@ -63,6 +63,9 @@ Given(/^I register a user with different data than on the first device$/, async(
     await Step(this, 'the registration form is open');
     await Step(this, 'I enter valid registration data, that is different from the one I entered before');
     await Step(this, 'I should see that registration succeeded');
+
+    // TODO: Check why this is required:
+    await Step(this, 'I am logged in as that user');
 });
 
 Given(/^the login form is open/, async () => {
@@ -78,11 +81,11 @@ Given(/^the login form is open/, async () => {
     }
 });
 
-When(/^I try to login (as that user|with the same user as on the first device|with the same user as previously)$/, async (whatUserStr) => {
+// tslint:disable-next-line:max-line-length
+When(/^I try to login (as that user|with the same user as on the first device|with the same user as previously)$/, async (whatUserParam: string) => {
     await Step(this, 'the login form is open');
 
-    // TODO:
-    const userData = UserSamples.validUsers[0];
+    const userData = memory.recall(whatUserParam === 'as that user' ? 'that user' : 'user on the first device');
 
     await fillAndSubmitForm({
         'login': userData.account_name || userData.email_address,

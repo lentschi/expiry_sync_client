@@ -5,7 +5,7 @@ import { by, ProtractorBrowser } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { initializeBrowser, shouldSeeToast } from './utils/ui-utils';
-import { Given, Then } from './utils/cucumber-wrapper';
+import { Given, Then, When, cucumberPending } from './utils/cucumber-wrapper';
 import { showWebcamVideo } from './utils/device-utils';
 import { ScenarioMemory } from './utils/scenario-memory';
 import { browser, setDefaultBrowser, closeAllNonDefaultProtractorBrowsers } from './utils/protractor-browser-wrapper';
@@ -14,7 +14,6 @@ import { browser, setDefaultBrowser, closeAllNonDefaultProtractorBrowsers } from
 const expect = chai.use(chaiAsPromised).expect;
 const utils = ServerUtils.singleton();
 const memory = ScenarioMemory.singleton();
-let originalBrowser: ProtractorBrowser;
 
 Before(async () => {
     memory.amnesia();
@@ -48,9 +47,24 @@ Then(/^I should see "(.+)"$/, async (text: string) => {
 });
 
 Given(/^I switch to a different device, on which the app has been freshly installed$/, async() => {
+    memory.memorize(memory.recall('that user'), 'user on the first device');
+    memory.forget('that user');
+    memory.memorize(browser, 'first device');
     const browser2 = await browser.forkNewDriverInstance();
-
-    originalBrowser = browser;
     setDefaultBrowser(browser2);
-    initializeBrowser();
+    await initializeBrowser();
+    await browser.get(browser.baseUrl);
+    memory.memorize(browser, 'second device');
+});
+
+When(/^I switch back to the first device restarting the app( in offline mode)?$/, async(offlineModeParam) => {
+    setDefaultBrowser(memory.recall('first device'));
+    if (offlineModeParam) {
+        return cucumberPending('offline mode testing not yet implemented');
+    }
+});
+
+
+When(/^I switch back to the second device restarting the app$/, async() => {
+    setDefaultBrowser(memory.recall('second device'));
 });

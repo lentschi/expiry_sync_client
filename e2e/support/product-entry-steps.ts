@@ -69,6 +69,15 @@ Given(/^I hold (a|another) valid barcode(, that is different from the original p
     memory.memorize(validEntry.article.barcode, 'this barcode');
 });
 
+When(/^I hold the barcode of the article, that had been added on the first device, in front of the camera$/, async() => {
+    const theBarcode = memory.recall('this barcode');
+    const entry = ProductEntrySamples.validProductEntries.find(currentEntry =>
+        currentEntry.article.barcode === theBarcode && !!currentEntry.article.__barcodeImageName
+    );
+
+    await showWebcamVideo(entry.article.__barcodeImageName);
+});
+
 Then(/^barcode scanning should start(?: automatically)?$/, async() => {
     await getElement(by.deepCss('#quagga-barcode-scan video'), 'Barcode scanning did not start in time');
 });
@@ -333,3 +342,4 @@ When (/^I choose to scan another barcode$/, async() => {
     const button = await getSingularElement(elem, 'Barcode button not found');
     await button.click();
 });
+

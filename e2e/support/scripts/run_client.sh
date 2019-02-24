@@ -9,6 +9,5 @@ if [ ! -f /tmp/ionic-run.pid ]; then
     nohup ./node_modules/.bin/ng serve --no-open --host "0.0.0.0" --port 9002 \
     --disable-host-check --ssl --ssl-cert /srv/config/cert/expirysync_client.crt \
     --ssl-key /srv/config/cert/expirysync_client.cert.key -c testing 2>&1 >> ~/ng-test.log & echo $! > /tmp/ionic-run.pid
-    sleep 2 # TODO: Check if it's really up instead
 fi
 

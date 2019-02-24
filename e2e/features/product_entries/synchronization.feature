@@ -5,6 +5,7 @@ Background:
 		And there exists a user
 		And I am logged in as that user
 
+@fit
 Scenario: Synchronize new product entries between different devices with the same user
 	When I successfully add a product entry
 		And I switch to a different device, on which the app has been freshly installed
@@ -62,7 +63,6 @@ Scenario: Synchronize product entries between different devices with the same us
 	When I switch back to the second device restarting the app
 		Then I should still see the updated product entry's data in the product entry list
 
-@fit
 Scenario: Synchronize article data between different devices with different users
 	Given there exists a product entry
 		And I switch to a different device, on which the app has been freshly installed

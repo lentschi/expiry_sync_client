@@ -18,13 +18,13 @@ export class ServerUtils {
 
     private async run(command: string) {
         const child = spawn(command);
-        const exit = new Promise(resolve => {
+        const exit = await new Promise(resolve => {
             child.on('exit', code => {
                 resolve(code);
             });
         });
 
-        await expect(exit).to.eventually.equal(0, 'Non zero exit code when executing: ' + command);
+        await expect(exit).to.equal(0, 'Non zero exit code when executing: ' + command);
         console.log(`Command '${command}' successfuly executed.`);
     }
 
