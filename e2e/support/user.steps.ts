@@ -1,4 +1,5 @@
-import { browser, element, by, until } from 'protractor';
+import { by, until } from 'protractor';
+import { browser, element } from './utils/protractor-browser-wrapper';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { fillAndSubmitForm, shouldSeeToast as seeToast, shouldSeeMenuPoint, tapMenuPoint } from './utils/ui-utils';
@@ -46,6 +47,7 @@ Given(/^I enter valid registration data(, that is different from the one I enter
     memory.memorize(userData, ['that user', 'registered user']);
 });
 
+
 Then(/^I should see that registration succeeded$/, async () => {
     const registeredUser = memory.recall('registered user');
     await seeToast(`User '${registeredUser.account_name}' has been registered successfully.`);
@@ -54,6 +56,12 @@ Then(/^I should see that registration succeeded$/, async () => {
 Given(/^there exists a user$/, async () => {
     await Step(this, 'the registration form is open');
     await Step(this, 'I enter valid registration data');
+    await Step(this, 'I should see that registration succeeded');
+});
+
+Given(/^I register a user with different data than on the first device$/, async() => {
+    await Step(this, 'the registration form is open');
+    await Step(this, 'I enter valid registration data, that is different from the one I entered before');
     await Step(this, 'I should see that registration succeeded');
 });
 

@@ -1,9 +1,10 @@
-import { element, by, browser, ExpectedConditions, ElementFinder, Locator } from 'protractor';
+import { by, ExpectedConditions, ElementFinder, Locator } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { setDefaultTimeout } from 'cucumber';
 import * as moment from 'moment';
 import { createWriteStream } from 'fs';
+import { element, browser, setDefaultBrowser } from './protractor-browser-wrapper';
 
 
 const expect = chai.use(chaiAsPromised).expect;
@@ -274,10 +275,9 @@ export function deepCssContainingText(cssSelector: string, searchText: string | 
 
 export async function initializeBrowser(restart = false) {
     if (restart) {
-        await browser.restart();
-        // await browser.get(browser.baseUrl);
-        await browser.manage().window().maximize();
+        setDefaultBrowser(await browser.restart());
     }
+    await browser.manage().window().maximize();
     setDefaultTimeout(30000);
 
     // Required due to http polling:

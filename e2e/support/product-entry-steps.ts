@@ -1,6 +1,16 @@
 import { When, Then, Given, cucumberPending, Step } from './utils/cucumber-wrapper';
-import { getElement, ensureDisappearance, getFormField, fillFields, getSingularElement, fillDateField, click, inputWithValue, takeScreenShotAndDumpLogs, fillField } from './utils/ui-utils';
-import { element, by, until, browser, ElementFinder } from 'protractor';
+import {
+    getElement,
+    ensureDisappearance,
+    getFormField,
+    fillFields,
+    getSingularElement,
+    fillDateField,
+    click,
+    inputWithValue,
+    fillField } from './utils/ui-utils';
+import { by, until, ElementFinder } from 'protractor';
+import { browser, element } from './utils/protractor-browser-wrapper';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { showWebcamVideo } from './utils/device-utils';
