@@ -12,6 +12,10 @@ export class ScenarioMemory {
         return ScenarioMemory.singletonInstance;
     }
 
+    public amnesia() {
+        this.memory = {};
+    }
+
     public memorize(value: any, keys: string | string[]): any {
         value = lodash.cloneDeep(value);
 

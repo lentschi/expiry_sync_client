@@ -24,7 +24,7 @@ export class ServerUtils {
             });
         });
 
-        await expect(exit).to.eventually.equal(0);
+        await expect(exit).to.eventually.equal(0, 'Non zero exit code when executing: ' + command);
         console.log(`Command '${command}' successfuly executed.`);
     }
 

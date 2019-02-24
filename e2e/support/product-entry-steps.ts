@@ -1,5 +1,5 @@
-import { When, Then, Given, cucumberPending } from './utils/cucumber-wrapper';
-import { getElement, ensureDisappearance, getFormField, fillFields, getSingularElement, fillDateField, click, inputWithValue } from './utils/ui-utils';
+import { When, Then, Given, cucumberPending, Step } from './utils/cucumber-wrapper';
+import { getElement, ensureDisappearance, getFormField, fillFields, getSingularElement, fillDateField, click, inputWithValue, takeScreenShotAndDumpLogs, fillField } from './utils/ui-utils';
 import { element, by, until, browser, ElementFinder } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -12,10 +12,6 @@ import * as moment from 'moment';
 
 const expect = chai.use(chaiAsPromised).expect;
 const memory = ScenarioMemory.singleton();
-
-Before('@emulated_camera', async () => {
-    await showWebcamVideo('blank');
-});
 
 When(/^I open the add product screen$/, async() => {
     await element(by.deepCss('[name="add-circle"]')).element(by.xpath('parent::*')).click();
@@ -63,18 +59,24 @@ Given(/^I hold (a|another) valid barcode(, that is different from the original p
     memory.memorize(validEntry.article.barcode, 'this barcode');
 });
 
-Then(/^barcode scanning should start automatically$/, async() => {
+Then(/^barcode scanning should start(?: automatically)?$/, async() => {
     await getElement(by.deepCss('#quagga-barcode-scan video'), 'Barcode scanning did not start in time');
 });
 
 Then(/^barcode scanning should stop$/, async() => {
-    // await ensureDisappearance(by.deepCss('#quagga-barcode-scan video'), 'Barcode scanning did not stop');
+    await ensureDisappearance(by.deepCss('#quagga-barcode-scan video'), 'Barcode scanning did not stop', false, 5000);
+    await showWebcamVideo('blank');
 });
 
 Then(/^this barcode should appear in the barcode field$/, async() => {
     const thisBarcode = memory.recall('this barcode');
-    const input = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false, inputWithValue);
-    expect(await input.getAttribute('value')).to.equal(thisBarcode);
+    await getElement(by.deepCss('.barcode-controls .aux-input'),
+            `Barcode field containing '${thisBarcode}' not found`,
+            false,
+            async (currentInput) => {
+        const value = await currentInput.getAttribute('value');
+        return value === thisBarcode;
+    });
 });
 
 Then(/^the matching article's name should appear in the name field$/, async() => {
@@ -114,6 +116,19 @@ When(/^I (supply|complement the form with) valid product entry data( without a b
         }
 
         entry = lodash.cloneDeep(entry);
+
+        switch (containingParam) {
+            case 'without a name':          entry.article.name = '';    break;
+            case 'with an invalid amount':  entry.amount = 0;           break;
+        }
+
+        if (entry.article.barcode) {
+            const elem = element(by.deepCss('.barcode-controls ion-input'))
+                .element(by.css_sr('::sr .native-input'));
+            const input = await getSingularElement(elem, 'Barcode field not found');
+            await input.sendKeys(entry.article.barcode);
+        }
+        fillField('name', entry.article.name);
     } else {
         entry = memory.recall('the product entry');
 
@@ -134,7 +149,11 @@ When(/^I (supply|complement the form with) valid product entry data( without a b
 
     if (entry.article.__photo) {
         await showWebcamVideo(entry.article.__photo);
-        // await getSingularElement(by.deepCss('.barcode-controls .aux-input'), 'Another photo button not found');
+        await click(by.xpath('//ion-button[contains(.,"take picture")]'), 'Take picture button 1 could not be clicked');
+        await getElement(by.deepCss('.video-wall video'), 'Video wall did not open in time');
+        await click(by.xpath(
+            '//ion-button[contains(@class, "button-full")][contains(.,"take picture")]'), 'Take picture button 2 could not be clicked'
+        );
     }
 });
 
@@ -192,8 +211,115 @@ When(/^I open the edit product screen for that product entry$/, async() => {
 
 Then (/^I should see that product entry's data in the form fields$/, async() => {
     const entry: ProductEntrySample = memory.recall('the product entry');
-    const barcodeInput = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false, inputWithValue);
-    expect(await barcodeInput.getAttribute('value')).to.equal(entry.article.barcode);
+
     const nameInput = await getFormField('name', 'name field not found', true, inputWithValue);
     expect(await nameInput.getAttribute('value')).to.equal(entry.article.name);
+
+    const barcodeInput = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false);
+    expect(await barcodeInput.getAttribute('value')).to.equal(entry.article.barcode || '');
+});
+
+When(/^I choose to enter the product entry manually$/, async() => {
+    await click(by.xpath('//ion-button[contains(.,"Enter manually")]'), 'Enter manually button could not be clicked');
+});
+
+Then(/^the barcode field should still be empty$/, async() => {
+    await browser.sleep(500); // <- TODO: Rather wait for some loader to disappear?
+    const input = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false);
+    expect(await input.getAttribute('value')).to.equal('');
+});
+
+// tslint:disable-next-line:max-line-length
+When(/^I successfully add (a|another) product entry(, that has a different expiration date than those added before|, that has a different name than those added before)?$/, async(specifier1Param: string, specifier2Param:string) => {
+    await Step(this, 'I open the add product screen');
+    await Step(this, 'barcode scanning should start automatically');
+    await Step(this, `I hold ${specifier1Param} valid barcode`
+        + (!specifier2Param ? '' : ` of an article${specifier2Param},`) + ` in front of the camera`);
+    await Step(this, 'barcode scanning should stop');
+    await Step(this, 'this barcode should appear in the barcode field');
+    await Step(this, `the matching article's name should appear in the name field`);
+    await Step(this, 'I complement the form with valid product entry data');
+    await Step(this, 'I try to save the product entry form');
+    await Step(this, `I should see the product entry's data in the product entry list`);
+});
+
+When(/^I try to change the product entry's data$/, async() => {
+    await Step(this, 'I open the edit product screen for that product entry');
+    await Step(this, 'I overwrite the form fields contents with valid but changed product entry data');
+    await Step(this, 'I try to save the product entry form');
+    await Step(this, `I should see the updated product entry's data in the product entry list`);
+});
+
+// tslint:disable-next-line:max-line-length
+Given(/^there exist(?:s)? (a|several) product entr(?:y|ies)( with different expiration dates| with different names)?(?: in my list)?$/, async (quantifierParam: string, specifierParam: string) => {
+    if (quantifierParam === 'a') {
+        await Step(this, `I successfully add a product entry${specifierParam || ''}`);
+        return;
+    }
+
+    if (!specifierParam) {
+        specifierParam = ' ';
+    }
+    specifierParam = specifierParam.trimLeft();
+    let newSpecifierParam = '';
+    switch (specifierParam) {
+        case 'with different expiration dates':
+            newSpecifierParam = ', that has a different expiration date than those added before';
+            break;
+        case 'with different names':
+            newSpecifierParam = ', that has a different name than those added before';
+            break;
+    }
+
+    for (let i = 0; i < 3; i++) {
+        await Step(this, `I successfully add another product entry${newSpecifierParam}`);
+    }
+
+    const addedEntries = memory.recall('entries, whose barcodes were held in front of the camera');
+    memory.memorize(addedEntries, ['previously added product entries', 'these product entries']);
+});
+
+// tslint:disable-next-line:max-line-length
+When(/I overwrite the form fields contents with (?:valid but )?changed product entry data( without a name| with an invalid amount)?/, async(containingParam) => {
+    if (containingParam) {
+        containingParam = containingParam.trimLeft();
+    }
+    const originalEntry = memory.recall('the product entry');
+    const entry = lodash.cloneDeep(ProductEntrySamples.validProductEntries.find(currentEntry =>
+        originalEntry.article.barcode !== currentEntry.article.barcode
+        && originalEntry.article.name !== currentEntry.article.name
+    ));
+
+    switch (containingParam) {
+        case 'without a name':          entry.article.name = '';    break;
+        case 'with an invalid amount':  entry.amount = 0;   break;
+    }
+
+    await fillDateField('expiration date', entry.expirationDate);
+
+    await fillFields({
+        'name': entry.article.name,
+        'amount': String(entry.amount),
+        'description': entry.description
+    });
+
+    if (entry.article.__photo) {
+        await showWebcamVideo(entry.article.__photo);
+        await click(by.xpath('//ion-button[contains(.,"take picture")]'), 'Take picture button 1 could not be clicked');
+        await getElement(by.deepCss('.video-wall video'), 'Video wall did not open in time');
+        await click(by.xpath(
+            '//ion-button[contains(@class, "button-full")][contains(.,"take picture")]'), 'Take picture button 2 could not be clicked'
+        );
+    }
+});
+
+Then (/I should see that (?:adding|updating) failed$/, async() => {
+  await Step(this, 'I should see "Saving the product entry failed"');
+});
+
+When (/^I choose to scan another barcode$/, async() => {
+    const elem = element(by.deepCss('.barcode-controls ion-button'))
+        .element(by.css_sr('::sr button'));
+    const button = await getSingularElement(elem, 'Barcode button not found');
+    await button.click();
 });

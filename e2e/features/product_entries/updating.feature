@@ -15,12 +15,12 @@ Scenario: Updating a product with valid data
 Scenario Outline: Updating a product with invalid data
 	Given there exists a product entry in my list
 	When I open the edit product screen for that product entry
-	When I overwrite the form fields contents with changed product entry data <containing_what?>
+	When I overwrite the form fields contents with changed product entry data <containing_what>
 		And I try to save the product entry form
 	Then I should see that updating failed
 	
 Examples:
-	|containing_what?|
+	|containing_what|
 	|without a name|
 	|with an invalid amount|
 

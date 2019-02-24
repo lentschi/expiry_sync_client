@@ -32,7 +32,8 @@ exports.config = {
       binary: '/usr/bin/google-chrome-stable',
       args: [
         '--no-sandbox', 
-        '--headless',
+        // '--headless',
+        // '--window-size=1680,1050',
         '--allow-file-access', 
         '--use-file-for-fake-video-capture=//tmp//e2e.y4m', 
         '--use-fake-device-for-media-stream',

@@ -3,6 +3,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { setDefaultTimeout } from 'cucumber';
 import * as moment from 'moment';
+import { createWriteStream } from 'fs';
 
 
 const expect = chai.use(chaiAsPromised).expect;
@@ -57,6 +58,7 @@ export async function getElement(
     } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
     if (!found && errorMessage !== false) {
+        await takeScreenShotAndDumpLogs(errorMessage + ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`);
         assert.fail(errorMessage + ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`);
     }
 
@@ -101,12 +103,21 @@ export async function click(
         errorMessage: string = 'Timeout waiting for element',
         extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
         timeout = 3000): Promise<ElementFinder> {
-    const target: ElementFinder = await getElement(locator, errorMessage, false, extraCondition, timeout);
+    let target: ElementFinder = await getElement(locator, errorMessage, false, extraCondition, timeout);
     if (!await target.isDisplayed()) {
         await browser.executeScript('arguments[0].scrollIntoView();', await target.getWebElement());
         await browser.sleep(400); // <- Unsure why this is required
+        target = await getElement(locator, errorMessage, false, extraCondition, timeout);
     }
-    await target.click();
+    try {
+        await target.click();
+    } catch (e) {
+        target = await getElement(locator, 'First retry - ' + errorMessage, false, extraCondition, timeout);
+        await browser.executeScript('arguments[0].scrollIntoView();', await target.getWebElement());
+        await browser.sleep(400); // <- Unsure why this is required
+        target = await getElement(locator, 'Second retry - ' + errorMessage, true, extraCondition, timeout);
+        await target.click();
+    }
     return target;
 }
 
@@ -233,7 +244,7 @@ export async function fillFields(fields: { [label: string]: string }) {
 
 export async function fillAndSubmitForm(fields: { [label: string]: string }) {
     await fillFields(fields);
-    await element(by.xpath('//ion-button[@type="submit"]')).click();
+    await click(by.xpath('//ion-button[@type="submit"]'));
 }
 
 export async function shouldSeeToast(text: string) {
@@ -261,10 +272,15 @@ export function deepCssContainingText(cssSelector: string, searchText: string | 
 }
 
 
-export async function initializeBrowser() {
+export async function initializeBrowser(restart = false) {
+    if (restart) {
+        await browser.restart();
+        // await browser.get(browser.baseUrl);
+        await browser.manage().window().maximize();
+    }
     setDefaultTimeout(30000);
 
-    // I don't quite understand why I need this here (Possibly due to permanent HTTP polling)
+    // Required due to http polling:
     // s. https://stackoverflow.com/questions/42648077/how-does-waitforangularenabled-work
     // and https://github.com/angular/protractor/issues/5045:
     browser.waitForAngularEnabled(false);
@@ -306,4 +322,49 @@ export async function initializeBrowser() {
 export async function inputWithValue(currentInput) {
     const value = await currentInput.getAttribute('value');
     return value !== '';
+}
+
+let logCount = 0;
+
+export async function takeScreenShotAndDumpLogs(error: string) {
+    logCount++;
+    console.error('Dumping ' + logCount);
+
+    let logs = error + '\n\n';
+    const logTypes = await browser.manage().logs().getAvailableLogTypes();
+    for (const type of logTypes) {
+        const browserLogs = await browser.manage().logs().get(type);
+        for (const log of browserLogs) {
+            logs += logCount + ': ' + JSON.stringify(type) + ' :: ' 
+                + JSON.stringify(log.level) + ' :: ' + JSON.stringify(log.message) + '\n';
+        }
+    }
+    const textStream = createWriteStream(`/srv/project/e2e/support/error_dumps/${logCount}.log`);
+    await new Promise((resolve, reject) => {
+        textStream.on('open', () => {
+            textStream.write(Buffer.from(logs));
+            textStream.end();
+        }).on('finish', () => {
+            resolve();
+        }).on('error', err => {
+            reject(err);
+        });
+    });
+
+    console.error('Done Dumping logs for ' + logCount);
+
+    const data = await browser.takeScreenshot();
+    const stream = createWriteStream(`/srv/project/e2e/support/error_dumps/${logCount}.png`);
+    await new Promise((resolve, reject) => {
+        stream.on('open', () => {
+            stream.write(Buffer.from(data, 'base64'));
+            stream.end();
+        }).on('finish', () => {
+            resolve();
+        }).on('error', err => {
+            reject(err);
+        });
+    });
+
+    console.error('Done saving screenshot for ' + logCount);
 }

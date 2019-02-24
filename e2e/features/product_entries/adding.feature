@@ -7,7 +7,6 @@ Background:
 		And there exists a user
 		And I am logged in as that user
 
-@fit @emulated_camera
 Scenario: Add a product entry with valid data by scanning a barcode existing on one of the remotes
     When I open the add product screen
     Then barcode scanning should start automatically
@@ -27,14 +26,14 @@ Scenario Outline: Add a product entry with valid data by entering it manually
 	When I choose to enter the product entry manually
 	Then barcode scanning should stop
 		And the barcode field should still be empty
-	When I supply valid product entry data <containing_what?>
+	When I supply valid product entry data <containing_what>
 		And I try to save the product entry form
     Then I should see the product entry's data in the product entry list
     When I open the edit product screen for that product entry
     Then I should see that product entry's data in the form fields
     
 Examples:
-   	|containing_what?|
+   	|containing_what|
    	|including a barcode|
    	|without a barcode|
    	|with a photo|
@@ -46,12 +45,12 @@ Scenario Outline: Add a product with invalid data
 	When I choose to enter the product entry manually
 	Then barcode scanning should stop
 		And the barcode field should still be empty
-	When I supply valid product entry data <containing_what?>
+	When I supply valid product entry data <containing_what>
 		And I try to save the product entry form
     Then I should see that adding failed
 
 Examples:
-	|containing_what?|
+	|containing_what|
 	|without a name|
 	|with an invalid amount|
 	
