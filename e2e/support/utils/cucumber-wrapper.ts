@@ -3,24 +3,36 @@ import {
     Given as OriginalGiven,
     When as OriginalWhen,
     Then as OriginalThen,
-    World
+    World,
+    StepDefinitionOptions
 } from 'cucumber';
 
 const patterns: { code: StepDefinitionCode, pattern: RegExp }[] = [];
 
-export function Given(pattern: RegExp, code: StepDefinitionCode) {
+function defineStep(
+    definitionFunction: Function,
+    pattern: RegExp,
+    optionsOrCode: StepDefinitionOptions | StepDefinitionCode,
+    code?: StepDefinitionCode) {
+if (typeof optionsOrCode === 'function') {
+    patterns.push({ code: optionsOrCode, pattern });
+    definitionFunction(pattern, optionsOrCode);
+} else {
     patterns.push({ code, pattern });
-    OriginalGiven(pattern, code);
+    definitionFunction(pattern, optionsOrCode, code);
+}
 }
 
-export function When(pattern: RegExp, code: StepDefinitionCode) {
-    patterns.push({ code, pattern });
-    OriginalWhen(pattern, code);
+export function Given(pattern: RegExp, optionsOrCode: StepDefinitionOptions | StepDefinitionCode, code?: StepDefinitionCode) {
+    defineStep(OriginalGiven, pattern, optionsOrCode, code);
 }
 
-export function Then(pattern: RegExp, code: StepDefinitionCode) {
-    patterns.push({ code, pattern });
-    OriginalThen(pattern, code);
+export function When(pattern: RegExp, optionsOrCode: StepDefinitionOptions | StepDefinitionCode, code?: StepDefinitionCode) {
+    defineStep(OriginalWhen, pattern, optionsOrCode, code);
+}
+
+export function Then(pattern: RegExp, optionsOrCode: StepDefinitionOptions | StepDefinitionCode, code?: StepDefinitionCode) {
+    defineStep(OriginalThen, pattern, optionsOrCode, code);
 }
 
 export async function Step(world: World, step: string) {
