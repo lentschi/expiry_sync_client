@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavParams, ModalController, Platform } from '@ionic/angular';
+import { NavParams, ModalController, Platform, ToastController } from '@ionic/angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import { ProductEntry, Article, ArticleImage, Location, Setting } from 'src/app/models';
 import { Camera } from '@ionic-native/camera/ngx';
@@ -126,6 +126,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   async saveEntry(valid: boolean) {
     if (!valid) {
+      this.uiHelper.errorToast('Saving the product entry failed');
       return;
     }
 

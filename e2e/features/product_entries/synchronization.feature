@@ -5,7 +5,6 @@ Background:
 		And there exists a user
 		And I am logged in as that user
 
-@fit
 Scenario: Synchronize new product entries between different devices with the same user
 	When I successfully add a product entry
 		And I switch to a different device, on which the app has been freshly installed

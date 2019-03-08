@@ -11,8 +11,8 @@ export class GreaterThanValidator implements Validator {
 
   validate(c: AbstractControl): { [key: string]: any } {
     if (this.validateGreaterThan !== undefined
-      && this.validateGreaterThan != ''
-      && c.value != ''
+      && this.validateGreaterThan !== ''
+      && c.value !== ''
       && parseFloat(c.value) <= parseFloat(this.validateGreaterThan)) {
         return {
           validateGreaterThan: true

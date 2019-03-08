@@ -24,7 +24,7 @@ const expect = chai.use(chaiAsPromised).expect;
 const memory = ScenarioMemory.singleton();
 
 When(/^I open the add product screen$/, async() => {
-    await element(by.deepCss('[name="add-circle"]')).element(by.xpath('parent::*')).click();
+    await click(by.xpath('//*[@name="add-circle"]//parent::*'));
 });
 
 // tslint:disable-next-line:max-line-length
@@ -89,7 +89,7 @@ Then(/^barcode scanning should stop$/, async() => {
 
 Then(/^this barcode should appear in the barcode field$/, async() => {
     const thisBarcode = memory.recall('this barcode');
-    await getElement(by.deepCss('.barcode-controls .aux-input'),
+    await getElement(by.deepCss('.barcode-controls .native-input'),
             `Barcode field containing '${thisBarcode}' not found`,
             false,
             async (currentInput) => {
@@ -142,12 +142,17 @@ When(/^I (supply|complement the form with) valid product entry data( without a b
         }
 
         if (entry.article.barcode) {
-            const elem = element(by.deepCss('.barcode-controls ion-input'))
-                .element(by.css_sr('::sr .native-input'));
+            const elem = element(by.deepCss('.barcode-controls ion-input .native-input'));
             const input = await getSingularElement(elem, 'Barcode field not found');
             await input.sendKeys(entry.article.barcode);
         }
-        fillField('name', entry.article.name);
+        const nameField: ElementFinder = await fillField('name', entry.article.name);
+        if (!entry.article.name) {
+            // Just wait for validation to be done before continueing with other fields
+            // (for some reason otherwise clicking the date field doesn't do anything - ionic bug?)
+            await nameField.sendKeys('\t');
+            await getElement(by.cssContainingText('div', 'Name is required'), false, true);
+        }
     } else {
         entry = memory.recall('the product entry');
 
@@ -234,7 +239,7 @@ Then (/^I should see that product entry's data in the form fields$/, async() => 
     const nameInput = await getFormField('name', 'name field not found', true, inputWithValue);
     expect(await nameInput.getAttribute('value')).to.equal(entry.article.name);
 
-    const barcodeInput = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false);
+    const barcodeInput = await getElement(by.deepCss('.barcode-controls .native-input'), 'Barcode field not found', false);
     expect(await barcodeInput.getAttribute('value')).to.equal(entry.article.barcode || '');
 });
 
@@ -244,12 +249,12 @@ When(/^I choose to enter the product entry manually$/, async() => {
 
 Then(/^the barcode field should still be empty$/, async() => {
     await browser.sleep(500); // <- TODO: Rather wait for some loader to disappear?
-    const input = await getElement(by.deepCss('.barcode-controls .aux-input'), 'Barcode field not found', false);
+    const input = await getElement(by.deepCss('.barcode-controls .native-input'), 'Barcode field not found', false);
     expect(await input.getAttribute('value')).to.equal('');
 });
 
 // tslint:disable-next-line:max-line-length
-When(/^I successfully add (a|another) product entry(, that has a different expiration date than those added before|, that has a different name than those added before)?$/, async(specifier1Param: string, specifier2Param:string) => {
+When(/^I successfully add (a|another) product entry(, that has a different expiration date than those added before|, that has a different name than those added before)?$/, async(specifier1Param: string, specifier2Param: string) => {
     await Step(this, 'I open the add product screen');
     await Step(this, 'barcode scanning should start automatically');
     await Step(this, `I hold ${specifier1Param} valid barcode`

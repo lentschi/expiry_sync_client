@@ -1,26 +1,29 @@
-import { by, ExpectedConditions, ElementFinder, Locator } from 'protractor';
+import { by, ExpectedConditions, ElementFinder, Locator, Key } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { setDefaultTimeout } from 'cucumber';
 import * as moment from 'moment';
 import { createWriteStream } from 'fs';
 import { element, browser, setDefaultBrowser } from './protractor-browser-wrapper';
+import { ScenarioMemory } from './scenario-memory';
 
 
 const expect = chai.use(chaiAsPromised).expect;
 const assert = chai.use(chaiAsPromised).assert;
+const memory = ScenarioMemory.singleton();
 
 export async function getElement(
     locator: Locator,
     errorMessage: string | boolean = 'Timeout waiting for element',
     waitForVisibility = true,
-    extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
-    timeout = 3000,
+    extraCondition: (elementInQuestion: ElementFinder) => Promise<string | boolean> = null,
+    timeout = 5000,
     maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
     let foundElement: ElementFinder;
     let found = false;
     let staleElementError: Error;
     let staleElementErrorCount = 0;
+    let extraConditionResult: string | boolean;
 
     do {
         staleElementError = null;
@@ -38,8 +41,11 @@ export async function getElement(
                         continue;
                     }
 
-                    if (extraCondition && (! await extraCondition(currentElem))) {
-                        continue;
+                    if (extraCondition) {
+                        extraConditionResult = await extraCondition(currentElem);
+                        if (extraConditionResult !== true) {
+                            continue;
+                        }
                     }
 
                     foundElement = currentElem;
@@ -59,8 +65,16 @@ export async function getElement(
     } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
 
     if (!found && errorMessage !== false) {
-        await takeScreenShotAndDumpLogs(errorMessage + ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`);
-        assert.fail(errorMessage + ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`);
+        let extraErrorMessage = ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`;
+        if (typeof extraConditionResult === 'string') {
+            extraErrorMessage = ` (${extraConditionResult})`;
+        } else if (extraConditionResult === false) {
+            extraErrorMessage = ' (extra condition not fulfilled)';
+        }
+        const message = errorMessage + extraErrorMessage;
+
+        await takeScreenShotAndDumpLogs(message);
+        assert.fail(message);
     }
 
     return found ? foundElement : null;
@@ -101,25 +115,30 @@ export async function ensureDisappearance(locator: Locator,
 
 export async function click(
         locator: Locator,
-        errorMessage: string = 'Timeout waiting for element',
+        errorMessage: string = 'Timeout waiting for clickable element',
         extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
-        timeout = 3000): Promise<ElementFinder> {
-    let target: ElementFinder = await getElement(locator, errorMessage, false, extraCondition, timeout);
-    if (!await target.isDisplayed()) {
-        await browser.executeScript('arguments[0].scrollIntoView();', await target.getWebElement());
-        await browser.sleep(400); // <- Unsure why this is required
-        target = await getElement(locator, errorMessage, false, extraCondition, timeout);
-    }
-    try {
-        await target.click();
-    } catch (e) {
-        target = await getElement(locator, 'First retry - ' + errorMessage, false, extraCondition, timeout);
-        await browser.executeScript('arguments[0].scrollIntoView();', await target.getWebElement());
-        await browser.sleep(400); // <- Unsure why this is required
-        target = await getElement(locator, 'Second retry - ' + errorMessage, true, extraCondition, timeout);
-        await target.click();
-    }
-    return target;
+        timeout = 5000,
+        sleepAfterScroll = true): Promise<ElementFinder> {
+    return await getElement(locator, errorMessage, false, async (target) => {
+        try {
+            if (extraCondition) {
+                if (!await extraCondition(target)) {
+                    return false;
+                }
+            }
+
+            await browser.executeScript('arguments[0].scrollIntoView({block: "center", behavior: "smooth"})', await target.getWebElement());
+
+            if (sleepAfterScroll) {
+                await browser.sleep(400); // <- Unsure why this is required
+            }
+
+            await target.click();
+            return true;
+        } catch (e) {
+            return e.message;
+        }
+    }, timeout);
 }
 
 export async function getSingularElement(
@@ -177,16 +196,27 @@ export async function getFormField(
         waitForVisibility = true,
         extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null
     ): Promise<ElementFinder> {
-    const elem = element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input`))
-        .element(by.css_sr('::sr .native-input'));
-    return await getSingularElement(elem, errorMessage, waitForVisibility, extraCondition);
+    const elem = element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input/input`));
+    return await getSingularElement(
+        elem, errorMessage ? errorMessage + ` - form field: '${label}'` : null, waitForVisibility, extraCondition
+    );
 }
 
 
-export async function fillField(label: string, value: string) {
-    const input = await getFormField(label);
-    await input.clear();
-    await input.sendKeys(value);
+export async function fillField(label: string, value: string): Promise<ElementFinder> {
+    return await getFormField(label, `Could not find or access form field ${label}`, true, async (input) => {
+        try {
+            await input.clear();
+            // Sometimes input.clear doesn't work -> use backspace repeatedly instead:
+            while (await input.getAttribute('value') !== '') {
+                await input.sendKeys(Key.BACK_SPACE);
+            }
+            await input.sendKeys(value);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    });
 }
 
 export async function fillDateField(label: string, value: Date) {
@@ -216,21 +246,33 @@ export async function fillDateField(label: string, value: Date) {
     while (currentDate.year() !== date.year()) {
         const add = currentDate.year() < date.year() ? 1 : -1;
         await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'year').format('YYYY')}")]`)
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'year').format('YYYY')}")]`),
+            'Date could not be clicked',
+            null,
+            5000,
+            false
         );
     }
 
     while (currentDate.month() !== date.month()) {
         const add = currentDate.month() < date.month() ? 1 : -1;
         await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'month').format('MMM')}")]`)
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'month').format('MMM')}")]`),
+            'Date could not be clicked',
+            null,
+            5000,
+            false
         );
     }
 
     while (currentDate.date() !== date.date()) {
         const add = currentDate.date() < date.date() ? 1 : -1;
         await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'day').format('DD')}")]`)
+            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'day').format('DD')}")]`),
+            'Date could not be clicked',
+            null,
+            5000,
+            false
         );
     }
 
@@ -249,10 +291,19 @@ export async function fillAndSubmitForm(fields: { [label: string]: string }) {
 }
 
 export async function shouldSeeToast(text: string) {
-    const elem = element(by.deepCss('ion-toast'));
 
-    await browser.wait(ExpectedConditions.presenceOf(elem), 1000, `Toast '${text}' not found`);
-    await expect(elem.getText()).to.eventually.equal(text);
+    await getElement(by.deepCss('ion-toast'), `No such toast: '${text}'`, true, async (toast) => {
+        const currentText = await toast.getText();
+        if (currentText !== text) {
+            if (currentText) {
+                return `Toast found, but with different text: '${currentText}' instead of expected '${text}'`;
+            } else {
+                return `No such toast: '${text}'`;
+            }
+        }
+        return true;
+    });
+
 }
 
 export async function shouldSeeMenuPoint(label: string) {
@@ -324,22 +375,21 @@ export async function inputWithValue(currentInput) {
     return value !== '';
 }
 
-let logCount = 0;
 
-export async function takeScreenShotAndDumpLogs(error: string) {
-    logCount++;
-    console.error('Dumping ' + logCount);
-
-    let logs = error + '\n\n';
+export async function takeScreenShotAndDumpLogs(message = 'Completed') {
+    const scenarioName = memory.recall('current scenario').pickle.name;
+    let logs = message + '\n\n';
     const logTypes = await browser.manage().logs().getAvailableLogTypes();
     for (const type of logTypes) {
+        logs += '\n----- Log Type: ' + JSON.stringify(type) + '\n';
         const browserLogs = await browser.manage().logs().get(type);
         for (const log of browserLogs) {
-            logs += logCount + ': ' + JSON.stringify(type) + ' :: ' 
+            logs += scenarioName + ': ' +
                 + JSON.stringify(log.level) + ' :: ' + JSON.stringify(log.message) + '\n';
         }
+        logs += '----- END OF Log Type: ' + JSON.stringify(type) + '\n';
     }
-    const textStream = createWriteStream(`/srv/project/e2e/support/error_dumps/${logCount}.log`);
+    const textStream = createWriteStream(`/srv/project/e2e/support/error_dumps/${scenarioName}.log`);
     await new Promise((resolve, reject) => {
         textStream.on('open', () => {
             textStream.write(Buffer.from(logs));
@@ -351,10 +401,10 @@ export async function takeScreenShotAndDumpLogs(error: string) {
         });
     });
 
-    console.error('Done Dumping logs for ' + logCount);
+    // console.error('Done Dumping logs for ' + logCount);
 
     const data = await browser.takeScreenshot();
-    const stream = createWriteStream(`/srv/project/e2e/support/error_dumps/${logCount}.png`);
+    const stream = createWriteStream(`/srv/project/e2e/support/error_dumps/${scenarioName}.png`);
     await new Promise((resolve, reject) => {
         stream.on('open', () => {
             stream.write(Buffer.from(data, 'base64'));
@@ -366,5 +416,5 @@ export async function takeScreenShotAndDumpLogs(error: string) {
         });
     });
 
-    console.error('Done saving screenshot for ' + logCount);
+    // console.error('Done saving screenshot for ' + logCount);
 }

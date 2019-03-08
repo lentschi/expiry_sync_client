@@ -887,7 +887,7 @@ export class ExpirySync extends ExpirySyncController {
    * @return {Symbol}            the task's ID
    */
   loadingStarted(content?: string, symbolName?: string, forceReopening = false): Symbol {
-    console.log('Loading started: ' + content);
+    console.error('Loading started: ' + content);
     if (content && !symbolName) {
       symbolName = content;
     }
@@ -904,15 +904,22 @@ export class ExpirySync extends ExpirySyncController {
       this.loader = null;
     }
 
+    this.loadingTasks.push(task);
     if (!this.loader) {
-      // TODO-no-commit
-      // this.loadingCtrl.create(options).then(loader => {
-      //   this.loader = loader;
-      //   this.loader.present();
-      // });
+      this.loadingCtrl.create(options).then(async (loader) => {
+        if (!this.loadingTasks.includes(task)) {
+          return;
+        }
+        await loader.present();
+        if (!this.loadingTasks.includes(task)) {
+          loader.dismiss();
+          return;
+        }
+
+        this.loader = loader;
+      });
     }
 
-    this.loadingTasks.push(task);
     return task;
   }
 
@@ -925,7 +932,7 @@ export class ExpirySync extends ExpirySyncController {
     // a millisecond in case another loader pops
     // up in the same process (avoid flickering)
     setTimeout(() => {
-      console.log('Loading done: ' + task.toString());
+      console.error('Loading done: ' + task.toString());
 
       const i: number = this.loadingTasks.indexOf(task);
       if (i === -1) {
@@ -938,9 +945,9 @@ export class ExpirySync extends ExpirySyncController {
           this.loader.dismiss();
           this.loader = null;
         }
-        console.log('All loading done');
+        console.error('All loading done');
       } else {
-        console.log('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
+        console.error('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
       }
     }, 1);
   }
