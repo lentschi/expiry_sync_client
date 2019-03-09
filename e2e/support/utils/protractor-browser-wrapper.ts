@@ -10,10 +10,13 @@ export let element: ElementHelper = protractorDefaultElement;
 
 let usedBrowsers: ProtractorBrowser[] = [];
 
-export function setDefaultBrowser(newDefault: ProtractorBrowser) {
+export async function setDefaultBrowser(newDefault: ProtractorBrowser) {
     browser = newDefault;
     element = newDefault.element;
-    if (!usedBrowsers.includes(newDefault) && newDefault !== protractorDefaultBrowser) {
+    await newDefault.switchTo();
+    const protractorDefaultId = (await protractorDefaultBrowser.getSession()).getId();
+    const newDefaultId = (await newDefault.getSession()).getId();
+    if (!usedBrowsers.includes(newDefault) && newDefaultId !== protractorDefaultId) {
         usedBrowsers.push(newDefault);
     }
 }
@@ -26,6 +29,7 @@ export function closeBrowser(browserToClose: ProtractorBrowser) {
 
 export async function closeAllNonDefaultProtractorBrowsers() {
     for (const currentBrowser of usedBrowsers) {
+        await currentBrowser.switchTo();
         await currentBrowser.close();
     }
     usedBrowsers = [];

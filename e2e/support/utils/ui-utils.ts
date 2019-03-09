@@ -118,7 +118,7 @@ export async function click(
         errorMessage: string = 'Timeout waiting for clickable element',
         extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
         timeout = 5000,
-        sleepAfterScroll = true): Promise<ElementFinder> {
+        sleepAfterScroll = 400): Promise<ElementFinder> {
     return await getElement(locator, errorMessage, false, async (target) => {
         try {
             if (extraCondition) {
@@ -127,10 +127,13 @@ export async function click(
                 }
             }
 
-            await browser.executeScript('arguments[0].scrollIntoView({block: "center", behavior: "smooth"})', await target.getWebElement());
+            await browser.executeAsyncScript<void>(
+                'arguments[0].scrollIntoView({block: "center", behavior: "smooth"}); arguments[1]();',
+                await target.getWebElement()
+            );
 
-            if (sleepAfterScroll) {
-                await browser.sleep(400); // <- Unsure why this is required
+            if (sleepAfterScroll !== 0) {
+                await browser.sleep(sleepAfterScroll); // <- Unsure why this is required
             }
 
             await target.click();
@@ -250,7 +253,7 @@ export async function fillDateField(label: string, value: Date) {
             'Date could not be clicked',
             null,
             5000,
-            false
+            0
         );
     }
 
@@ -261,7 +264,7 @@ export async function fillDateField(label: string, value: Date) {
             'Date could not be clicked',
             null,
             5000,
-            false
+            0
         );
     }
 
@@ -272,7 +275,7 @@ export async function fillDateField(label: string, value: Date) {
             'Date could not be clicked',
             null,
             5000,
-            false
+            0
         );
     }
 
@@ -326,7 +329,7 @@ export function deepCssContainingText(cssSelector: string, searchText: string | 
 
 export async function initializeBrowser(restart = false) {
     if (restart) {
-        setDefaultBrowser(await browser.restart());
+        await setDefaultBrowser(await browser.restart());
     }
     await browser.manage().window().maximize();
     setDefaultTimeout(30000);

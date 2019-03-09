@@ -187,7 +187,7 @@ When(/^I try to save the product entry form$/, async() => {
     if (onEditScreen) {
         memory.memorize(memory.recall('the product entry'), 'the updated product entry');
     }
-    await click(by.xpath('//ion-button[contains(.,"save")]'), 'Save button could not be clicked');
+    await click(by.xpath('//ion-button[contains(.,"save")]'), 'Save button could not be clicked', null, 5000, 1000);
 });
 
 // tslint:disable-next-line:max-line-length
@@ -348,3 +348,66 @@ When (/^I choose to scan another barcode$/, async() => {
     await button.click();
 });
 
+When(/^I press the delete button$/, async() => {
+    await click(by.xpath('//ion-icon[@name="trash"]//parent::*'));
+});
+
+Then(/^the product entry should no longer be in the list$/, async() => {
+    const entry = memory.recall('the product entry');
+
+    await ensureDisappearance(by.xpath(`//span[contains(.,"${entry.amount}")]`
+        + `/../span[contains(.,"${entry.article.name}")]`
+        + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`), 'Entry is still there', false, 5000);
+});
+
+When(/^I check a subset of these product entries$/, async() => {
+    const addedEntries: {[key: string]: ProductEntrySample} = memory.recall('these product entries');
+
+    const amountToDelete = Math.ceil(Object.keys(addedEntries).length / 2);
+
+    const entriesToDelete: {[key: string]: ProductEntrySample} = {};
+    for (let i = 0; i < amountToDelete; i++) {
+        let key: number;
+        do {
+            key = Math.floor(Math.random() * Object.values(addedEntries).length);
+        } while (Object.keys(entriesToDelete).includes(String(key)));
+        const entry = Object.values(addedEntries)[key];
+        await click(by.xpath(`//span[contains(.,"${entry.amount}")]`
+            + `/../span[contains(.,"${entry.article.name}")]`
+            + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`
+            + `/..//input[@type="checkbox"]`));
+
+        entriesToDelete[key] = entry;
+    }
+
+    memory.memorize(Object.values(entriesToDelete), ['the selected product entries', 'the entries']);
+});
+
+
+When(/^I choose to delete the selected items$/, async() => {
+    await click(by.xpath('//ion-icon[@name="trash"]//parent::*'));
+});
+
+Then(/^I should be asked, if I really want to delete the entries$/, async() => {
+    const selectedEntries: ProductEntrySample[] = memory.recall('the entries');
+    await getElement(by.cssContainingText('div', `Really delete those ${selectedEntries.length} products?`));
+});
+
+When (/^I answer (yes|no)$/, async(choiseParam: string) => {
+    await click(by.cssContainingText('button span', choiseParam));
+});
+
+Then(/^the selected product entries should no longer be in the list$/, async() => {
+    const selectedEntries: ProductEntrySample[] = memory.recall('the selected product entries');
+    for (const entry of selectedEntries) {
+        await ensureDisappearance(by.xpath(`//span[contains(.,"${entry.amount}")]`
+            + `/../span[contains(.,"${entry.article.name}")]`
+            + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`), 'Entry is still there', false, 5000);
+    }
+});
+
+When(/^I try to delete that entry$/, async() => {
+    await Step(this, 'I open the edit product screen for that product entry');
+    await Step(this, 'I press the delete button');
+    await Step(this, 'the product entry should no longer be in the list');
+});

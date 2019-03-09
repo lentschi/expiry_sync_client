@@ -23,12 +23,13 @@ Before(async (scenario) => {
 });
 
 After(async() => {
-    // await takeScreenShotAndDumpLogs();
+    await takeScreenShotAndDumpLogs();
     await closeAllNonDefaultProtractorBrowsers();
 });
 
 
 AfterAll(async () => {
+    console.log('Done');
     // await utils.stopFrontend();
     // await utils.stopBackend();
     // TODO
@@ -53,14 +54,14 @@ Given(/^I switch to a different device, on which the app has been freshly instal
     memory.forget('that user');
     memory.memorize(browser, 'first device');
     const browser2 = await browser.forkNewDriverInstance();
-    setDefaultBrowser(browser2);
+    await setDefaultBrowser(browser2);
     await initializeBrowser();
     await browser.get(browser.baseUrl);
     memory.memorize(browser, 'second device');
 });
 
 When(/^I switch back to the first device restarting the app( in offline mode)?$/, async(offlineModeParam) => {
-    setDefaultBrowser(memory.recall('first device'));
+    await setDefaultBrowser(memory.recall('first device'));
     if (offlineModeParam) {
         return cucumberPending('offline mode testing not yet implemented');
     }
@@ -68,5 +69,5 @@ When(/^I switch back to the first device restarting the app( in offline mode)?$/
 
 
 When(/^I switch back to the second device restarting the app$/, async() => {
-    setDefaultBrowser(memory.recall('second device'));
+    await setDefaultBrowser(memory.recall('second device'));
 });
