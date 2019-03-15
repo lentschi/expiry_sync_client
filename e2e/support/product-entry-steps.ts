@@ -84,7 +84,15 @@ Then(/^barcode scanning should start(?: automatically)?$/, async() => {
 
 Then(/^barcode scanning should stop$/, async() => {
     await ensureDisappearance(by.deepCss('#quagga-barcode-scan video'), 'Barcode scanning did not stop', false, 5000);
+    await ensureDisappearance(
+        by.css('.loading-wrapper .sc-ion-loading-md'),
+        'Barcode scanning did not stop (Loader did not go away)',
+        true
+    );
     await showWebcamVideo('blank');
+
+    memory.memorize(!!await getFormField('name', false, true, inputWithValue, 1000), 'fetched article by entering a barcode');
+    // TODO: The above memory is not necessarily true (Article's name could have been there before)
 });
 
 Then(/^this barcode should appear in the barcode field$/, async() => {
@@ -145,6 +153,7 @@ When(/^I (supply|complement the form with) valid product entry data( without a b
             const elem = element(by.deepCss('.barcode-controls ion-input .native-input'));
             const input = await getSingularElement(elem, 'Barcode field not found');
             await input.sendKeys(entry.article.barcode);
+            await ensureDisappearance(by.css('.loading-wrapper .sc-ion-loading-md'), 'Loader did not go away', true);
         }
         const nameField: ElementFinder = await fillField('name', entry.article.name);
         if (!entry.article.name) {
@@ -187,16 +196,28 @@ When(/^I try to save the product entry form$/, async() => {
     if (onEditScreen) {
         memory.memorize(memory.recall('the product entry'), 'the updated product entry');
     }
-    await click(by.xpath('//ion-button[contains(.,"save")]'), 'Save button could not be clicked', null, 5000, 1000);
+
+    const fetchedArticle = memory.recall('fetched article by entering a barcode', false) || false;
+    if (fetchedArticle) {
+        memory.memorize(memory.recall('the product entry'), `the updated article's data`);
+    }
+
+    await click(by.xpath('//ion-button[.//text()="save"]'), 'Save button could not be clicked', null, 5000, 1000);
 });
 
 // tslint:disable-next-line:max-line-length
-Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? product entr(?:y's|ies') (data|article name) in the product entry list$/, async(modifierParam, specifierParam, modifiedHow, whatParam) => {
+Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? (product entr(?:y's|ies')|article(?:s'|'s)) (data|article name) in the product entry list$/, async(modifierParam: string, specifierParam: string, modifiedHowParam: string, entryOrArticleParam: string, whatParam: string) => {
     let entries: ProductEntrySample[];
     if (specifierParam !== 'both') {
         let whatToRecall: string;
-        switch (modifiedHow) {
-            case ' updated':    whatToRecall = 'the updated product entry'; break;
+        switch (modifiedHowParam) {
+            case ' updated':
+                if (entryOrArticleParam.includes('product')) {
+                    whatToRecall = 'the updated product entry';
+                } else {
+                    whatToRecall = `the updated article's data`;
+                }
+                break;
             case ' deleted':    whatToRecall = 'the deleted product entry'; break;
             default:            whatToRecall = 'the product entry';         break;
         }
@@ -215,12 +236,16 @@ Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? prod
             xpath = `//span[contains(.,"${entry.article.name}")]`;
         }
 
-        if (modifierParam !== 'no longer') {
+        if (modifierParam === 'no longer ') {
             await ensureDisappearance(by.xpath(xpath), `entry "${entry.article.name}" not in list`);
         } else {
             await getElement(by.xpath(xpath), `entry "${entry.article.name}" still in list`);
         }
     }
+});
+
+Then(/^I should see that deleting succeeded$/, async() => {
+    // No success message yet
 });
 
 
@@ -335,6 +360,8 @@ When(/I overwrite the form fields contents with (?:valid but )?changed product e
             '//ion-button[contains(@class, "button-full")][contains(.,"take picture")]'), 'Take picture button 2 could not be clicked'
         );
     }
+
+    memory.memorize(entry, 'the product entry');
 });
 
 Then (/I should see that (?:adding|updating) failed$/, async() => {

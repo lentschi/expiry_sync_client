@@ -83,34 +83,15 @@ export async function getElement(
 export async function ensureDisappearance(locator: Locator,
         errorMessage: string | boolean = 'Timeout waiting for element',
         hidingIsEnough = false,
-        timeout = 3000,
-        maxRetriesDueToStaleElements = 3) {
-    let disappeared = false;
-    let staleElementError: Error;
-    let staleElementErrorCount = 0;
+        timeout = 3000) {
 
-    do {
-        staleElementError = null;
         try {
             await browser.wait(async () => {
-                const elem = element(locator);
-                const present = await elem.isPresent();
-                const displayed = present && (await elem.isDisplayed());
-
-                return !present || (hidingIsEnough && !displayed);
+                return !(await getElement(locator, false, hidingIsEnough, null, 100));
             }, timeout);
-            disappeared = true;
-        } catch (e) {
-            if (!e.name || e.name !== 'TimeoutError') {
-                staleElementError = e;
-                staleElementErrorCount++;
-            }
+        } catch {
+            assert.fail(errorMessage + ` (Locator ${locator.toString()} still returned something after ${timeout} ms)`);
         }
-    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
-
-    if (!disappeared) {
-        assert.fail(errorMessage + ` (Locator ${locator.toString()} still returned something after ${timeout} ms)`);
-    }
 }
 
 export async function click(
@@ -197,11 +178,12 @@ export async function getFormField(
         label: string,
         errorMessage: string | boolean = 'Timeout waiting for element',
         waitForVisibility = true,
-        extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null
+        extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
+        timeout?: number
     ): Promise<ElementFinder> {
     const elem = element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-input/input`));
     return await getSingularElement(
-        elem, errorMessage ? errorMessage + ` - form field: '${label}'` : null, waitForVisibility, extraCondition
+        elem, errorMessage ? errorMessage + ` - form field: '${label}'` : false, waitForVisibility, extraCondition, timeout
     );
 }
 
@@ -332,7 +314,7 @@ export async function initializeBrowser(restart = false) {
         await setDefaultBrowser(await browser.restart());
     }
     await browser.manage().window().maximize();
-    setDefaultTimeout(30000);
+    setDefaultTimeout(300000);
 
     // Required due to http polling:
     // s. https://stackoverflow.com/questions/42648077/how-does-waitforangularenabled-work

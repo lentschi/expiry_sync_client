@@ -887,7 +887,7 @@ export class ExpirySync extends ExpirySyncController {
    * @return {Symbol}            the task's ID
    */
   loadingStarted(content?: string, symbolName?: string, forceReopening = false): Symbol {
-    console.error('Loading started: ' + content);
+    console.log('Loading started: ' + content);
     if (content && !symbolName) {
       symbolName = content;
     }
@@ -932,7 +932,7 @@ export class ExpirySync extends ExpirySyncController {
     // a millisecond in case another loader pops
     // up in the same process (avoid flickering)
     setTimeout(() => {
-      console.error('Loading done: ' + task.toString());
+      console.log('Loading done: ' + task.toString());
 
       const i: number = this.loadingTasks.indexOf(task);
       if (i === -1) {
@@ -945,9 +945,9 @@ export class ExpirySync extends ExpirySyncController {
           this.loader.dismiss();
           this.loader = null;
         }
-        console.error('All loading done');
+        console.log('All loading done');
       } else {
-        console.error('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
+        console.log('Loading still in progress', this.loadingTasks.map(currentTask => currentTask.toString()).join(', '));
       }
     }, 1);
   }

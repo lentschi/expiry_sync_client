@@ -2,7 +2,7 @@ import { by, until } from 'protractor';
 import { browser, element } from './utils/protractor-browser-wrapper';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { fillAndSubmitForm, shouldSeeToast as seeToast, shouldSeeMenuPoint, tapMenuPoint } from './utils/ui-utils';
+import { fillAndSubmitForm, shouldSeeToast as seeToast, shouldSeeMenuPoint, tapMenuPoint, click } from './utils/ui-utils';
 import { ScenarioMemory } from './utils/scenario-memory';
 import { UserSamples } from './samples/user-samples';
 import { Given, Then, Step, When } from './utils/cucumber-wrapper';
@@ -74,7 +74,11 @@ Given(/^the login form is open/, async () => {
             by.xpath('//ion-title[contains(text(),"login")]')
         ), 1000);
     } catch (e) {
-        await element(by.cssContainingText('ion-button', 'login instead')).click();
+        try {
+            await element(by.cssContainingText('ion-button', 'login instead')).click();
+        } catch (e2) {
+            await tapMenuPoint('login');
+        }
         await browser.wait(until.elementLocated(
             by.xpath('//ion-title[contains(text(),"login")]')
         ), 1000);
@@ -118,4 +122,14 @@ Given(/^I am logged in as that user$/, async() => {
 
     await Step(this, 'I try to login as that user');
     await Step(this, 'I should be logged in as that user');
+});
+
+
+When(/^I go back to the main screen without logging in$/, async() => {
+    await click(by.cssContainingText('ion-button', 'offline mode'));
+    await click(by.cssContainingText('button span', 'no'));
+
+    // TODO: The following two lines shouldn't be necessary, this is a current FE migration bug:
+    await click(by.cssContainingText('ion-button', 'offline mode'))
+    await click(by.cssContainingText('button span', 'no'));
 });

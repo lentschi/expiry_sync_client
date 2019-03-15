@@ -23,8 +23,12 @@ Before(async (scenario) => {
 });
 
 After(async() => {
-    await takeScreenShotAndDumpLogs();
-    await closeAllNonDefaultProtractorBrowsers();
+    try {
+        await takeScreenShotAndDumpLogs();
+        await closeAllNonDefaultProtractorBrowsers();
+    } catch (e) {
+        console.error(e);
+    }
 });
 
 
