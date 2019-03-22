@@ -4,20 +4,27 @@ import { ServerUtils } from './utils/server-utils';
 import { by, ProtractorBrowser } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { initializeBrowser, shouldSeeToast, takeScreenShotAndDumpLogs } from './utils/ui-utils';
+import { initializeBrowser, shouldSeeToast } from './utils/ui-utils';
 import { Given, Then, When, cucumberPending } from './utils/cucumber-wrapper';
 import { showWebcamVideo } from './utils/device-utils';
 import { ScenarioMemory } from './utils/scenario-memory';
 import { browser, setDefaultBrowser, closeAllNonDefaultProtractorBrowsers } from './utils/protractor-browser-wrapper';
+import { takeScreenShotAndDumpLogs, initializeTestLogDirectory, removeAllScreenshotsAndLogs } from './utils/testing-utils';
 
 
 const expect = chai.use(chaiAsPromised).expect;
 const utils = ServerUtils.singleton();
 const memory = ScenarioMemory.singleton();
 
+BeforeAll(async() => {
+    await initializeTestLogDirectory();
+    await removeAllScreenshotsAndLogs();
+});
+
 Before(async (scenario) => {
     memory.amnesia();
     memory.memorize(scenario, 'current scenario');
+
     await showWebcamVideo('blank');
     await initializeBrowser(true);
 });

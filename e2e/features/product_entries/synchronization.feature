@@ -35,7 +35,6 @@ Scenario: Synchronize updated product entries between different devices with the
 		And I switch back to the first device restarting the app
 	Then I should see the updated product entry's data in the product entry list
 
-@fit
 Scenario: Synchronize product entries between different devices with the same user when logging back in after offline mode
 	Given there exists a product entry
 		And I switch to a different device, on which the app has been freshly installed

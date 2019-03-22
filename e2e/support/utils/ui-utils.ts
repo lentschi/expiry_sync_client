@@ -3,14 +3,13 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { setDefaultTimeout } from 'cucumber';
 import * as moment from 'moment';
-import { createWriteStream } from 'fs';
 import { element, browser, setDefaultBrowser } from './protractor-browser-wrapper';
-import { ScenarioMemory } from './scenario-memory';
+import { takeScreenShotAndDumpLogs } from './testing-utils';
 
 
 const expect = chai.use(chaiAsPromised).expect;
 const assert = chai.use(chaiAsPromised).assert;
-const memory = ScenarioMemory.singleton();
+
 
 export async function getElement(
     locator: Locator,
@@ -73,7 +72,7 @@ export async function getElement(
         }
         const message = errorMessage + extraErrorMessage;
 
-        await takeScreenShotAndDumpLogs(message);
+        // await takeScreenShotAndDumpLogs(message);
         assert.fail(message);
     }
 
@@ -360,46 +359,3 @@ export async function inputWithValue(currentInput) {
     return value !== '';
 }
 
-
-export async function takeScreenShotAndDumpLogs(message = 'Completed') {
-    const scenarioName = memory.recall('current scenario').pickle.name;
-    let logs = message + '\n\n';
-    const logTypes = await browser.manage().logs().getAvailableLogTypes();
-    for (const type of logTypes) {
-        logs += '\n----- Log Type: ' + JSON.stringify(type) + '\n';
-        const browserLogs = await browser.manage().logs().get(type);
-        for (const log of browserLogs) {
-            logs += scenarioName + ': ' +
-                + JSON.stringify(log.level) + ' :: ' + JSON.stringify(log.message) + '\n';
-        }
-        logs += '----- END OF Log Type: ' + JSON.stringify(type) + '\n';
-    }
-    const textStream = createWriteStream(`/srv/project/e2e/support/error_dumps/${scenarioName}.log`);
-    await new Promise((resolve, reject) => {
-        textStream.on('open', () => {
-            textStream.write(Buffer.from(logs));
-            textStream.end();
-        }).on('finish', () => {
-            resolve();
-        }).on('error', err => {
-            reject(err);
-        });
-    });
-
-    // console.error('Done Dumping logs for ' + logCount);
-
-    const data = await browser.takeScreenshot();
-    const stream = createWriteStream(`/srv/project/e2e/support/error_dumps/${scenarioName}.png`);
-    await new Promise((resolve, reject) => {
-        stream.on('open', () => {
-            stream.write(Buffer.from(data, 'base64'));
-            stream.end();
-        }).on('finish', () => {
-            resolve();
-        }).on('error', err => {
-            reject(err);
-        });
-    });
-
-    // console.error('Done saving screenshot for ' + logCount);
-}

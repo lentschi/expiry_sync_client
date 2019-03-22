@@ -19,7 +19,7 @@ import { SettingsModal } from 'src/modal/settings/list/settings';
 import { UserRegistrationModal } from 'src/modal/users/registration/user-registration';
 import { UserLoginModal } from 'src/modal/users/login/user-login';
 import { AboutModal } from 'src/modal/about/about';
-import { LoadingOptions } from '@ionic/core';
+import { LoadingOptions, OverlayEventDetail } from '@ionic/core';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
 
@@ -735,8 +735,8 @@ export class ExpirySync extends ExpirySyncController {
   private showServerChoice(): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       const modal = await this.modalCtrl.create({ component: AlternateServersChoiceModal });
-      modal.onDidDismiss().then(async (event) => {
-        const serverSelected: boolean = event.data;
+      modal.onDidDismiss().then(async (event: OverlayEventDetail<boolean>) => {
+        const serverSelected = event.data;
         await Setting.set('serverChosen', '1');
         resolve(serverSelected);
       });
@@ -973,8 +973,12 @@ export class ExpirySync extends ExpirySyncController {
         // menu point configured to open a modal:
         if (menuPoint.modal) {
           const modal = await this.modalCtrl.create({ component: menuPoint.component, componentProps: data });
-          modal.onDidDismiss().then((...args: any[]) => {
+          modal.onDidDismiss().then((event) => {
             if (menuPoint.onDidDismiss) {
+              const args = [];
+              if (typeof event.data !== 'undefined') {
+                args.push (event.data);
+              }
               menuPoint.onDidDismiss.apply(this, args);
             }
             resolve();

@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ModalController, NavParams } from '@ionic/angular';
 import { NgForm } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
@@ -17,7 +17,6 @@ export class UserLoginModal extends ExpirySyncController {
   user: User;
   loginForm: NgForm;
   serverValidationErrors: any = {};
-  error: Error;
   private app: ExpirySync;
   @ViewChild('loginForm') currentForm: NgForm;
 
@@ -25,18 +24,19 @@ export class UserLoginModal extends ExpirySyncController {
     private modalCtrl: ModalController,
     private server: ApiServer,
     private uiHelper: UiHelper,
+    private params: NavParams,
     translate: TranslateService
   ) {
     super(translate);
     this.app = ExpirySync.getInstance();
     this.user = new User();
 
-    if (this.error) {
+    if (params.get('error')) {
       if (this.app.currentUser) {
         this.user.login = this.app.currentUser.userName;
         this.user.password = this.app.currentUser.password;
       }
-      this.displayError(this.error);
+      this.displayError(params.get('error'));
     }
   }
 

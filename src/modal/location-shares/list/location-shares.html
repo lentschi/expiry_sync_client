@@ -13,14 +13,15 @@
     <ion-list>
       <ion-item *ngFor="let share of shares">
         <span class="user-name">{{share.user.userName}}</span>
-        <ion-button *ngIf="location.serverId && app.currentUser.loggedIn" item-right (click)="removeTapped(share)">
+        <ion-button *ngIf="location.serverId && app.currentUser.loggedIn" slot="end" (click)="removeTapped(share)">
           <ion-icon name="trash"></ion-icon>
         </ion-button>
       </ion-item>
     </ion-list>
-    <form *ngIf="app.currentUser.loggedIn" #shareForm="ngForm" class="list" (ngSubmit)="addShare(shareForm.valid)" novalidate>
+
+    <form *ngIf="app.currentUser.loggedIn; else notLoggedIn" #shareForm="ngForm" class="list" (ngSubmit)="addShare(shareForm.valid)" novalidate>
       <ion-item [class.server-validation-error]="serverValidationErrors.login">
-        <ion-label fixed translate>add share</ion-label>
+        <ion-label position="floating" translate>add share</ion-label>
         <ion-input 
           [placeholder]="'user name or email address' | translate" 
           [(ngModel)]="shareUser.login" 
@@ -36,11 +37,15 @@
       </ng-container>
       <ion-button type="submit" expand="full" translate>add</ion-button>
     </form>
-    <div class="info" *ngIf="!app.currentUser.loggedIn">
-      <ion-icon name="information-circle"></ion-icon>
-      <span translate>
-        You cannot add or remove shares as you are currently not logged in.
-      </span>
-    </div>
+
+    <ng-template #notLoggedIn>
+      <div class="info">
+        <ion-icon name="information-circle"></ion-icon>
+        <span translate>
+          You cannot add or remove shares as you are currently not logged in.
+        </span>
+      </div>
+    </ng-template>
+
   </ion-content>
 </ng-container>

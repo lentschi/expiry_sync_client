@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { ExpirySync } from 'src/app/app.expiry-sync';
 import { AlertButton } from '@ionic/core';
+import { environment } from 'src/environments/environment';
 
 @Injectable()
 export class UiHelper {
@@ -57,7 +58,7 @@ export class UiHelper {
   async toast(message: string, cssClass?: string): Promise<HTMLIonToastElement> {
     const toast = await this.toastCtrl.create({
       message: message,
-      duration: 10000,
+      duration: environment.toastDuration,
       cssClass: cssClass
     });
 

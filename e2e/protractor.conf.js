@@ -25,7 +25,7 @@ exports.config = {
   //       },
   //   },
   // ], 
-  chromeDriver: './protractor-chromedriver.sh',
+  // chromeDriver: './protractor-chromedriver.sh',
   capabilities: {
     browserName: 'chrome',
     chromeOptions: {

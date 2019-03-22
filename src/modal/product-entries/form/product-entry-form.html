@@ -30,7 +30,7 @@
       <ion-item #barcodeItem>
         <ion-input
           [(ngModel)]="productEntry.article.barcode"
-          (blur)="loadArticleByBarcode()"
+          (ionBlur)="loadArticleByBarcode()"
           name="barcode"
           maxlength="255"
           [placeholder]="'Barcode' | translate"

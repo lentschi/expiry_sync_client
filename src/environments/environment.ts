@@ -5,7 +5,8 @@
 export const environment = {
   production: false,
   defaultServerUrl: 'https://expiry-sync-web.local',
-  defaultServerChosen: false
+  defaultServerChosen: false,
+  toastDuration: 1000
 };
 
 /*
