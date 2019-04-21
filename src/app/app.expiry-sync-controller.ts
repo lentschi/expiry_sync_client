@@ -5,6 +5,7 @@ import { AfterViewChecked } from '@angular/core';
 export class ExpirySyncController implements AfterViewChecked {
   private static localChangesDonePromise: Promise<void>;
   private static syncDonePromise: Promise<void>;
+  private static completeSyncDonePromise: Promise<void>;
 
   constructor(public translateSvc: TranslateService) { }
 
@@ -61,6 +62,17 @@ export class ExpirySyncController implements AfterViewChecked {
 
   }
 
+  setCompleteSyncDonePromise(promise: Promise<void>) {
+    ExpirySyncController.completeSyncDonePromise = promise;
+  }
+
+  completeSyncDone(): Promise<void> {
+    if (!ExpirySyncController.completeSyncDonePromise) {
+      return new Promise<void>(resolve => { resolve(); });
+    }
+    return ExpirySyncController.completeSyncDonePromise;
+  }
+
   setLocalChangesDonePromise(promise: Promise<void>) {
     ExpirySyncController.localChangesDonePromise = promise;
   }
@@ -77,11 +89,7 @@ export class ExpirySyncController implements AfterViewChecked {
     return promise;
   }
 
-  async syncDone(showLoader?: boolean) {
-    if (typeof showLoader === 'undefined') {
-      showLoader = true;
-    }
-
+  async syncDone(showLoader = true) {
     if (!ExpirySyncController.syncDonePromise) {
       return new Promise<void>(resolve => { resolve(); });
     }

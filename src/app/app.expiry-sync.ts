@@ -5,7 +5,7 @@ import {
   Config,
 } from '@ionic/angular';
 import { Device } from '@ionic-native/device/ngx';
-import { Setting, User, ProductEntry, Location } from './models';
+import { Setting, User, ProductEntry, Location, ProductEntrySyncList } from './models';
 import { TranslateService } from '@ngx-translate/core';
 import { ExpirySyncController } from './app.expiry-sync-controller';
 import * as moment from 'moment';
@@ -268,35 +268,132 @@ export class ExpirySync extends ExpirySyncController {
    */
   async mutexedSynchronize(requestedManually = false): Promise<void> {
     console.log('SYNC: Waiting for previous sync to finish...');
-    await this.syncDone(false);
+    await this.completeSyncDone();
 
-
-    if (!requestedManually && !this.updatedEntry && !(await this.hasLocalChanges()) && !(await this.hasRemoteChanges())) {
-      console.log('SYNC: Not required');
-      this.entriesList.loadingAfterLocationSwitchDone = true;
-      this.setSyncTimeout();
-      return;
-    }
-
-    await this.setSyncDonePromise(new Promise<void>(async resolve => {
-      console.log('SYNC: Waiting for local changes to be completed...');
-      await this.localChangesDone();
-
-      try {
-        await this.synchronize();
-      } catch (e) {
-        if (requestedManually) {
-          this.uiHelper.errorToast(
-            await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?')
-          );
+    await this.setCompleteSyncDonePromise(new Promise<void>(async resolveCompleteSync => {
+      let locationsOutOfSync: Location[];
+      let entriesOutOfSync: ProductEntry[];
+      let lastSync: Date = null;
+      await this.setSyncDonePromise(new Promise<void>(async resolve => {
+        console.log('SYNC: Waiting for local changes to be completed...');
+        await this.localChangesDone();
+        locationsOutOfSync = await Location.getOutOfSync();
+        for (const location of locationsOutOfSync) {
+          location.syncInProgress = true;
+          location.inSync = true;
+          await location.save();
         }
-        console.error('Error during sync: ', e);
-      }
-      resolve();
 
-      this.events.publish('app:syncDone');
-      console.log('SYNC: Setting sync timeout');
-      this.setSyncTimeout();
+        entriesOutOfSync = await ProductEntry.getOutOfSync();
+        for (const entry of entriesOutOfSync) {
+          entry.syncInProgress = true;
+          entry.inSync = true;
+          await entry.save();
+        }
+
+        const lastSyncRfc2616 = Setting.cached('lastSync');
+        if (lastSyncRfc2616 !== '') {
+          lastSync = new Date(lastSyncRfc2616);
+        }
+
+        resolve();
+      }));
+
+      // Fetch changes from server:
+      const locationsSyncList = await Location.fetchSyncList(lastSync);
+      const locations: Array<Location> = <Array<Location>>await Location
+        .all()
+        .filter('deletedAt', '=', null)
+        .filter('serverId', '!=', null)
+        .list();
+
+      const entriesSyncList: ProductEntrySyncList = {
+        productEntries: [],
+        deletedProductEntries: []
+      };
+      for (const location of locations) {
+        const currentEntriesSyncList = await location.fetchProductEntriesSyncList(lastSync);
+        entriesSyncList.productEntries.push(...currentEntriesSyncList.productEntries);
+        entriesSyncList.deletedProductEntries.push(...currentEntriesSyncList.deletedProductEntries);
+      }
+
+      // Remove remote changes, if there are local changes overwriting those:
+      for (const location of locationsOutOfSync) {
+        let index = locationsSyncList.locations.findIndex(currentLocation => currentLocation.serverId === location.serverId);
+        if (index !== -1) {
+          locationsSyncList.locations.splice(index, 1);
+        }
+
+        index = locationsSyncList.deletedLocations.findIndex(currentLocation => currentLocation.serverId === location.serverId);
+        if (index !== -1) {
+          locationsSyncList.deletedLocations.splice(index, 1);
+        }
+      }
+
+      for (const entry of entriesOutOfSync) {
+        let index = entriesSyncList.productEntries.findIndex(currentEntry => currentEntry.serverId === entry.serverId);
+        if (index !== -1) {
+          entriesSyncList.productEntries.splice(index, 1);
+        }
+
+        index = entriesSyncList.deletedProductEntries.findIndex(currentEntry => currentEntry.serverId === entry.serverId);
+        if (index !== -1) {
+          entriesSyncList.deletedProductEntries.splice(index, 1);
+        }
+      }
+
+      // Push local changes:
+      for (const location of locationsOutOfSync) {
+        await location.push();
+      }
+
+      for (const entry of entriesOutOfSync) {
+        await entry.push();
+      }
+      
+      await this.setSyncDonePromise(new Promise<void>(async resolve => {
+        console.log('SYNC: Waiting for local changes to be completed...');
+        await this.localChangesDone();
+        
+        // Merge server changes with local db & set syncInProgress = false:
+        const locationsChangedInTheMeanTime = await Location.getOutOfSync();
+        for (const location of locationsSyncList.locations) {
+          if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.serverId === location.serverId)) {
+            continue;
+          }
+          location.inSync = true;
+          location.syncInProgress = false;
+          location.updateOrAddByServerId();
+        }
+
+        const entriesChangedInTheMeanTime = await ProductEntry.getOutOfSync();
+        for (const entry of entriesSyncList.productEntries) {
+          if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.serverId === entry.serverId)) {
+            continue;
+          }
+          entry.inSync = true;
+          entry.syncInProgress = false;
+          entry.updateOrAddByServerId();
+        }
+
+        try {
+          await this.synchronize();
+        } catch (e) {
+          if (requestedManually) {
+            this.uiHelper.errorToast(
+              await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?')
+            );
+          }
+          console.error('Error during sync: ', e);
+        }
+        resolve();
+
+        this.events.publish('app:syncDone');
+        console.log('SYNC: Setting sync timeout');
+        this.setSyncTimeout();
+      }));
+
+      resolveCompleteSync();
     }));
   }
 
@@ -661,7 +758,7 @@ export class ExpirySync extends ExpirySyncController {
 
       // when the host setting is changed, the db has to be cleaned:
       Setting.onChange('host', async () => {
-        await this.syncDone();
+        await this.completeSyncDone();
         await User.clearUserRelatedData();
         await this.logout(false);
         await Setting.set('offlineMode', '0');

@@ -81,6 +81,9 @@ export class ProductEntry extends AppModel {
   @Column()
   inSync: boolean;
 
+  @Column()
+  syncInProgress: boolean;
+
   @Column('DATE')
   expirationDate: Date = new Date();
 
@@ -200,6 +203,17 @@ export class ProductEntry extends AppModel {
     return count > 0;
   }
 
+  static async getOutOfSync(): Promise<ProductEntry[]> {
+    const productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
+      .all()
+      .filter('inSync', '=', false)
+      .prefetch('article')
+      .prefetch('location')
+      .list();
+      
+    return productEntries;
+  }
+
   static async pushAll(): Promise<void> {
     const productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
@@ -264,16 +278,19 @@ export class ProductEntry extends AppModel {
     }
 
     const productEntryData = await ApiServer.call(callId, params);
-    if (this.deletedAt) {
-      await this.delete();
-    } else {
-      const receivedEntry: ProductEntry = ProductEntry.createFromServerData(productEntryData.product_entry);
-      this.serverId = receivedEntry.serverId;
-      this.article.serverId = receivedEntry.article.serverId;
-      await this.article.save();
-      this.inSync = true;
-      await this.save();
-    }
+    const receivedEntry: ProductEntry = ProductEntry.createFromServerData(productEntryData.product_entry);
+    this.serverId = receivedEntry.serverId;
+    // const productEntryData = await ApiServer.call(callId, params);
+    // if (this.deletedAt) {
+    //   await this.delete();
+    // } else {
+    //   const receivedEntry: ProductEntry = ProductEntry.createFromServerData(productEntryData.product_entry);
+    //   this.serverId = receivedEntry.serverId;
+    //   this.article.serverId = receivedEntry.article.serverId;
+    //   await this.article.save();
+    //   this.inSync = true;
+    //   await this.save();
+    // }
   }
 
   public async updateOrAddByServerId(): Promise<ProductEntry> {

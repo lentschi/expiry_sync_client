@@ -1,6 +1,6 @@
 declare var persistence: any;
 
-export class RemoveOrphanedProductEntries {
+export class RemoveOrphanedProductEntriesMigration {
     constructor() {
       persistence.defineMigration(6, {
         up: function() {

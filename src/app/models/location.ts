@@ -28,6 +28,9 @@ export class Location extends AppModel {
   @Column()
   inSync: boolean;
 
+  @Column()
+  syncInProgress: boolean;
+
   @Column('DATE')
   createdAt: Date;
 
@@ -133,7 +136,7 @@ export class Location extends AppModel {
     return newLocations;
   }
 
-  private static async fetchSyncList(modifiedAfter?: Date): Promise<LocationSyncList> {
+  static async fetchSyncList(modifiedAfter?: Date): Promise<LocationSyncList> {
     const params: any = {};
     if (modifiedAfter) {
       params.from_timestamp = ApiServer.dateToHttpDate(modifiedAfter);
@@ -163,6 +166,15 @@ export class Location extends AppModel {
       .count();
 
     return count > 0;
+  }
+
+  static async getOutOfSync(): Promise<Location[]> {
+    const locations: Array<Location> = <Array<Location>>await Location
+      .all()
+      .filter('inSync', '=', false)
+      .list();
+    
+    return locations;
   }
 
   static async pushAll(): Promise<void> {
@@ -261,19 +273,24 @@ export class Location extends AppModel {
     }
 
     const locationData = await ApiServer.call(callId, params);
-    if (this.deletedAt) {
-      await ProductEntry
-        .all()
-        .filter('locationId', '=', this.id)
-        .prefetch('location')
-        .delete();
-      await this.delete();
-    } else {
+    if (!this.serverId) {
       const receivedLocation: Location = Location.createFromServerData(locationData.location);
       this.serverId = receivedLocation.serverId;
-      this.inSync = true;
       await this.save();
     }
+    // if (this.deletedAt) {
+    //   await ProductEntry
+    //     .all()
+    //     .filter('locationId', '=', this.id)
+    //     .prefetch('location')
+    //     .delete();
+    //   await this.delete();
+    // } else {
+    //   const receivedLocation: Location = Location.createFromServerData(locationData.location);
+    //   this.serverId = receivedLocation.serverId;
+    //   this.inSync = true;
+    //   await this.save();
+    // }
   }
 
   async addRemoteShare(user: User): Promise<User> {
@@ -292,7 +309,7 @@ export class Location extends AppModel {
     return User.createFromServerData(userData.user);
   }
 
-  public async updateOrAddByServerId(updateFirstWithoutServerId?: boolean): Promise<Location> {
+  public async updateOrAddByServerId(updateFirstWithoutServerId = false): Promise<Location> {
     let location: Location = null;
     try {
       // update record with matching serverId:
