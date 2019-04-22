@@ -298,9 +298,7 @@ export async function shouldSeeMenuPoint(label: string) {
 
 export async function tapMenuPoint(label: string) {
     // TODO: Ensure that menu is open (required on narrow screens):
-    const elem = element(deepCssContainingText('ion-menu ion-label', label));
-    await browser.wait(ExpectedConditions.presenceOf(elem), 1000, `Menu point '${label}' not found`);
-    await elem.click();
+    await click(deepCssContainingText('ion-menu ion-label', label), `Menu point '${label}' not found`);
 }
 
 export function deepCssContainingText(cssSelector: string, searchText: string | RegExp) {

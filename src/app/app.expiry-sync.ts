@@ -377,6 +377,7 @@ export class ExpirySync extends ExpirySyncController {
     this.enableMenuPoint(ExpirySync.MenuPointId.registration);
     this.loadingDone(task);
     console.log('Successfully logged out');
+    this.uiHelper.toast('You have been logged out');
 
     if (Setting.cached('offlineMode') !== '1') {
       this.openMenuPoint(this.menuPoints.find((menuPoint: MenuPointConfig) => {

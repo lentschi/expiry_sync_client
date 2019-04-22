@@ -62,7 +62,7 @@ export class UiHelper {
       cssClass: cssClass
     });
 
-    toast.present();
+    await toast.present();
     return toast;
   }
 
