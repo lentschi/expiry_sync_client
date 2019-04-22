@@ -48,6 +48,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     translate: TranslateService
   ) {
     super(translate);
+    console.log('Constr');
     this.productEntries = new ProductEntriesListAdapter();
     this.app = ExpirySync.getInstance();
     this.app.entriesList = this;
