@@ -4,7 +4,7 @@ import { ServerUtils } from './utils/server-utils';
 import { by, ProtractorBrowser } from 'protractor';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { initializeBrowser, shouldSeeToast } from './utils/ui-utils';
+import { initializeBrowser, shouldSeeToast, click, tapMenuPoint } from './utils/ui-utils';
 import { Given, Then, When, cucumberPending } from './utils/cucumber-wrapper';
 import { showWebcamVideo } from './utils/device-utils';
 import { ScenarioMemory } from './utils/scenario-memory';
@@ -71,11 +71,8 @@ Given(/^I switch to a different device, on which the app has been freshly instal
     memory.memorize(browser, 'second device');
 });
 
-When(/^I switch back to the first device restarting the app( in offline mode)?$/, async(offlineModeParam) => {
+When(/^I switch back to the first device restarting the app?$/, async() => {
     await setDefaultBrowser(memory.recall('first device'));
-    if (offlineModeParam) {
-        return cucumberPending('offline mode testing not yet implemented');
-    }
 });
 
 
