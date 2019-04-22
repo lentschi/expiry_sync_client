@@ -32,8 +32,8 @@ exports.config = {
       binary: '/usr/bin/google-chrome-stable',
       args: [
         '--no-sandbox', 
-        '--headless',
-        '--window-size=1680,1050',
+        // '--headless',
+        // '--window-size=1680,1050',
         '--allow-file-access', 
         '--use-file-for-fake-video-capture=//tmp//e2e.y4m', 
         '--use-fake-device-for-media-stream',
@@ -73,7 +73,7 @@ exports.config = {
   cucumberOpts: {
     compiler: "ts:ts-node/register",
     require: ['./support/*.ts'],  // require step definition files before executing features
-    // tags: ['@fit'],                      // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+    tags: ['@fit'],                      // <string[]> (expression) only execute the features or scenarios with tags matching the expression
     strict: true,                  // <boolean> fail if there are any undefined or pending steps
     // format: ["pretty"],            // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
     dryRun: false,                 // <boolean> invoke formatters without executing steps

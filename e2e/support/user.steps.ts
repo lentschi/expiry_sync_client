@@ -13,7 +13,7 @@ const memory = ScenarioMemory.singleton();
 
 
 const openRegistrationForm = async () => {
-    await element(by.xpath('//ion-label[text()="register"]')).click();
+    await click(by.xpath('//ion-label[text()="register"]'));
 };
 
 Given(/^the registration form is open$/, async () => {
@@ -100,7 +100,7 @@ When(/^I try to login (as that user|with the same user as on the first device|wi
 });
 
 When(/^I try to log out$/, async() => {
-    tapMenuPoint('Logout');
+    await tapMenuPoint('Logout');
 });
 
 Then(/^logout should be successful$/, async () => {
@@ -118,7 +118,8 @@ Given(/^I am logged in as that user$/, async() => {
         await shouldSeeMenuPoint('Logout');
         await Step(this, 'I try to log out');
         await Step(this, 'logout should be successful');
-    } catch (e) { }
+    } catch (e) {
+    }
 
     await Step(this, 'I try to login as that user');
     await Step(this, 'I should be logged in as that user');
@@ -128,8 +129,11 @@ Given(/^I am logged in as that user$/, async() => {
 When(/^I go back to the main screen without logging in$/, async() => {
     await click(by.cssContainingText('ion-button', 'offline mode'));
     await click(by.cssContainingText('button span', 'no'));
+});
 
-    // TODO: The following two lines shouldn't be necessary, this is a current FE migration bug:
-    await click(by.cssContainingText('ion-button', 'offline mode'))
-    await click(by.cssContainingText('button span', 'no'));
+
+When(/^I enter offline mode$/, async() => {
+    await tapMenuPoint('Logout');
+    await click(by.cssContainingText('ion-button', 'offline mode'));
+    await click(by.cssContainingText('button span', 'yes'));
 });

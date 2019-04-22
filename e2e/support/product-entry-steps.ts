@@ -237,9 +237,9 @@ Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? (pro
         }
 
         if (modifierParam === 'no longer ') {
-            await ensureDisappearance(by.xpath(xpath), `entry "${entry.article.name}" not in list`);
+            await ensureDisappearance(by.xpath(xpath), `entry "${entry.article.name}" still in list`);
         } else {
-            await getElement(by.xpath(xpath), `entry "${entry.article.name}" still in list`);
+            await getElement(by.xpath(xpath), `entry "${entry.article.name}" not in list`);
         }
     }
 });
