@@ -16,9 +16,6 @@ export class ArticleImage extends AppModel {
   originalExtName: string;
 
   @Column()
-  serverId: number;
-
-  @Column()
   articleId: string;
 
   /**

@@ -105,9 +105,6 @@ export class ProductEntry extends AppModel {
   @Column()
   creatorId: string;
 
-  @Column()
-  serverId: number;
-
   private isSelected = false;
 
   addRemoveAnimation = 'normal';

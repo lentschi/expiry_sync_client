@@ -18,9 +18,6 @@ export class Article extends AppModel {
   @Column()
   name: string;
 
-  @Column()
-  serverId: number;
-
   images: Array<ArticleImage> = [];
 
   /**

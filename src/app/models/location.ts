@@ -43,9 +43,6 @@ export class Location extends AppModel {
   @Column()
   creatorId: string;
 
-  @Column()
-  serverId: number;
-
   justCreatedByPull = false;
 
   static async createDefault(): Promise<Location> {
