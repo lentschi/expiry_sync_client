@@ -42,7 +42,7 @@ export async function takeScreenShotAndDumpLogs(message = 'Completed') {
     }
 
     if (scenarioName.length > 100) {
-        scenarioName = scenarioName.length.substr(0, 100) + '_' + (new Date()).getMilliseconds();
+        scenarioName = scenarioName.substr(0, 100) + '_' + (new Date()).getMilliseconds();
     }
 
     const textStream = createWriteStream(`${TEST_LOG_DIR}/${scenarioName}.log`);
