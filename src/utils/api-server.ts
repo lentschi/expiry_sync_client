@@ -119,7 +119,7 @@ export class ApiServer {
     { id: ApiServerCall.register, method: RequestMethod.Post, path: '/users' },
 
     { id: ApiServerCall.getLocations, method: RequestMethod.Get, path: '/locations/index_mine_changed' },
-    { id: ApiServerCall.createLocation, method: RequestMethod.Post, path: '/locations' },
+    { id: ApiServerCall.createLocation, method: RequestMethod.Put, path: '/locations/{{location_id}}' },
     { id: ApiServerCall.updateLocation, method: RequestMethod.Put, path: '/locations/{{location_id}}' },
     { id: ApiServerCall.deleteLocation, method: RequestMethod.Delete, path: '/locations/{{location_id}}' },
     { id: ApiServerCall.shareLocation, method: RequestMethod.Post, path: '/locations/{{location_id}}/location_shares' },
@@ -133,7 +133,7 @@ export class ApiServer {
     { id: ApiServerCall.getArticleByBarcode, method: RequestMethod.Get, path: '/articles/by_barcode/{{barcode}}' },
 
     { id: ApiServerCall.getProductEntries, method: RequestMethod.Get, path: '/locations/{{location_id}}/product_entries/index_changed' },
-    { id: ApiServerCall.createProductEntry, method: RequestMethod.Post, path: '/product_entries' },
+    { id: ApiServerCall.createProductEntry, method: RequestMethod.Put, path: '/product_entries/{{product_entry_id}}' },
     { id: ApiServerCall.updateProductEntry, method: RequestMethod.Put, path: '/product_entries/{{product_entry_id}}' },
     { id: ApiServerCall.deleteProductEntry, method: RequestMethod.Delete, path: '/product_entries/{{product_entry_id}}' }
   ];

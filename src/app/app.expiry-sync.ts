@@ -271,20 +271,26 @@ export class ExpirySync extends ExpirySyncController {
     await this.completeSyncDone();
 
     await this.setCompleteSyncDonePromise(new Promise<void>(async resolveCompleteSync => {
+
       let locationsOutOfSync: Location[];
       let entriesOutOfSync: ProductEntry[];
       let lastSync: Date = null;
+      let beforeSync: Date;
+
+      // 1. Lock the local DB:
       await this.setSyncDonePromise(new Promise<void>(async resolve => {
         console.log('SYNC: Waiting for local changes to be completed...');
         await this.localChangesDone();
-        locationsOutOfSync = await Location.getOutOfSync();
+
+        // 2. Take 'snapshot' of local changes since last sync
+        locationsOutOfSync = await Location.getOutOfSync(true);
         for (const location of locationsOutOfSync) {
           location.syncInProgress = true;
           location.inSync = true;
           await location.save();
         }
 
-        entriesOutOfSync = await ProductEntry.getOutOfSync();
+        entriesOutOfSync = await ProductEntry.getOutOfSync(true);
         for (const entry of entriesOutOfSync) {
           entry.syncInProgress = true;
           entry.inSync = true;
@@ -297,9 +303,10 @@ export class ExpirySync extends ExpirySyncController {
         }
 
         resolve();
-      }));
+      })); // <- 3. Release local DB lock
 
-      // Fetch changes from server:
+      // 4. Fetch changes from server:
+      beforeSync = new Date();
       const locationsSyncList = await Location.fetchSyncList(lastSync);
       const locations: Array<Location> = <Array<Location>>await Location
         .all()
@@ -317,76 +324,69 @@ export class ExpirySync extends ExpirySyncController {
         entriesSyncList.deletedProductEntries.push(...currentEntriesSyncList.deletedProductEntries);
       }
 
-      // Remove remote changes, if there are local changes overwriting those:
+      // 5. Merge remote changes with local changes (Remove remote changes, if there are local changes overwriting those)
       for (const location of locationsOutOfSync) {
-        let index = locationsSyncList.locations.findIndex(currentLocation => currentLocation.serverId === location.serverId);
+        let index = locationsSyncList.locations.findIndex(currentLocation => currentLocation.id === location.id);
         if (index !== -1) {
           locationsSyncList.locations.splice(index, 1);
         }
 
-        index = locationsSyncList.deletedLocations.findIndex(currentLocation => currentLocation.serverId === location.serverId);
+        index = locationsSyncList.deletedLocations.findIndex(currentLocation => currentLocation.id === location.id);
         if (index !== -1) {
           locationsSyncList.deletedLocations.splice(index, 1);
         }
       }
 
       for (const entry of entriesOutOfSync) {
-        let index = entriesSyncList.productEntries.findIndex(currentEntry => currentEntry.serverId === entry.serverId);
+        let index = entriesSyncList.productEntries.findIndex(currentEntry => currentEntry.id === entry.id);
         if (index !== -1) {
           entriesSyncList.productEntries.splice(index, 1);
         }
 
-        index = entriesSyncList.deletedProductEntries.findIndex(currentEntry => currentEntry.serverId === entry.serverId);
+        index = entriesSyncList.deletedProductEntries.findIndex(currentEntry => currentEntry.id === entry.id);
         if (index !== -1) {
           entriesSyncList.deletedProductEntries.splice(index, 1);
         }
       }
 
-      // Push local changes:
+      // 6. Push local changes:
       for (const location of locationsOutOfSync) {
-        await location.push();
+        await location.storeOnServer();
       }
 
       for (const entry of entriesOutOfSync) {
-        await entry.push();
+        await entry.storeOnServer();
       }
-      
+
+      // 7. Lock the local DB:
       await this.setSyncDonePromise(new Promise<void>(async resolve => {
         console.log('SYNC: Waiting for local changes to be completed...');
         await this.localChangesDone();
-        
-        // Merge server changes with local db & set syncInProgress = false:
+
+        // 8. Merge server changes with local db & set syncInProgress = false:
         const locationsChangedInTheMeanTime = await Location.getOutOfSync();
         for (const location of locationsSyncList.locations) {
-          if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.serverId === location.serverId)) {
-            continue;
+          if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.id === location.id)) {
+            continue; // skip, if location has changed in the mean time
           }
-          location.inSync = true;
-          location.syncInProgress = false;
-          location.updateOrAddByServerId();
+          location.storeInLocalDb();
         }
 
         const entriesChangedInTheMeanTime = await ProductEntry.getOutOfSync();
-        for (const entry of entriesSyncList.productEntries) {
-          if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.serverId === entry.serverId)) {
-            continue;
+        for (const entry of entriesSyncList.productEntries) { // TODO: add entriesOutOfSync to the iteration
+          if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.id === entry.id)) {
+            continue; // skip, if entry has changed in the mean time
           }
-          entry.inSync = true;
-          entry.syncInProgress = false;
-          entry.updateOrAddByServerId();
+          entry.storeInLocalDb();
         }
 
-        try {
-          await this.synchronize();
-        } catch (e) {
-          if (requestedManually) {
-            this.uiHelper.errorToast(
-              await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?')
-            );
-          }
-          console.error('Error during sync: ', e);
-        }
-        resolve();
+        // 9: Set all syncInProgress= false
+        await Location.markAllSyncInProgressDone();
+        await ProductEntry.markAllSyncInProgressDone();
+
+        // 9. Update last change
+        lastSync = moment(beforeSync).add(this.server.timeSkew, 'ms').toDate();
+        await Setting.set('lastSync', ApiServer.dateToHttpDate(lastSync));
 
         this.events.publish('app:syncDone');
         console.log('SYNC: Setting sync timeout');

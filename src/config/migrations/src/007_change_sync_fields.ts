@@ -9,6 +9,11 @@ export class ChangeSyncFieldsMigration {
         this.addIndex('Location', 'syncInProgress');
         this.addColumn('ProductEntry', 'syncInProgress', 'BOOL');
         this.addIndex('ProductEntry', 'syncInProgress');
+        this.addColumn('Location', 'lastSuccessfulSync', 'DATE');
+        this.addIndex('Location', 'lastSuccessfulSync');
+        this.addColumn('ProductEntry', 'lastSuccessfulSync', 'DATE');
+        this.addIndex('ProductEntry', 'lastSuccessfulSync');
+
 
         this.executeSql(`
           UPDATE ProductEntry SET 
@@ -19,10 +24,10 @@ export class ChangeSyncFieldsMigration {
           UPDATE LocationShare SET
             locationId = (SELECT serverId FROM location WHERE id = LocationShare.locationId)
           WHERE EXISTS (SELECT serverId FROM location WHERE id = LocationShare.locationId AND NOT serverId IS NULL)`);
-        this.executeSql('UPDATE Location SET id = serverId WHERE NOT serverId IS NULL');
+        this.executeSql('UPDATE Location SET id = serverId, lastSuccessfulSync = date("now") WHERE NOT serverId IS NULL');
         this.removeColumn('Location', 'serverId');
 
-        this.executeSql('UPDATE ProductEntry SET id = serverId WHERE NOT serverId IS NULL');
+        this.executeSql('UPDATE ProductEntry SET id = serverId, lastSuccessfulSync = date("now") WHERE NOT serverId IS NULL');
         this.removeColumn('ProductEntry', 'serverId');
 
         this.executeSql(`

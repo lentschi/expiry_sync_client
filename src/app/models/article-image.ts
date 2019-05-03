@@ -27,7 +27,7 @@ export class ArticleImage extends AppModel {
     const images: Array<ArticleImage> = [];
     for (const imageData of imagesData) {
       const image: ArticleImage = new ArticleImage();
-      image.serverId = imageData.id;
+      image.id = imageData.id;
       image.originalExtName = imageData.original_extname;
       images.push(image);
     }
@@ -39,20 +39,8 @@ export class ArticleImage extends AppModel {
    * @return {Promise<ArticleImage>} the created/updated image
    */
   async updateOrAddByServerId(): Promise<ArticleImage> {
-    let image: ArticleImage;
-    try {
-      image = <ArticleImage>await ArticleImage.findBy('serverId', this.serverId);
-
-      // update:
-      image.articleId = this.articleId;
-      image.originalExtName = this.originalExtName;
-    } catch (e) {
-      // create:
-      image = this;
-    }
-
-    await image.save();
-    return image;
+    await this.save();
+    return this;
   }
 
   /**
@@ -87,7 +75,7 @@ export class ArticleImage extends AppModel {
     }
 
     const server: ApiServer = ApiServer.getInstance();
-    server.fetchRemoteFileContents(server.applyPathTemplate(ApiServer.ARTICLE_IMAGE_PATH, { id: this.serverId })).then(imageData => {
+    server.fetchRemoteFileContents(server.applyPathTemplate(ApiServer.ARTICLE_IMAGE_PATH, { id: this.id })).then(imageData => {
       this.imageData = <string> imageData;
       this.save();
     }).catch(e => {

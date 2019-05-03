@@ -29,7 +29,7 @@ export class Article extends AppModel {
     const article: Article = new Article();
     article.barcode = articleData.barcode;
     article.name = articleData.name;
-    article.serverId = articleData.id;
+    article.id = articleData.id;
     article.images = [];
     if (articleData.images) {
       article.images = ArticleImage.createAllFromServerData(articleData.images);
@@ -72,14 +72,11 @@ export class Article extends AppModel {
    */
   toServerData(): { [key: string]: any } {
     const articleData: { [key: string]: any } = {
+      id: this.id,
       barcode: this.barcode,
       name: this.name,
       images: [] // TODO
     };
-
-    if (this.serverId) {
-      articleData.id = this.serverId;
-    }
 
     articleData.images = [];
     for (const image of this.images) {
@@ -100,21 +97,13 @@ export class Article extends AppModel {
 
         // update:
         article.name = this.name;
-        article.serverId = this.serverId;
+        article.id = this.id;
       } catch (e) {
         // create:
         article = this;
       }
     } else {
-      try {
-        article = <Article>await Article.findBy('serverId', this.serverId);
-
-        // update:
-        article.name = this.name;
-      } catch (e) {
-        // create:
-        article = this;
-      }
+      article = this;
     }
 
     await article.save();

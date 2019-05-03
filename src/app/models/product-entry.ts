@@ -88,6 +88,9 @@ export class ProductEntry extends AppModel {
   expirationDate: Date = new Date();
 
   @Column('DATE')
+  lastSuccessfulSync: Date = new Date();
+
+  @Column('DATE')
   createdAt: Date = new Date();
 
   @Column('DATE')
@@ -121,7 +124,7 @@ export class ProductEntry extends AppModel {
     if (productEntryData.creator !== undefined) {
       productEntry.creator = User.createFromServerData(productEntryData.creator);
     }
-    productEntry.serverId = productEntryData.id;
+    productEntry.id = productEntryData.id;
     productEntry.article = Article.createFromServerData(productEntryData.article);
 
     return productEntry;
@@ -145,50 +148,6 @@ export class ProductEntry extends AppModel {
   }
 
 
-  static async pullAll(modifiedAfter?: Date, updateId?: number, locationsCreatedByPull?: Array<Location>): Promise<void> {
-    if (typeof (locationsCreatedByPull) === 'undefined') {
-      locationsCreatedByPull = [];
-    }
-
-    const locations: Array<Location> = <Array<Location>>await Location
-      .all()
-      .filter('deletedAt', '=', null)
-      .filter('serverId', '!=', null)
-      .list();
-
-    for (const location of locations) {
-      await ProductEntry.pullAllByLocation(
-        location,
-        locationsCreatedByPull.find(pulledLocation => (pulledLocation.id === location.id)) ? null : modifiedAfter, updateId
-      );
-    }
-  }
-
-  private static async pullAllByLocation(location: Location, modifiedAfter?: Date, updateId?: number) {
-    const productEntrySyncList: ProductEntrySyncList = await location.fetchProductEntriesSyncList(modifiedAfter);
-    for (const productEntry of productEntrySyncList.productEntries) {
-      if (productEntry.serverId === updateId) {
-        continue; // we're going to update it in the same process -> don't pull
-      }
-
-      productEntry.inSync = true;
-      productEntry.location = location;
-      productEntry.locationId = location.id;
-      await productEntry.updateOrAddByServerId();
-    }
-
-    for (const productEntryToDelete of productEntrySyncList.deletedProductEntries) {
-      try {
-        const dbProductEntry: ProductEntry = <ProductEntry>await ProductEntry.findBy('serverId', productEntryToDelete.serverId);
-        await dbProductEntry.delete();
-      } catch (e) {
-        if (!(e instanceof RecordNotFoundError)) {
-          throw (e);
-        }
-      }
-    }
-  }
-
   static async hasLocalChanges(): Promise<boolean> {
     const count = await ProductEntry
       .all()
@@ -200,32 +159,39 @@ export class ProductEntry extends AppModel {
     return count > 0;
   }
 
-  static async getOutOfSync(): Promise<ProductEntry[]> {
+  static async getOutOfSync(includeSyncInProgress = false): Promise<ProductEntry[]> {
     const productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
       .filter('inSync', '=', false)
       .prefetch('article')
       .prefetch('location')
       .list();
-      
+
+    if (includeSyncInProgress) {
+      productEntries.push(...<Array<ProductEntry>>await ProductEntry
+        .all()
+        .filter('syncInProgress', '=', true)
+        .prefetch('article')
+        .prefetch('location')
+        .list()
+      );
+    }
     return productEntries;
   }
 
-  static async pushAll(): Promise<void> {
-    const productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
+  static async markAllSyncInProgressDone(): Promise<void> {
+    return Location
       .all()
-      .filter('inSync', '=', false)
-      .prefetch('article')
-      .prefetch('location')
-      .list();
-
-    for (const productEntry of productEntries) {
-      await productEntry.push();
-    }
+      .filter('syncInProgress', '=', true)
+      .update([
+        {propertyName: 'syncInProgress', value: false},
+        {propertyName: 'lastSuccessfulSync', value: new Date()},
+      ]);
   }
 
+
   async markForDeletion(): Promise<void> {
-    if (!this.serverId) {
+    if (!this.lastSuccessfulSync && !this.syncInProgress) {
       return this.delete();
     }
 
@@ -236,34 +202,29 @@ export class ProductEntry extends AppModel {
 
   toServerData() {
     const productEntryData: any = {
+      id: this.id,
       description: this.description,
       free_to_take: this.freeToTake,
       amount: this.amount,
-      location_id: this.location.serverId,
+      location_id: this.location.id,
       expiration_date: ApiServer.dateToHttpDate(this.expirationDate),
       created_at: ApiServer.dateToHttpDate(this.createdAt),
       updated_at: ApiServer.dateToHttpDate(this.updatedAt),
       article: this.article.toServerData()
     };
 
-    if (this.serverId) {
-      productEntryData.id = this.serverId;
-    }
-
     return productEntryData;
   }
 
-  public async push(): Promise<void> {
+  public async storeOnServer(): Promise<ProductEntry> {
     let callId: number = ApiServerCall.createProductEntry;
     const params: any = {};
 
-    if (this.serverId) {
-      params['product_entry_id'] = this.serverId;
-      if (this.deletedAt) {
-        callId = ApiServerCall.deleteProductEntry;
-      } else {
-        callId = ApiServerCall.updateProductEntry;
-      }
+    params['product_entry_id'] = this.id;
+    if (this.deletedAt) {
+      callId = ApiServerCall.deleteProductEntry;
+    } else {
+      callId = ApiServerCall.updateProductEntry;
     }
 
     if (!this.deletedAt) {
@@ -275,56 +236,24 @@ export class ProductEntry extends AppModel {
     }
 
     const productEntryData = await ApiServer.call(callId, params);
-    const receivedEntry: ProductEntry = ProductEntry.createFromServerData(productEntryData.product_entry);
-    this.serverId = receivedEntry.serverId;
-    // const productEntryData = await ApiServer.call(callId, params);
-    // if (this.deletedAt) {
-    //   await this.delete();
-    // } else {
-    //   const receivedEntry: ProductEntry = ProductEntry.createFromServerData(productEntryData.product_entry);
-    //   this.serverId = receivedEntry.serverId;
-    //   this.article.serverId = receivedEntry.article.serverId;
-    //   await this.article.save();
-    //   this.inSync = true;
-    //   await this.save();
-    // }
+    return ProductEntry.createFromServerData(productEntryData.product_entry);
   }
 
-  public async updateOrAddByServerId(): Promise<ProductEntry> {
-    let productEntry: ProductEntry;
-    try {
-      productEntry = <ProductEntry>await ProductEntry.findBy('serverId', this.serverId);
+  public async storeInLocalDb(): Promise<ProductEntry> {
+    this.article = await this.article.updateOrAddByBarcodeOrServerId();
+    this.articleId = this.article.id;
 
-      // update:
-      productEntry.description = this.description;
-      productEntry.amount = this.amount;
-      productEntry.expirationDate = this.expirationDate;
-      productEntry.freeToTake = this.freeToTake;
-      productEntry.createdAt = this.createdAt;
-      productEntry.updatedAt = this.updatedAt;
-      productEntry.deletedAt = this.deletedAt;
-      productEntry.locationId = this.locationId;
-      productEntry.inSync = this.inSync;
-    } catch (e) {
-      // create:
-      productEntry = this;
-    }
+    this.creator = await this.creator.updateOrAddByServerId();
+    this.creatorId = this.creator.id;
 
-    productEntry.location = this.location;
-
-    productEntry.article = await this.article.updateOrAddByBarcodeOrServerId();
-    productEntry.articleId = productEntry.article.id;
-
-    productEntry.creator = await this.creator.updateOrAddByServerId();
-    productEntry.creatorId = productEntry.creator.id;
-
-    await productEntry.save();
-    return productEntry;
+    this.inSync = true;
+    await this.save();
+    return this;
   }
 
   async save(): Promise<void> {
     const app: ExpirySync = ExpirySync.getInstance();
-    if (!this.creatorId && !this.serverId && app.currentUser) {
+    if (!this.creatorId && !this.lastSuccessfulSync && app.currentUser) {
       this.creatorId = app.currentUser.id;
     }
     return super.save();
