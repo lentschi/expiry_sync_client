@@ -43,6 +43,7 @@ import { EllipsisModule } from 'ngx-ellipsis';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { SynchronizationHandler } from './services/synchronization-handler.service';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -120,6 +121,7 @@ export function createTranslateLoader(http: HttpClient) {
   providers: [
     DbManager,
     ApiServer,
+    SynchronizationHandler,
     UiHelper,
     BarcodeScanner,
     LocalNotifications,

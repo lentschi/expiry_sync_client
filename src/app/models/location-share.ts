@@ -19,7 +19,7 @@ export class LocationShare extends AppModel {
 
   async requestRemoval(): Promise<void> {
     const params: any = {
-      location_id: this.location.serverId,
+      location_id: this.location.id,
       user_id: this.user.serverId
     };
 

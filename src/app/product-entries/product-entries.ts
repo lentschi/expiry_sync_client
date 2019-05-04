@@ -179,7 +179,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     }
     if (this.app.currentUser.loggedIn) {
       this.app.updatedEntry = updatedEntry;
-      this.app.mutexedSynchronize().then(async () => {
+      this.app.synchronize().then(async () => {
         if (showList || (updatedEntry && !(await updatedEntry.exists()))) {
           await this.showList();
         }

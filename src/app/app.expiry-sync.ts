@@ -22,6 +22,7 @@ import { AboutModal } from 'src/modal/about/about';
 import { LoadingOptions, OverlayEventDetail } from '@ionic/core';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
+import { SynchronizationHandler } from './services/synchronization-handler.service';
 
 declare var window: any;
 declare var cordova: any;
@@ -65,7 +66,7 @@ export class ExpirySync extends ExpirySyncController {
    * Fallback version to display if determining the real version fails
    */
   static readonly FALLBACK_APP_VERSION = '1.4 web';
-  static readonly API_VERSION = 2;
+  static readonly API_VERSION = 3;
 
   /**
    * Singleton instance
@@ -188,11 +189,10 @@ export class ExpirySync extends ExpirySyncController {
   constructor(
     private platform: Platform,
     translate: TranslateService,
-    private config: Config,
     private menuCtrl: MenuController,
     private modalCtrl: ModalController,
     private dbManager: DbManager,
-    private server: ApiServer,
+    private synchronizationHandler: SynchronizationHandler,
     public events: Events,
     private loadingCtrl: LoadingController,
     private localNotifications: LocalNotifications,
@@ -235,7 +235,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   async synchronizeTapped() {
     const task = this.loadingStarted('Synchronizing');
-    await this.mutexedSynchronize(true);
+    await this.synchronize(true);
     this.loadingDone(task);
   }
 
@@ -246,189 +246,26 @@ export class ExpirySync extends ExpirySyncController {
     window.navigator.app.exit();
   }
 
-  private async hasLocalChanges(): Promise<boolean> {
-    return await Location.hasLocalChanges() || await ProductEntry.hasLocalChanges();
-  }
-
-  private async hasRemoteChanges(): Promise<boolean> {
-    let lastSync: Date = null;
-    const lastSyncRfc2616 = Setting.cached('lastSync');
-    if (lastSyncRfc2616 !== '') {
-      lastSync = new Date(lastSyncRfc2616);
-    }
-
-    return await Location.hasRemoteChanges(lastSync) || await ProductEntry.hasRemoteChanges(lastSync);
-  }
-
   /**
    * Synchronize product entries with the server, waiting for any ongoing sync or local changes to complete first
-   * @param  {number}        locationUpdateId     ID of a location that has just been updated locally (won't be pulled)
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async mutexedSynchronize(requestedManually = false): Promise<void> {
-    console.log('SYNC: Waiting for previous sync to finish...');
-    await this.completeSyncDone();
-
-    await this.setCompleteSyncDonePromise(new Promise<void>(async resolveCompleteSync => {
-
-      let locationsOutOfSync: Location[];
-      let entriesOutOfSync: ProductEntry[];
-      let lastSync: Date = null;
-      let beforeSync: Date;
-
-      // 1. Lock the local DB:
-      await this.setSyncDonePromise(new Promise<void>(async resolve => {
-        console.log('SYNC: Waiting for local changes to be completed...');
-        await this.localChangesDone();
-
-        // 2. Take 'snapshot' of local changes since last sync
-        locationsOutOfSync = await Location.getOutOfSync(true);
-        for (const location of locationsOutOfSync) {
-          location.syncInProgress = true;
-          location.inSync = true;
-          await location.save();
-        }
-
-        entriesOutOfSync = await ProductEntry.getOutOfSync(true);
-        for (const entry of entriesOutOfSync) {
-          entry.syncInProgress = true;
-          entry.inSync = true;
-          await entry.save();
-        }
-
-        const lastSyncRfc2616 = Setting.cached('lastSync');
-        if (lastSyncRfc2616 !== '') {
-          lastSync = new Date(lastSyncRfc2616);
-        }
-
-        resolve();
-      })); // <- 3. Release local DB lock
-
-      // 4. Fetch changes from server:
-      beforeSync = new Date();
-      const locationsSyncList = await Location.fetchSyncList(lastSync);
-      const locations: Array<Location> = <Array<Location>>await Location
-        .all()
-        .filter('deletedAt', '=', null)
-        .filter('serverId', '!=', null)
-        .list();
-
-      const entriesSyncList: ProductEntrySyncList = {
-        productEntries: [],
-        deletedProductEntries: []
-      };
-      for (const location of locations) {
-        const currentEntriesSyncList = await location.fetchProductEntriesSyncList(lastSync);
-        entriesSyncList.productEntries.push(...currentEntriesSyncList.productEntries);
-        entriesSyncList.deletedProductEntries.push(...currentEntriesSyncList.deletedProductEntries);
+  async synchronize(requestedManually = false): Promise<void> {
+    try {
+      await this.synchronizationHandler.mutexedSynchronize(this);
+    } catch (e) {
+      console.error('Error during sync: ', e);
+      if (requestedManually) {
+        this.uiHelper.errorToast(
+          await this.translate('We have trouble connecting to the server you chose. Are you connected to the internet?')
+        );
       }
-
-      // 5. Merge remote changes with local changes (Remove remote changes, if there are local changes overwriting those)
-      for (const location of locationsOutOfSync) {
-        let index = locationsSyncList.locations.findIndex(currentLocation => currentLocation.id === location.id);
-        if (index !== -1) {
-          locationsSyncList.locations.splice(index, 1);
-        }
-
-        index = locationsSyncList.deletedLocations.findIndex(currentLocation => currentLocation.id === location.id);
-        if (index !== -1) {
-          locationsSyncList.deletedLocations.splice(index, 1);
-        }
-      }
-
-      for (const entry of entriesOutOfSync) {
-        let index = entriesSyncList.productEntries.findIndex(currentEntry => currentEntry.id === entry.id);
-        if (index !== -1) {
-          entriesSyncList.productEntries.splice(index, 1);
-        }
-
-        index = entriesSyncList.deletedProductEntries.findIndex(currentEntry => currentEntry.id === entry.id);
-        if (index !== -1) {
-          entriesSyncList.deletedProductEntries.splice(index, 1);
-        }
-      }
-
-      // 6. Push local changes:
-      for (const location of locationsOutOfSync) {
-        await location.storeOnServer();
-      }
-
-      for (const entry of entriesOutOfSync) {
-        await entry.storeOnServer();
-      }
-
-      // 7. Lock the local DB:
-      await this.setSyncDonePromise(new Promise<void>(async resolve => {
-        console.log('SYNC: Waiting for local changes to be completed...');
-        await this.localChangesDone();
-
-        // 8. Merge server changes with local db & set syncInProgress = false:
-        const locationsChangedInTheMeanTime = await Location.getOutOfSync();
-        for (const location of locationsSyncList.locations) {
-          if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.id === location.id)) {
-            continue; // skip, if location has changed in the mean time
-          }
-          location.storeInLocalDb();
-        }
-
-        const entriesChangedInTheMeanTime = await ProductEntry.getOutOfSync();
-        for (const entry of entriesSyncList.productEntries) { // TODO: add entriesOutOfSync to the iteration
-          if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.id === entry.id)) {
-            continue; // skip, if entry has changed in the mean time
-          }
-          entry.storeInLocalDb();
-        }
-
-        // 9: Set all syncInProgress= false
-        await Location.markAllSyncInProgressDone();
-        await ProductEntry.markAllSyncInProgressDone();
-
-        // 9. Update last change
-        lastSync = moment(beforeSync).add(this.server.timeSkew, 'ms').toDate();
-        await Setting.set('lastSync', ApiServer.dateToHttpDate(lastSync));
-
-        this.events.publish('app:syncDone');
-        console.log('SYNC: Setting sync timeout');
-        this.setSyncTimeout();
-      }));
-
-      resolveCompleteSync();
-    }));
-  }
-
-  /**
-   * Synchronize product entries with the server
-   * Pulls and pushes locations from/to the server that were modified after the timestamp
-   * stored in the 'lastSync' setting.
-   * @param  {number}        locationUpdateId     ID of a location that has just been updated locally (won't be pulled)
-   * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
-   * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
-   */
-  async synchronize(): Promise<void> {
-    console.log('SYNC: Synchronizing...');
-    let lastSync: Date = null;
-    const lastSyncRfc2616 = Setting.cached('lastSync');
-    if (lastSyncRfc2616 !== '') {
-      lastSync = new Date(lastSyncRfc2616);
     }
 
-
-    const beforeSync = new Date();
-    const newLocations = await Location.pullAll(lastSync, this.updatedLocation ? this.updatedLocation.serverId : null);
-    await Location.pushAll();
-
-    this.updatedLocation = null;
-
-    await ProductEntry.pullAll(lastSync, this.updatedEntry ? this.updatedEntry.serverId : null, newLocations);
-    await ProductEntry.pushAll();
-
-    this.updatedEntry = null;
-
-    lastSync = moment(beforeSync).add(this.server.timeSkew, 'ms').toDate();
-
-    await Setting.set('lastSync', ApiServer.dateToHttpDate(lastSync));
-    console.log('SYNC: Done');
+    this.events.publish('app:syncDone');
+    console.log('SYNC: Setting sync timeout');
+    // this.setSyncTimeout();  // TODO-upgrade
   }
 
   /**
@@ -455,7 +292,7 @@ export class ExpirySync extends ExpirySyncController {
     this.syncTimeout = setTimeout(() => {
       this.syncTimeout = null;
       if (this.currentUser && this.currentUser.loggedIn) {
-        this.mutexedSynchronize();
+        this.synchronize();
       }
     }, parseInt(Setting.cached('syncInterval'), 10));
   }
@@ -910,7 +747,7 @@ export class ExpirySync extends ExpirySyncController {
       this.disableMenuPoint(ExpirySync.MenuPointId.registration);
       this.enableMenuPoint(ExpirySync.MenuPointId.logout);
       this.enableMenuPoint(ExpirySync.MenuPointId.synchronize);
-      await this.mutexedSynchronize();
+      await this.synchronize();
     } else {
       this.enableMenuPoint(ExpirySync.MenuPointId.login);
       this.enableMenuPoint(ExpirySync.MenuPointId.registration);

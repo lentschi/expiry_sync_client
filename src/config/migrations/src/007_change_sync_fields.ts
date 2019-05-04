@@ -9,15 +9,15 @@ export class ChangeSyncFieldsMigration {
         this.addIndex('Location', 'syncInProgress');
         this.addColumn('ProductEntry', 'syncInProgress', 'BOOL');
         this.addIndex('ProductEntry', 'syncInProgress');
-        this.addColumn('Location', 'lastSuccessfulSync', 'DATE');
+        this.addColumn('Location', 'lastSuccessfulSync', 'DATETIME');
         this.addIndex('Location', 'lastSuccessfulSync');
-        this.addColumn('ProductEntry', 'lastSuccessfulSync', 'DATE');
+        this.addColumn('ProductEntry', 'lastSuccessfulSync', 'DATETIME');
         this.addIndex('ProductEntry', 'lastSuccessfulSync');
 
 
         this.executeSql(`
-          UPDATE ProductEntry SET 
-            locationId = (SELECT serverId FROM location WHERE id = ProductEntry.locationId) 
+          UPDATE ProductEntry SET
+            locationId = (SELECT serverId FROM location WHERE id = ProductEntry.locationId)
           WHERE EXISTS (SELECT serverId FROM location WHERE id = ProductEntry.locationId AND NOT serverId IS NULL)
         `);
         this.executeSql(`

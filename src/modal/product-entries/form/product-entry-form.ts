@@ -149,7 +149,6 @@ export class ProductEntryFormModal extends ExpirySyncController {
     }
 
     this.productEntry = <ProductEntry>this.productEntry.clone();
-    this.productEntry.serverId = null;
     this.productEntry.inSync = false;
     await this.saveEntry(true);
   }

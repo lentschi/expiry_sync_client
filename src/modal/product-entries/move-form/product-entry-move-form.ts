@@ -61,7 +61,6 @@ export class ProductEntryMoveFormModal extends ExpirySyncController implements O
       const copy = <ProductEntry>entry.clone();
       copy.locationId = targetLocation.id;
       copy.location = targetLocation;
-      copy.serverId = null;
       copy.inSync = false;
       await copy.save();
 

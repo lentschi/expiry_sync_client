@@ -24,14 +24,22 @@ export class QueryCollection {
 
   list(): Promise<Array<AppModel>> {
     return new Promise<Array<AppModel>>((resolve, reject) => {
-      this.persistenceCollection.list((results) => {
-        const modelInstances: Array<AppModel> = [];
-        results.forEach((persistenceInstance) => {
-          modelInstances.push(this.modelClass.createFromPersistenceInstance(persistenceInstance));
-        });
+      try {
+        this.persistenceCollection.list((results) => {
+          try {
+            const modelInstances: Array<AppModel> = [];
+            for (const persistenceInstance of results) {
+              modelInstances.push(this.modelClass.createFromPersistenceInstance(persistenceInstance));
+            }
 
-        resolve(modelInstances);
-      });
+            resolve(modelInstances);
+          } catch (innerError) {
+            reject(innerError);
+          }
+        });
+      } catch (listError) {
+        reject(listError);
+      }
     });
   }
 

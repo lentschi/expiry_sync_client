@@ -187,6 +187,7 @@ export class User extends AppModel {
     }
 
     await user.save();
+    console.log('Done saving user');
     return user;
   }
 

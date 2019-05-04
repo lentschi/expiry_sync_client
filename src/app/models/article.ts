@@ -11,6 +11,7 @@ export class Article extends AppModel {
       && this.images[0].imageData !== null;
   }
   static tableName = 'Article';
+  static allowImplicitCreation = true;
 
   @Column()
   barcode: string;

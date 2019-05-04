@@ -2,6 +2,7 @@ import { ExpirySync } from './app.expiry-sync';
 import { TranslateService } from '@ngx-translate/core';
 import { AfterViewChecked } from '@angular/core';
 
+// TODO: move all this to a service (or multiple)!
 export class ExpirySyncController implements AfterViewChecked {
   private static localChangesDonePromise: Promise<void>;
   private static syncDonePromise: Promise<void>;
@@ -62,8 +63,9 @@ export class ExpirySyncController implements AfterViewChecked {
 
   }
 
-  setCompleteSyncDonePromise(promise: Promise<void>) {
+  setCompleteSyncDonePromise(promise: Promise<void>): Promise<void> {
     ExpirySyncController.completeSyncDonePromise = promise;
+    return promise;
   }
 
   completeSyncDone(): Promise<void> {
@@ -73,8 +75,9 @@ export class ExpirySyncController implements AfterViewChecked {
     return ExpirySyncController.completeSyncDonePromise;
   }
 
-  setLocalChangesDonePromise(promise: Promise<void>) {
+  setLocalChangesDonePromise(promise: Promise<void>): Promise<void> {
     ExpirySyncController.localChangesDonePromise = promise;
+    return promise;
   }
 
   localChangesDone(): Promise<void> {

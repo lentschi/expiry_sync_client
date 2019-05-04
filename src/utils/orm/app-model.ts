@@ -3,6 +3,7 @@ declare var persistence: any;
 import { QueryCollection } from './query-collection';
 import { RecordNotFoundError } from './errors/record-not-found-error';
 import 'reflect-metadata';
+import {v1 as uuid} from 'uuid';
 
 export function Column(colType?: string) {
   return function (object: any, propertyName: string) {
@@ -84,6 +85,9 @@ export class AppModel {
    * the db table name
    */
   static tableName: string;
+
+  static allowImplicitCreation: boolean;
+
   private updateId: string;
 
   private internalInstance;
@@ -256,15 +260,24 @@ export class AppModel {
     let newInstance = false;
 
     if (this.updateId) {
-      await this.setUpdateId(this.updateId);
-      this.updateId = null;
+      try {
+        await this.setUpdateId(this.updateId);
+        this.updateId = null;
+      } catch (e) {
+        if (e instanceof RecordNotFoundError && modelClass.allowImplicitCreation) {
+          newInstance = true;
+        } else {
+          throw e;
+        }
+      }
     }
 
-    if (this.internalInstance) {
+    if (!newInstance && this.internalInstance) {
       await this.reloadInternalInstance();
     } else {
       newInstance = true;
       this.internalInstance = new modelClass.internalEntity();
+      this.internalInstance.id = this.updateId || uuid();
     }
 
     for (const propertyName of Object.keys(modelClass.typeMap)) {
@@ -279,7 +292,7 @@ export class AppModel {
 
         this.internalInstance[propertyName] = propertyValue;
       } catch (e) {
-        console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance);
+        console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance, e);
       }
     }
 

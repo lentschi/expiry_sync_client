@@ -12,6 +12,7 @@ export class Location extends AppModel {
     return (!this.creatorId || (app.currentUser && app.currentUser.id === this.creatorId));
   }
   static tableName = 'Location';
+  static allowImplicitCreation = true;
 
   @HasOne('User')
   creator: User;
@@ -32,13 +33,13 @@ export class Location extends AppModel {
   syncInProgress: boolean;
 
   @Column('DATE')
-  lastSuccessfulSync: Date = new Date();
+  lastSuccessfulSync: Date;
 
   @Column('DATE')
-  createdAt: Date;
+  createdAt: Date = new Date();
 
   @Column('DATE')
-  updatedAt: Date;
+  updatedAt: Date = new Date();
 
   @Column('DATE')
   deletedAt: Date;
@@ -69,13 +70,13 @@ export class Location extends AppModel {
     }
   }
 
-  static async markAllSyncInProgressDone(): Promise<void> {
+  static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
     return Location
       .all()
       .filter('syncInProgress', '=', true)
       .update([
         {propertyName: 'syncInProgress', value: false},
-        {propertyName: 'lastSuccessfulSync', value: new Date()},
+        {propertyName: 'lastSuccessfulSync', value: syncDoneTimestamp},
       ]);
   }
 
@@ -105,13 +106,6 @@ export class Location extends AppModel {
     return location;
   }
 
-  static async hasRemoteChanges(modifiedAfter?: Date): Promise<boolean> {
-    const locationSyncList: LocationSyncList = await Location.fetchSyncList(modifiedAfter);
-    return locationSyncList.locations.length > 0 || locationSyncList.deletedLocations.length > 0;
-  }
-
-
-
   static async fetchSyncList(modifiedAfter?: Date): Promise<LocationSyncList> {
     const params: any = {};
     if (modifiedAfter) {
@@ -133,15 +127,6 @@ export class Location extends AppModel {
     }
 
     return syncList;
-  }
-
-  static async hasLocalChanges(): Promise<boolean> {
-    const count = await Location
-      .all()
-      .filter('inSync', '=', false)
-      .count();
-
-    return count > 0;
   }
 
   static async getOutOfSync(includeSyncInProgress = false): Promise<Location[]> {
@@ -255,8 +240,11 @@ export class Location extends AppModel {
     return Location.createFromServerData(locationData.location);
   }
 
-  async storeInLocalDb(): Promise<Location> {
+  async storeInLocalDb(syncDoneTimestamp: Date): Promise<Location> {
     this.inSync = true;
+    this.lastSuccessfulSync = syncDoneTimestamp;
+    this.creator = await this.creator.updateOrAddByServerId();
+    this.creatorId = this.creator.id;
     await this.save();
     await this.updateShares();
     return this;

@@ -51,6 +51,7 @@ export class ProductEntry extends AppModel {
     return this.expirationDateBeyondThreshold(days);
   }
   static tableName = 'ProductEntry';
+  static allowImplicitCreation = true;
 
   /**
    * Relations:
@@ -88,7 +89,7 @@ export class ProductEntry extends AppModel {
   expirationDate: Date = new Date();
 
   @Column('DATE')
-  lastSuccessfulSync: Date = new Date();
+  lastSuccessfulSync: Date;
 
   @Column('DATE')
   createdAt: Date = new Date();
@@ -126,37 +127,9 @@ export class ProductEntry extends AppModel {
     }
     productEntry.id = productEntryData.id;
     productEntry.article = Article.createFromServerData(productEntryData.article);
+    productEntry.locationId = productEntryData.location_id;
 
     return productEntry;
-  }
-
-  static async hasRemoteChanges(modifiedAfter?: Date): Promise<boolean> {
-    const locations: Array<Location> = <Array<Location>>await Location
-      .all()
-      .filter('deletedAt', '=', null)
-      .filter('serverId', '!=', null)
-      .list();
-
-    for (const location of locations) {
-      const productEntrySyncList: ProductEntrySyncList = await location.fetchProductEntriesSyncList(modifiedAfter);
-      if (productEntrySyncList.productEntries.length > 0 || productEntrySyncList.deletedProductEntries.length > 0) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-  static async hasLocalChanges(): Promise<boolean> {
-    const count = await ProductEntry
-      .all()
-      .filter('inSync', '=', false)
-      .prefetch('article')
-      .prefetch('location')
-      .count();
-
-    return count > 0;
   }
 
   static async getOutOfSync(includeSyncInProgress = false): Promise<ProductEntry[]> {
@@ -179,13 +152,13 @@ export class ProductEntry extends AppModel {
     return productEntries;
   }
 
-  static async markAllSyncInProgressDone(): Promise<void> {
+  static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
     return Location
       .all()
       .filter('syncInProgress', '=', true)
       .update([
         {propertyName: 'syncInProgress', value: false},
-        {propertyName: 'lastSuccessfulSync', value: new Date()},
+        {propertyName: 'lastSuccessfulSync', value: syncDoneTimestamp},
       ]);
   }
 
@@ -239,7 +212,7 @@ export class ProductEntry extends AppModel {
     return ProductEntry.createFromServerData(productEntryData.product_entry);
   }
 
-  public async storeInLocalDb(): Promise<ProductEntry> {
+  public async storeInLocalDb(syncDoneTimestamp: Date): Promise<ProductEntry> {
     this.article = await this.article.updateOrAddByBarcodeOrServerId();
     this.articleId = this.article.id;
 
@@ -247,6 +220,7 @@ export class ProductEntry extends AppModel {
     this.creatorId = this.creator.id;
 
     this.inSync = true;
+    this.lastSuccessfulSync = syncDoneTimestamp;
     await this.save();
     return this;
   }
