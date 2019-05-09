@@ -4,10 +4,13 @@ import { ProductEntry, Location, Setting, LocationSyncList, ProductEntrySyncList
 import { ApiServer } from 'src/utils/api-server';
 import * as moment from 'moment';
 import 'moment/min/locales';
+import { Mutex } from './mutex';
+import { ExpirySync } from '../app.expiry-sync';
 
 @Injectable()
 export class SynchronizationHandler {
-    private controller: ExpirySyncController;
+    syncMutex = new Mutex();
+    localChangesMutex = new Mutex();
 
     // locally changed objects:
     private locallyChangedLocations: Location[];
@@ -26,21 +29,33 @@ export class SynchronizationHandler {
 
     constructor(private server: ApiServer) { }
 
-    async mutexedSynchronize(controller: ExpirySyncController) {
-        this.controller = controller;
-
+    async mutexedSynchronize() {
         console.log('SYNC: Waiting for previous sync to finish...');
-        await this.controller.completeSyncDone();
-        await this.controller.setCompleteSyncDonePromise(
-            this.synchronize()
-        );
+        await this.syncMutex.acquire();
+        await this.synchronize();
+        await this.syncMutex.release();
         console.log('SYNC: Done');
     }
 
+    async acquireLocalChangesMutex(showLoader = true) {
+        const app = ExpirySync.getInstance();
+        let task: Symbol;
+
+        if (showLoader) {
+            task = app.loadingStarted('Synchronizing');
+        }
+
+        await this.localChangesMutex.acquire();
+
+        if (showLoader) {
+            app.loadingDone(task);
+        }
+    }
+
     private async synchronize() {
-        await this.controller.setSyncDonePromise(
-            this.retrieveLocalChanges()
-        );
+        await this.localChangesMutex.acquire();
+        await this.retrieveLocalChanges();
+        await this.localChangesMutex.release();
 
         this.beforeSync = new Date();
 
@@ -51,19 +66,16 @@ export class SynchronizationHandler {
 
         this.afterSync = new Date();
 
-        await this.controller.setSyncDonePromise((async () => {
-            await this.storeServerChangesLocally();
-            await this.markSynchronizationCompleted();
-        })());
+        await this.localChangesMutex.acquire();
+        await this.storeServerChangesLocally();
+        await this.markSynchronizationCompleted();
+        await this.localChangesMutex.release();
     }
 
     /**
      * Get local changes from the db
      */
     private async retrieveLocalChanges() {
-        console.log('SYNC: Waiting for local changes to be completed...');
-        await this.controller.localChangesDone();
-
         this.locallyChangedLocations = await Location.getOutOfSync(true);
         for (const location of this.locallyChangedLocations) {
             location.syncInProgress = true;

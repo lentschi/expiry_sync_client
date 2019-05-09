@@ -7,7 +7,7 @@ export class Mutex {
         // Add our acquire request:
         this.acquireRequests.push(new Subject<void>());
 
-        // Wait for the acquire request PRIOR TO OURS to be released:
+        // Wait for the acquire request PRIOR TO OURS to be released (if any):
         if (this.acquireRequests.length > 1) {
             await this.acquireRequests[this.acquireRequests.length - 2].toPromise();
         }

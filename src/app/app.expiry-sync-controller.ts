@@ -62,49 +62,4 @@ export class ExpirySyncController implements AfterViewChecked {
   ngAfterViewChecked() {
 
   }
-
-  setCompleteSyncDonePromise(promise: Promise<void>): Promise<void> {
-    ExpirySyncController.completeSyncDonePromise = promise;
-    return promise;
-  }
-
-  completeSyncDone(): Promise<void> {
-    if (!ExpirySyncController.completeSyncDonePromise) {
-      return new Promise<void>(resolve => { resolve(); });
-    }
-    return ExpirySyncController.completeSyncDonePromise;
-  }
-
-  setLocalChangesDonePromise(promise: Promise<void>): Promise<void> {
-    ExpirySyncController.localChangesDonePromise = promise;
-    return promise;
-  }
-
-  localChangesDone(): Promise<void> {
-    if (!ExpirySyncController.localChangesDonePromise) {
-      return new Promise<void>(resolve => { resolve(); });
-    }
-    return ExpirySyncController.localChangesDonePromise;
-  }
-
-  setSyncDonePromise(promise: Promise<void>): Promise<void> {
-    ExpirySyncController.syncDonePromise = promise;
-    return promise;
-  }
-
-  async syncDone(showLoader = true) {
-    if (!ExpirySyncController.syncDonePromise) {
-      return new Promise<void>(resolve => { resolve(); });
-    }
-
-    const app: ExpirySync = ExpirySync.getInstance();
-    let task: Symbol;
-    if (showLoader) {
-      task = app.loadingStarted('Synchronizing');
-    }
-    await ExpirySyncController.syncDonePromise;
-    if (showLoader) {
-      app.loadingDone(task);
-    }
-  }
 }

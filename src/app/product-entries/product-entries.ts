@@ -12,9 +12,8 @@ import { UiHelper } from 'src/utils/ui-helper';
 import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-entry-form';
 import { RecipeSearchModal } from 'src/modal/recipes/search/recipe-search';
 import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/product-entry-move-form';
+import { SynchronizationHandler } from '../services/synchronization-handler.service';
 
-// TODO-no-commit
-declare var navigator: any;
 
 @Component({
   selector: 'product-entries',
@@ -39,12 +38,10 @@ declare var navigator: any;
 export class ProductEntriesPage extends ExpirySyncController {
 
   constructor(
-    private platform: Platform,
-    private navCtrl: NavController,
     private modalCtrl: ModalController,
     private uiHelper: UiHelper,
-    private events: Events,
-    private cd: ChangeDetectorRef,
+    private synchronizationHandler: SynchronizationHandler,
+    events: Events,
     translate: TranslateService
   ) {
     super(translate);
@@ -220,69 +217,63 @@ export class ProductEntriesPage extends ExpirySyncController {
 
 
   async openEntryForm(productEntry?: ProductEntry) {
-    await this.syncDone();
+    await this.synchronizationHandler.acquireLocalChangesMutex();
 
-    this.setLocalChangesDonePromise(new Promise<void>(async (resolve) => {
-      const params: any = {};
-      if (productEntry) {
-        params.id = productEntry.id;
-        params.displayLocation = !this.selectedLocation;
+    const params: any = {};
+    if (productEntry) {
+      params.id = productEntry.id;
+      params.displayLocation = !this.selectedLocation;
+    }
+
+    const modal = await this.modalCtrl.create({ component: ProductEntryFormModal, componentProps: params });
+    modal.onDidDismiss().then(async (event) => {
+      const returnedProductEntry: ProductEntry = event.data;
+      if (returnedProductEntry) {
+        await this.onEntryUpdated(returnedProductEntry);
       }
-
-      const modal = await this.modalCtrl.create({ component: ProductEntryFormModal, componentProps: params });
-      modal.onDidDismiss().then(async (event) => {
-        const returnedProductEntry: ProductEntry = event.data;
-        if (returnedProductEntry) {
-          await this.onEntryUpdated(returnedProductEntry);
-        }
-        resolve();
-      });
-      modal.present();
-    }));
+      this.synchronizationHandler.localChangesMutex.release();
+    });
+    modal.present();
   }
 
   async productEntrySwipedLeft(productEntry: ProductEntry) {
-    await this.syncDone();
+    await this.synchronizationHandler.acquireLocalChangesMutex();
 
-    this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
-      productEntry = <ProductEntry>await ProductEntry.findBy('id', productEntry.id);
-      if (productEntry.amount === 1) {
-        this.productEntries.anySelected = false;
-        productEntry.selected = true;
-        await this.viewChangeOccurred();
-        if (await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', 1))) {
-          await productEntry.markForDeletion();
-        }
-        await this.onEntryUpdated(productEntry);
-        resolve();
-        return;
+    productEntry = <ProductEntry>await ProductEntry.findBy('id', productEntry.id);
+    if (productEntry.amount === 1) {
+      this.productEntries.anySelected = false;
+      productEntry.selected = true;
+      await this.viewChangeOccurred();
+      if (await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', 1))) {
+        await productEntry.markForDeletion();
       }
-      productEntry.amount--;
-      productEntry.inSync = false;
+      await this.onEntryUpdated(productEntry);
+      this.synchronizationHandler.localChangesMutex.release();
+      return;
+    }
+    productEntry.amount--;
+    productEntry.inSync = false;
 
-      await productEntry.save();
-      await this.onEntryUpdated(productEntry, false);
+    await productEntry.save();
+    await this.onEntryUpdated(productEntry, false);
 
-      resolve();
+    this.synchronizationHandler.localChangesMutex.release();
 
-      productEntry.addRemoveAnimation = 'red';
-    }));
+    productEntry.addRemoveAnimation = 'red';
   }
 
   async productEntrySwipedRight(productEntry: ProductEntry) {
-    await this.syncDone();
+    await this.synchronizationHandler.acquireLocalChangesMutex();
 
-    this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
-      productEntry = <ProductEntry>await ProductEntry.findBy('id', productEntry.id);
-      productEntry.amount++;
-      productEntry.inSync = false;
+    productEntry = <ProductEntry>await ProductEntry.findBy('id', productEntry.id);
+    productEntry.amount++;
+    productEntry.inSync = false;
 
-      await productEntry.save();
-      await this.onEntryUpdated(productEntry, false);
-      resolve();
+    await productEntry.save();
+    await this.onEntryUpdated(productEntry, false);
+    this.synchronizationHandler.localChangesMutex.release();
 
-      productEntry.addRemoveAnimation = 'green';
-    }));
+    productEntry.addRemoveAnimation = 'green';
   }
 
   productEntryCheckboxTapped(event: Event, productEntry: ProductEntry) {
@@ -301,19 +292,17 @@ export class ProductEntriesPage extends ExpirySyncController {
   }
 
   async deleteAllTapped() {
-    await this.syncDone();
+    await this.synchronizationHandler.acquireLocalChangesMutex();
 
-    this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
-      if (! await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', this.productEntries.selected.length))) {
-        resolve();
-        return;
-      }
-      for (const productEntry of this.productEntries.selected) {
-        await productEntry.markForDeletion();
-      }
-      await this.onEntryUpdated();
-      resolve();
-    }));
+    if (! await this.uiHelper.confirm(await this.pluralTranslate('Really delete those products?', this.productEntries.selected.length))) {
+      this.synchronizationHandler.localChangesMutex.release();
+      return;
+    }
+    for (const productEntry of this.productEntries.selected) {
+      await productEntry.markForDeletion();
+    }
+    await this.onEntryUpdated();
+    this.synchronizationHandler.localChangesMutex.release();
   }
 
   async toggleSearchTapped() {
@@ -376,8 +365,7 @@ export class ProductEntriesPage extends ExpirySyncController {
 
       if (this.locations.length > 1 && this.selectedLocation) {
         this.app.enableMenuPoint(ExpirySync.MenuPointId.moveEntriesToAnotherLocation).method = async () => {
-          await this.syncDone();
-
+          await this.synchronizationHandler.acquireLocalChangesMutex();
           const modal = await this.modalCtrl.create({
             component: ProductEntryMoveFormModal,
             componentProps: {
@@ -386,12 +374,10 @@ export class ProductEntriesPage extends ExpirySyncController {
               currentLocation: this.selectedLocation
             }
           });
-          this.setLocalChangesDonePromise(new Promise<void>(async resolve => {
-            modal.present();
-            modal.onDidDismiss().then(() => {
-              resolve();
-            });
-          }));
+          modal.present();
+          modal.onDidDismiss().then(() => {
+            this.synchronizationHandler.localChangesMutex.release();
+          });
         };
       }
     } else {

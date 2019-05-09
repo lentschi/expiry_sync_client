@@ -253,7 +253,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   async synchronize(requestedManually = false): Promise<void> {
     try {
-      await this.synchronizationHandler.mutexedSynchronize(this);
+      await this.synchronizationHandler.mutexedSynchronize();
     } catch (e) {
       console.error('Error during sync: ', e);
       if (requestedManually) {
@@ -596,10 +596,11 @@ export class ExpirySync extends ExpirySyncController {
 
       // when the host setting is changed, the db has to be cleaned:
       Setting.onChange('host', async () => {
-        await this.completeSyncDone();
+        await this.synchronizationHandler.syncMutex.acquire();
         await User.clearUserRelatedData();
         await this.logout(false);
         await Setting.set('offlineMode', '0');
+        this.synchronizationHandler.syncMutex.release();
         // Trigger list refresh:
         this.events.publish('app:syncDone');
       });
@@ -708,7 +709,7 @@ export class ExpirySync extends ExpirySyncController {
         let loginMenuPoint;
         const params: any = {};
 
-        if (openRegistrationOnFailure  || !user || !user.login) {
+        if (openRegistrationOnFailure || !user || !user.login) {
           loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.registration);
         } else {
           loginMenuPoint = this.menuPoints.find(menuPoint => menuPoint.id === ExpirySync.MenuPointId.login);
@@ -892,44 +893,43 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {MenuPointConfig} menuPoint the menu point to run actions for
    */
   async openMenuPoint(menuPoint: MenuPointConfig, data?: any) {
-    await this.syncDone();
-
     // opening any menu point might ensue local changes
     // -> set the promise, which 'mutexedSynchronize' will have to wait for:
-    this.setLocalChangesDonePromise(new Promise<void>(async (resolve) => {
-      // menu point configured to call a method:
-      if (menuPoint.method) {
-        menuPoint.method.apply(this);
-        resolve();
-        return;
-      }
+    // menu point configured to call a method:
+    await this.synchronizationHandler.acquireLocalChangesMutex();
 
-      if (menuPoint.component) {
-        // menu point configured to open a modal:
-        if (menuPoint.modal) {
-          const modal = await this.modalCtrl.create({ component: menuPoint.component, componentProps: data });
-          modal.onDidDismiss().then((event) => {
-            if (menuPoint.onDidDismiss) {
-              const args = [];
-              if (typeof event.data !== 'undefined') {
-                args.push (event.data);
-              }
-              menuPoint.onDidDismiss.apply(this, args);
+    if (menuPoint.method) {
+      menuPoint.method.apply(this);
+      this.synchronizationHandler.localChangesMutex.release();
+      return;
+    }
+
+    if (menuPoint.component) {
+      // menu point configured to open a modal:
+      if (menuPoint.modal) {
+        const modal = await this.modalCtrl.create({ component: menuPoint.component, componentProps: data });
+        modal.onDidDismiss().then((event) => {
+          if (menuPoint.onDidDismiss) {
+            const args = [];
+            if (typeof event.data !== 'undefined') {
+              args.push(event.data);
             }
-            resolve();
-          });
-          modal.present();
-          return;
-        }
-
-        // menu point configured to open a page:
-        this.nav.setRoot(menuPoint.component, data);
-        resolve();
+            menuPoint.onDidDismiss.apply(this, args);
+          }
+          this.synchronizationHandler.localChangesMutex.release();
+        });
+        modal.present();
         return;
       }
 
-      console.error('Menu point ' + menuPoint.id + 'doesn\'t do anyting');
-    }));
+      // menu point configured to open a page:
+      this.nav.setRoot(menuPoint.component, data);
+      this.synchronizationHandler.localChangesMutex.release();
+      return;
+    }
+
+    console.error('Menu point ' + menuPoint.id + 'doesn\'t do anyting');
+    this.synchronizationHandler.localChangesMutex.release();
   }
 
   get runningInBrowser(): boolean {
