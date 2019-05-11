@@ -13,6 +13,29 @@ export class Mutex {
         }
     }
 
+    async acquireFor(guardedPromise: Promise<any>, releaseOnError = true, rethrowError = true) {
+        await this.acquire();
+
+        let caughtError: Error;
+        try {
+            await guardedPromise;
+        } catch (e) {
+            caughtError = e;
+        }
+
+        if (caughtError) {
+            if (releaseOnError) {
+                this.release();
+            }
+
+            if (rethrowError) {
+                throw caughtError;
+            }
+        } else {
+            this.release();
+        }
+    }
+
     release() {
         if (this.acquireRequests.length === 0) {
             throw new Error('Tried to release mutex before locking it');

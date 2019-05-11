@@ -31,9 +31,9 @@ export class SynchronizationHandler {
 
     async mutexedSynchronize() {
         console.log('SYNC: Waiting for previous sync to finish...');
-        await this.syncMutex.acquire();
-        await this.synchronize();
-        await this.syncMutex.release();
+        await this.syncMutex.acquireFor(
+            this.synchronize()
+        );
         console.log('SYNC: Done');
     }
 
