@@ -5,6 +5,7 @@ import { ApiServer } from '../../utils/api-server';
 @PersistenceModel
 export class ArticleImage extends AppModel {
   static tableName = 'ArticleImage';
+  static allowImplicitCreation = true;
 
   @HasOne('Article')
   article: Article;

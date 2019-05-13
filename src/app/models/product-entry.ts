@@ -127,6 +127,7 @@ export class ProductEntry extends AppModel {
     }
     productEntry.id = productEntryData.id;
     productEntry.article = Article.createFromServerData(productEntryData.article);
+    productEntry.articleId = productEntryData.article_id;
     productEntry.locationId = productEntryData.location_id;
 
     return productEntry;
@@ -209,7 +210,7 @@ export class ProductEntry extends AppModel {
     }
 
     const productEntryData = await ApiServer.call(callId, params);
-    return ProductEntry.createFromServerData(productEntryData.product_entry);
+    return this.deletedAt ? null : ProductEntry.createFromServerData(productEntryData.product_entry);
   }
 
   public async storeInLocalDb(syncDoneTimestamp: Date): Promise<ProductEntry> {

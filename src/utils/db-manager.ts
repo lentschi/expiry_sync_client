@@ -20,6 +20,41 @@ export class DbManager {
     await this.migrateFromV0_7();
     this.loadMigrations();
     await this.runMigrations();
+
+    // TODO: Convert to indexedDB (persistencejs can't handle our current IDs any longer):
+
+    await new Promise((resolve, reject) => {
+      const openRequest = indexedDB.open('ExpirySync');
+      openRequest.onerror = (error) => reject(error);
+      openRequest.onupgradeneeded = async (event) => {
+        try {
+          const db: IDBDatabase = (event.target as any).result;
+          for (const tableName of ['Article', 'ArticleImage', 'Location', 'LocationShare', 'ProductEntry', 'Setting', 'User']) {
+            db.createObjectStore(tableName, { keyPath: 'id' });
+          }
+          for (const tableName of ['Article', 'ArticleImage', 'Location', 'LocationShare', 'ProductEntry', 'Setting', 'User']) {
+            const results = await this.executeSql(`SELECT * FROM ${tableName}`);
+            await new Promise(async (txResolve, txError) => {
+              const tx = db.transaction(tableName, 'readwrite');
+              const store = tx.objectStore(tableName);
+              for (let i = 0; i < results.rows.length; i++) {
+                const data = results.rows.item(i);
+                await new Promise((resolvePut, rejectPut) => {
+                  const putRequest = store.put(data);
+                  putRequest.onsuccess = () => resolvePut();
+                  putRequest.onerror = (error) => rejectPut(error);
+                });
+              }
+              tx.oncomplete = () => txResolve();
+              tx.onerror = (e) => txError(e);
+            });
+          }
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      };
+    });
   }
 
   async executeSql(sql: string, params?: Array<any>): Promise<any> {

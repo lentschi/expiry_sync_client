@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ExpirySyncController } from '../app.expiry-sync-controller';
-import { ProductEntry, Location, Setting, LocationSyncList, ProductEntrySyncList } from '../models';
+import { ProductEntry, Location, Setting, LocationSyncList, ProductEntrySyncList, Article, ArticleImage } from '../models';
 import { ApiServer } from 'src/utils/api-server';
 import * as moment from 'moment';
 import 'moment/min/locales';
@@ -9,8 +9,8 @@ import { ExpirySync } from '../app.expiry-sync';
 
 @Injectable()
 export class SynchronizationHandler {
-    syncMutex = new Mutex();
-    localChangesMutex = new Mutex();
+    syncMutex = new Mutex('sync');
+    localChangesMutex = new Mutex('localChanges');
 
     // locally changed objects:
     private locallyChangedLocations: Location[];
@@ -22,6 +22,7 @@ export class SynchronizationHandler {
     // remotely changed objects:
     private remotelyChangedLocations: LocationSyncList;
     private remotelyChangedEntries: ProductEntrySyncList;
+    private updatedArticleIds: {[oldId: string]: string};
 
     private lastSync: Date;
     private beforeSync: Date;
@@ -163,8 +164,12 @@ export class SynchronizationHandler {
             await location.storeOnServer();
         }
 
+        this.updatedArticleIds = {};
         for (const entry of this.locallyChangedEntries) {
-            await entry.storeOnServer();
+            const returnedEntry = await entry.storeOnServer();
+            if (!entry.deletedAt && entry.articleId !== returnedEntry.articleId) {
+                this.updatedArticleIds[entry.articleId] = returnedEntry.articleId;
+            }
         }
     }
 
@@ -187,6 +192,29 @@ export class SynchronizationHandler {
                 continue; // skip, if entry has changed in the mean time
             }
             await entry.storeInLocalDb(this.afterSync);
+        }
+
+        for (const oldArticleId of Object.keys(this.updatedArticleIds)) {
+            if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.article.id === oldArticleId)) {
+                continue; // skip, if article has changed in the mean time
+            }
+            const newArticleId = this.updatedArticleIds[oldArticleId];
+            await Article
+                .all()
+                .filter('id', '=', oldArticleId)
+                .updateField('id', newArticleId);
+
+            await ProductEntry
+                .all()
+                .prefetch('article')
+                .filter('articleId', '=', oldArticleId)
+                .updateField('articleId', newArticleId);
+
+            await ArticleImage
+                .all()
+                .prefetch('article')
+                .filter('articleId', '=', oldArticleId)
+                .updateField('articleId', newArticleId);
         }
     }
 

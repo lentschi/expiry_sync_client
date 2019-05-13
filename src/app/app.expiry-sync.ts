@@ -152,16 +152,6 @@ export class ExpirySync extends ExpirySyncController {
   private exitAfterReminder = false;
 
   /**
-   * the entry, that has been last updated (before any sync)
-   */
-  updatedEntry: ProductEntry;
-
-  /**
-   * the location, that has been last updated (before any sync)
-   */
-  updatedLocation: Location;
-
-  /**
    * resolved when auto login and initial sync have finished (no matter if successful or not)
    */
   private autoLoginAndSyncDone: Promise<void>;
@@ -555,6 +545,7 @@ export class ExpirySync extends ExpirySyncController {
       try {
         await this.dbManager.initialize(this.runningInBrowser);
       } catch (e) {
+        console.error('DB ini failed with error: ', e);
         alert('Database initialization failed - Ensure that your platform supports WebSQL or SQLite!');
         return;
       }

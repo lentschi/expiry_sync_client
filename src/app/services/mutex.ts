@@ -3,6 +3,8 @@ import { Subject } from 'rxjs';
 export class Mutex {
     private acquireRequests: Subject<void>[] = [];
 
+    constructor(private name: string) {}
+
     async acquire() {
         // Add our acquire request:
         this.acquireRequests.push(new Subject<void>());
@@ -11,6 +13,7 @@ export class Mutex {
         if (this.acquireRequests.length > 1) {
             await this.acquireRequests[this.acquireRequests.length - 2].toPromise();
         }
+        console.log('--- Mutex acquired:', this.name);
     }
 
     async acquireFor(guardedPromise: Promise<any>, releaseOnError = true, rethrowError = true) {
@@ -45,5 +48,6 @@ export class Mutex {
         const acquireRequest = this.acquireRequests.shift();
         acquireRequest.next();
         acquireRequest.complete();
+        console.log('--- Mutex released:', this.name);
     }
 }

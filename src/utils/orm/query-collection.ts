@@ -23,9 +23,14 @@ export class QueryCollection {
   }
 
   list(): Promise<Array<AppModel>> {
+    const origEntityName = this.persistenceCollection._entityName;
     return new Promise<Array<AppModel>>((resolve, reject) => {
       try {
         this.persistenceCollection.list((results) => {
+          if (!resolve) {
+            throw new Error('Nope: ' + this.persistenceCollection._entityName);
+          }
+          console.log('Results for', origEntityName, this.persistenceCollection._entityName);
           try {
             const modelInstances: Array<AppModel> = [];
             for (const persistenceInstance of results) {
@@ -33,6 +38,7 @@ export class QueryCollection {
             }
 
             resolve(modelInstances);
+            resolve = null;
           } catch (innerError) {
             reject(innerError);
           }

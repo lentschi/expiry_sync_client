@@ -4,12 +4,6 @@ import { ArticleImage } from './article-image';
 
 @PersistenceModel
 export class Article extends AppModel {
-
-  get hasAnyImage(): boolean {
-    return this.images.length > 0
-      && this.images[0].imageData !== undefined
-      && this.images[0].imageData !== null;
-  }
   static tableName = 'Article';
   static allowImplicitCreation = true;
 
@@ -65,6 +59,12 @@ export class Article extends AppModel {
     }
 
     return article;
+  }
+
+  get hasAnyImage(): boolean {
+    return this.images.length > 0
+      && this.images[0].imageData !== undefined
+      && this.images[0].imageData !== null;
   }
 
   /**

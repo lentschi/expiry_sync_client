@@ -62,7 +62,9 @@ export class ProductEntriesPage extends ExpirySyncController {
     });
 
     events.subscribe('app:syncDone', () => {
-      this.showListAndFilters();
+      this.synchronizationHandler.localChangesMutex.acquireFor(
+        this.showListAndFilters()
+      );
     });
 
     events.subscribe('productEntries:selectionChanged', () => {
@@ -175,12 +177,7 @@ export class ProductEntriesPage extends ExpirySyncController {
       await this.showList();
     }
     if (this.app.currentUser.loggedIn) {
-      this.app.updatedEntry = updatedEntry;
-      this.app.synchronize().then(async () => {
-        if (showList || (updatedEntry && !(await updatedEntry.exists()))) {
-          await this.showList();
-        }
-      });
+      this.app.synchronize();
     }
   }
 
