@@ -74,7 +74,7 @@ export class AppModel {
   }
 
   set id(id: string) {
-    this.updateId = id;
+    this.updateId = (<any> this.constructor).realIdToPersistenceId(id);
   }
   private static internalEntity;
   private static typeMap;
@@ -100,6 +100,11 @@ export class AppModel {
 
   static buildForeignKeyName(relationName: string) {
     return relationName.charAt(0).toLowerCase() + relationName.slice(1) + 'Id';
+  }
+
+  static modelNameFromForeignKeyName(foreignKeyName: string) {
+    return (foreignKeyName.charAt(0).toUpperCase() + foreignKeyName.slice(1))
+      .substr(0, foreignKeyName.length - 2);
   }
 
   static register(modelName: string, modelClass) {
@@ -139,6 +144,9 @@ export class AppModel {
    */
   static findBy(propertyName: string, value: any): Promise<AppModel> {
     return new Promise((resolve, reject) => {
+      if (propertyName === 'id') {
+        value = this.realIdToPersistenceId(value);
+      }
       this.resetEntityRelations();
       this.internalEntity.findBy(propertyName, value, (instance) => {
         if (instance === null) {
@@ -184,7 +192,7 @@ export class AppModel {
     const modelInstance: AppModel = new this();
     for (const propertyName of Object.keys(this.typeMap)) {
       try {
-        modelInstance[propertyName] = instance[propertyName];
+        modelInstance[propertyName] = propertyName === 'id' ? this.persistenceIdToRealId(instance[propertyName]) : instance[propertyName];
       } catch (e) {
         // Ignore errors of fields that should have been preloaded but weren't
         // console.error("persistencejs field getter error", e);
@@ -211,11 +219,25 @@ export class AppModel {
       }
       if (subInstance && typeof subInstance !== 'string') {
         modelInstance[propertyName] = relatedModelClass.createFromPersistenceInstance(subInstance);
-        modelInstance[foreignKeyName] = modelInstance[propertyName].id;
+        modelInstance[foreignKeyName] = relatedModelClass.persistenceJsIdToRealId(modelInstance[propertyName].id);
       }
     }
 
     return modelInstance;
+  }
+
+  private static persistenceIdToRealId(id: string): string {
+    if (this.allowImplicitCreation && id.startsWith(`${this.tableName}-`)) {
+      return id.substr(this.tableName.length + 1);
+    }
+    return id;
+  }
+
+  private static realIdToPersistenceId(id: string): string {
+    if (this.allowImplicitCreation && id.match(/[0-9]+/)) {
+      return `${this.tableName}-${id}`;
+    }
+    return id;
   }
 
   private async setUpdateId(id: string): Promise<{}> {
