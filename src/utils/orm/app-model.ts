@@ -219,7 +219,7 @@ export class AppModel {
       }
       if (subInstance && typeof subInstance !== 'string') {
         modelInstance[propertyName] = relatedModelClass.createFromPersistenceInstance(subInstance);
-        modelInstance[foreignKeyName] = relatedModelClass.persistenceJsIdToRealId(modelInstance[propertyName].id);
+        modelInstance[foreignKeyName] = relatedModelClass.persistenceIdToRealId(modelInstance[propertyName].id);
       }
     }
 
@@ -234,7 +234,7 @@ export class AppModel {
   }
 
   private static realIdToPersistenceId(id: string): string {
-    if (this.allowImplicitCreation && id.match(/[0-9]+/)) {
+    if (this.allowImplicitCreation && id.match(/^[0-9]+$/)) {
       return `${this.tableName}-${id}`;
     }
     return id;
