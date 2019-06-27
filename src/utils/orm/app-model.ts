@@ -65,12 +65,16 @@ export function PersistenceModel(constructor: any) {
  */
 export class AppModel {
 
-  get id(): string {
+  get persistenceId(): string {
     if (!this.internalInstance) {
       return this.updateId;
     }
 
     return this.internalInstance.id;
+  }
+
+  get id(): string {
+    return (<any> this.constructor).persistenceIdToRealId(this.persistenceId);
   }
 
   set id(id: string) {
@@ -113,6 +117,21 @@ export class AppModel {
 
   static getModelClass(modelName: string) {
     return this.modelRegistry[modelName];
+  }
+
+  static convertAnyIdToPersistence(property: string, value: any) {
+    if (property === 'id') {
+      return this.realIdToPersistenceId(value);
+    }
+
+    if (property.endsWith('Id')) {
+      const foreignKeyModelClass = this.getModelClass(this.modelNameFromForeignKeyName(property));
+      if (foreignKeyModelClass) {
+        return foreignKeyModelClass.realIdToPersistenceId(value);
+      }
+    }
+
+    return value;
   }
 
   /**
@@ -257,7 +276,7 @@ export class AppModel {
   private reloadInternalInstance(): Promise<{}> {
     return new Promise(async (resolve, reject) => {
       const modelClass: any = this.constructor;
-      modelClass.internalEntity.findBy('id', this.id, (instance) => {
+      modelClass.internalEntity.findBy('id', this.persistenceId, (instance) => {
         if (instance === null) {
           reject(new RecordNotFoundError());
           return;
@@ -312,6 +331,7 @@ export class AppModel {
           propertyValue = false;
         }
 
+        propertyValue = modelClass.convertAnyIdToPersistence(propertyName, propertyValue);
         this.internalInstance[propertyName] = propertyValue;
       } catch (e) {
         console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance, e);

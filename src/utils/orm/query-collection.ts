@@ -10,7 +10,7 @@ export class QueryCollection {
   constructor(private persistenceCollection, private modelClass, private internalEntity) { }
 
   filter(property: string, operator: string, value: any): QueryCollection {
-    value = this.convertAnyIdToPersistence(property, value);
+    value = this.modelClass.convertAnyIdToPersistence(property, value);
     this.persistenceCollection = this.persistenceCollection.filter(property, operator, value);
     return this;
   }
@@ -101,7 +101,7 @@ export class QueryCollection {
             if (typeof persistenceInstance[value.propertyName] === 'undefined') {
               throw new Error(`No such property: '${value.propertyName}'`);
             }
-            value.value = this.convertAnyIdToPersistence(value.propertyName, value.value);
+            value.value = this.modelClass.convertAnyIdToPersistence(value.propertyName, value.value);
             persistenceInstance[value.propertyName] = value.value;
           }
         });
@@ -121,20 +121,5 @@ export class QueryCollection {
     this.internalEntity.hasOne(AppModel.buildForeignKeyName(propertyName), AppModel.getModelClass(relationName).internalEntity);
     this.persistenceCollection = this.persistenceCollection.prefetch(AppModel.buildForeignKeyName(propertyName));
     return this;
-  }
-
-  private convertAnyIdToPersistence(property: string, value: any) {
-    if (property === 'id') {
-      return this.modelClass.realIdToPersistenceId(value);
-    }
-
-    if (property.endsWith('Id')) {
-      const foreignKeyModelClass = AppModel.getModelClass(AppModel.modelNameFromForeignKeyName(property));
-      if (foreignKeyModelClass) {
-        return foreignKeyModelClass.realIdToPersistenceId(value);
-      }
-    }
-
-    return value;
   }
 }
