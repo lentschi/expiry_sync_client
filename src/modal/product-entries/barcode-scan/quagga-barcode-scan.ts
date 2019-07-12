@@ -45,8 +45,11 @@ export class QuaggaBarcodeScanModal extends ExpirySyncController implements OnIn
   }
 
   dismiss() {
-    Quagga.stop();
-    this.modalCtrl.dismiss();
+    try {
+      Quagga.stop();
+    } finally {
+      this.modalCtrl.dismiss();
+    }
   }
 
   ngOnDestroy() {

@@ -246,7 +246,7 @@ export class AppModel {
   }
 
   private static persistenceIdToRealId(id: string): string {
-    if (this.allowImplicitCreation && id.startsWith(`${this.tableName}-`)) {
+    if (this.allowImplicitCreation && id && id.startsWith(`${this.tableName}-`)) {
       return id.substr(this.tableName.length + 1);
     }
     return id;

@@ -255,7 +255,7 @@ export class ExpirySync extends ExpirySyncController {
 
     this.events.publish('app:syncDone');
     console.log('SYNC: Setting sync timeout');
-    // this.setSyncTimeout();  // TODO-upgrade
+    this.setSyncTimeout();
   }
 
   /**
