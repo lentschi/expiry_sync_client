@@ -154,7 +154,7 @@ export class ProductEntry extends AppModel {
   }
 
   static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
-    return Location
+    return ProductEntry
       .all()
       .filter('syncInProgress', '=', true)
       .update([
