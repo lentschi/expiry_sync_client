@@ -28,6 +28,12 @@ export class SynchronizationHandler {
     private beforeSync: Date;
     private afterSync: Date;
 
+    // config to replace local default location with the one from the remote:
+    private replaceDefaultLocationConfig: {
+        localDefaultLocation: Location;
+        remoteDefaultLocation: Location
+    };
+
     constructor(private server: ApiServer) { }
 
     async mutexedSynchronize() {
@@ -61,6 +67,7 @@ export class SynchronizationHandler {
         this.beforeSync = new Date();
 
         await this.fetchServerChanges();
+        await this.prepareDefaultLocationOverwrite();
         this.mergeServerChangesWithLocalChanges();
 
         await this.pushLocalChanges();
@@ -68,6 +75,7 @@ export class SynchronizationHandler {
         this.afterSync = new Date();
 
         await this.localChangesMutex.acquire();
+        await this.replaceDefaultLocationIfRequired();
         await this.storeServerChangesLocally();
         await this.markSynchronizationCompleted();
         await this.localChangesMutex.release();
@@ -99,6 +107,42 @@ export class SynchronizationHandler {
             .filter('deletedAt', '=', null)
             .filter('lastSuccessfulSync', '!=', null)
             .list();
+    }
+
+    /**
+     * Under very specific circumstances remote and local default locations
+     * should be merged.
+     * This method prepares for this by setting the properties localDefaultLocation and
+     * remoteDefaultLocation, which are checked later in the sync process.
+     */
+    private async prepareDefaultLocationOverwrite() {
+        this.replaceDefaultLocationConfig = null;
+
+        if (await Setting.cached('lastSync')) {
+            // There already has been a first successfull sync
+            // -> no merging
+            return;
+        }
+        const defaultLocationName = await Location.defaultName();
+        const localDefaultLocation = this.locallyChangedLocations.find(location =>
+            location.name === defaultLocationName
+        );
+        if (!localDefaultLocation) {
+            // local default location's name has changed
+            // -> no merging
+            return;
+        }
+
+        const remoteDefaultLocation = this.remotelyChangedLocations.locations.find(location =>
+            location.name === defaultLocationName
+        );
+        if (!remoteDefaultLocation) {
+            // no remote location with the same name found
+            // -> no merging
+            return;
+        }
+
+        this.replaceDefaultLocationConfig = { localDefaultLocation, remoteDefaultLocation };
     }
 
     /**
@@ -161,11 +205,20 @@ export class SynchronizationHandler {
      */
     private async pushLocalChanges() {
         for (const location of this.locallyChangedLocations) {
+            if (this.replaceDefaultLocationConfig && this.replaceDefaultLocationConfig.localDefaultLocation.id === location.id) {
+                continue;
+            }
+
             await location.storeOnServer();
         }
 
         this.updatedArticleIds = {};
         for (const entry of this.locallyChangedEntries) {
+            if (this.replaceDefaultLocationConfig && this.replaceDefaultLocationConfig.localDefaultLocation.id === entry.locationId) {
+                entry.location = this.replaceDefaultLocationConfig.remoteDefaultLocation;
+                entry.locationId = this.replaceDefaultLocationConfig.remoteDefaultLocation.id;
+            }
+
             const returnedEntry = await entry.storeOnServer();
             if (!entry.deletedAt && entry.articleId !== returnedEntry.articleId) {
                 this.updatedArticleIds[entry.articleId] = returnedEntry.articleId;
@@ -173,16 +226,40 @@ export class SynchronizationHandler {
         }
     }
 
+    private async replaceDefaultLocationIfRequired() {
+        if (!this.replaceDefaultLocationConfig) {
+            return;
+        }
+
+        const newDefaultLocation = <Location> this.replaceDefaultLocationConfig.localDefaultLocation.clone();
+        newDefaultLocation.id = this.replaceDefaultLocationConfig.remoteDefaultLocation.id;
+        await newDefaultLocation.save();
+
+        await ProductEntry
+            .all()
+            .prefetch('location')
+            .filter('locationId', '=', this.replaceDefaultLocationConfig.localDefaultLocation.id)
+            .updateField('locationId', this.replaceDefaultLocationConfig.remoteDefaultLocation.id);
+
+        await this.replaceDefaultLocationConfig.localDefaultLocation.delete();
+
+    }
+
     /**
      * Update local records with remote changes (unless they have been
      * locally changed in the mean time)
      */
     private async storeServerChangesLocally() {
+        const selectedLocation = await Location.findBy('isSelected', true);
         const locationsChangedInTheMeanTime = await Location.getOutOfSync();
         for (const location of this.remotelyChangedLocations.locations) {
             if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.id === location.id)) {
                 continue; // skip, if location has changed in the mean time
             }
+
+            // Server doesn't know which location was selected - ensure this stays the same as before:
+            location.isSelected = selectedLocation && selectedLocation.id === location.id;
+
             await location.storeInLocalDb(this.afterSync);
         }
 

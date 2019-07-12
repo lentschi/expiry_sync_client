@@ -51,10 +51,14 @@ export class Location extends AppModel {
     console.log('Creating default location');
     const location: Location = new this();
     location.isSelected = true;
-    location.name = await ExpirySync.getInstance().translate('At home');
+    location.name = await Location.defaultName();
     await location.save();
 
     return location;
+  }
+
+  static async defaultName(): Promise<string> {
+    return ExpirySync.getInstance().translate('At home');
   }
 
   static async getSelected(): Promise<Location> {
