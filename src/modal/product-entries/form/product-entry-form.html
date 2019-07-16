@@ -37,9 +37,9 @@
           #barcode="ngModel"></ion-input>
       </ion-item>
     </div>
-    <ion-item #articleNameItem>
+    <ion-item>
       <ion-label position="floating" translate>name</ion-label>
-      <ion-input [(ngModel)]="productEntry.article.name" name="name" maxlength="255" #name="ngModel" required></ion-input>
+      <ion-input #articleNameItem [(ngModel)]="productEntry.article.name" name="name" maxlength="255" #name="ngModel" required></ion-input>
     </ion-item>
     <div *ngIf="name.errors && (name.dirty || name.touched)"
            class="validation-error">

@@ -253,7 +253,7 @@ export class AppModel {
   }
 
   private static realIdToPersistenceId(id: string): string {
-    if (this.allowImplicitCreation && id.match(/^[0-9]+$/)) {
+    if (this.allowImplicitCreation && id && id.match(/^[0-9]+$/)) {
       return `${this.tableName}-${id}`;
     }
     return id;

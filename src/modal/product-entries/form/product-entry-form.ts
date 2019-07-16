@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavParams, ModalController, Platform, ToastController } from '@ionic/angular';
+import { NavParams, ModalController, Platform, ToastController, IonInput } from '@ionic/angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import { ProductEntry, Article, ArticleImage, Location, Setting } from 'src/app/models';
 import { Camera } from '@ionic-native/camera/ngx';
@@ -40,7 +40,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
    * getNativeElement().querySelector('input')
    */
   @ViewChild('barcodeItem') barcodeItem: any;
-  @ViewChild('articleNameItem') articleNameItem: any;
+  @ViewChild('articleNameItem') articleNameItem: IonInput;
 
   constructor(
     public params: NavParams,
@@ -115,7 +115,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
     }
 
     if (!this.productEntry.article.id) {
-      this.articleNameItem.getNativeElement().querySelector('input').focus();
+      this.articleNameItem.setFocus();
     }
 
   }
