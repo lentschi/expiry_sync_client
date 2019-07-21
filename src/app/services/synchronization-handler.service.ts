@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import 'moment/min/locales';
 import { Mutex } from './mutex';
 import { ExpirySync } from '../app.expiry-sync';
+import { RecordNotFoundError } from 'src/utils/orm';
 
 @Injectable()
 export class SynchronizationHandler {
@@ -264,11 +265,25 @@ export class SynchronizationHandler {
         }
 
         const entriesChangedInTheMeanTime = await ProductEntry.getOutOfSync();
-        for (const entry of this.remotelyChangedEntries.productEntries) {
-            if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.id === entry.id)) {
+        for (const entryToSave of this.remotelyChangedEntries.productEntries) {
+            if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.id === entryToSave.id)) {
                 continue; // skip, if entry has changed in the mean time
             }
-            await entry.storeInLocalDb(this.afterSync);
+            await entryToSave.storeInLocalDb(this.afterSync);
+        }
+
+        for (const entryToDelete of this.remotelyChangedEntries.deletedProductEntries) {
+            if (entriesChangedInTheMeanTime.some(currentEntry => currentEntry.id === entryToDelete.id)) {
+                continue; // skip, if entry has changed in the mean time
+            }
+
+            try {
+                await entryToDelete.delete();
+            } catch (e) {
+                if (!(e instanceof RecordNotFoundError)) {
+                    throw(e);
+                }
+            }
         }
 
         for (const oldArticleId of Object.keys(this.updatedArticleIds)) {

@@ -47,7 +47,7 @@ Given(/^I hold (a|another) valid barcode(, that is different from the original p
             return false;
         }
         if (specifier2 === 'of an article, that has a different name than those added before,'
-                && !Object.values(usedUpEntries).some(currentEntry =>
+                && Object.values(usedUpEntries).some(currentEntry =>
                     currentEntry.article.name === entry.article.name
                 )) {
             return false;
@@ -301,8 +301,8 @@ When(/^I try to change the product entry's data$/, async() => {
 
 // tslint:disable-next-line:max-line-length
 Given(/^there exist(?:s)? (a|several) product entr(?:y|ies)( with different expiration dates| with different names)?(?: in my list)?$/, async (quantifierParam: string, specifierParam: string) => {
+    await Step(this, `I successfully add a product entry`);
     if (quantifierParam === 'a') {
-        await Step(this, `I successfully add a product entry${specifierParam || ''}`);
         return;
     }
 
@@ -320,7 +320,7 @@ Given(/^there exist(?:s)? (a|several) product entr(?:y|ies)( with different expi
             break;
     }
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
         await Step(this, `I successfully add another product entry${newSpecifierParam}`);
     }
 

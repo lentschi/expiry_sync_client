@@ -196,7 +196,7 @@ export async function fillField(label: string, value: string): Promise<ElementFi
                 await input.sendKeys(Key.BACK_SPACE);
             }
             await input.sendKeys(value);
-            return true;
+            return (await input.getAttribute('value')) === value;
         } catch (e) {
             return false;
         }

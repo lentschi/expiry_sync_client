@@ -349,7 +349,10 @@ export class AppModel {
    * Remove the db record referenced by the instance
    * @return {Promise<void>} resolved as soon as the record has been removed
    */
-  delete(): Promise<void> {
+  async delete(): Promise<void> {
+    if (!this.internalInstance) {
+      await this.reloadInternalInstance();
+    }
     persistence.remove(this.internalInstance);
     this.deleted = true;
 
