@@ -17,17 +17,19 @@ export async function getElement(
     waitForVisibility = true,
     extraCondition: (elementInQuestion: ElementFinder) => Promise<string | boolean> = null,
     timeout = 5000,
-    maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
+    maxRetriesDueToNonTimeoutErrors = 3): Promise<ElementFinder> {
     let foundElement: ElementFinder;
     let found = false;
-    let staleElementError: Error;
-    let staleElementErrorCount = 0;
+    let nonTimeoutError: Error;
+    let nonTimeoutErrorCount = 0;
     let extraConditionResult: string | boolean;
+    const originalTimeout = timeout;
+
+    const startTime = new Date();
 
     do {
-        staleElementError = null;
+        nonTimeoutError = null;
         try {
-            staleElementError = null;
             await browser.wait(async () => {
                 const allElements = element.all(locator);
                 for (let i = 0; i < await allElements.count(); i++) {
@@ -55,16 +57,16 @@ export async function getElement(
 
             found = true;
         } catch (e) {
-            if (!e.name || e.name !== 'TimeoutError') {
-                staleElementError = e;
-                staleElementErrorCount++;
-                timeout = 1;
+            if (originalTimeout > (new Date().getTime() - startTime.getTime())) {
+                nonTimeoutError = e;
+                nonTimeoutErrorCount++;
+                timeout = Math.max(1, originalTimeout - (new Date().getTime() - startTime.getTime()));
             }
         }
-    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
+    } while (nonTimeoutError);
 
     if (!found && errorMessage !== false) {
-        let extraErrorMessage = ` (Locator ${locator.toString()} did not return anything within ${timeout} ms)`;
+        let extraErrorMessage = ` (Locator ${locator.toString()} did not return anything within ${originalTimeout} ms (retries: ${nonTimeoutErrorCount}))`;
         if (typeof extraConditionResult === 'string') {
             extraErrorMessage = ` (${extraConditionResult})`;
         } else if (extraConditionResult === false) {
@@ -129,16 +131,17 @@ export async function getSingularElement(
         errorMessage: string | boolean = 'Timeout waiting for element',
         waitForVisibility = true,
         extraCondition: (elementInQuestion: ElementFinder) => Promise<boolean> = null,
-        timeout = 3000,
-        maxRetriesDueToStaleElements = 3): Promise<ElementFinder> {
+        timeout = 3000): Promise<ElementFinder> {
     let found = false;
-    let staleElementError: Error;
-    let staleElementErrorCount = 0;
+    let nonTimeoutError: Error;
+    let nonTimeoutErrorCount = 0;
+
+    const startTime = new Date();
+    const originalTimeout = timeout;
 
     do {
-        staleElementError = null;
+        nonTimeoutError = null;
         try {
-            staleElementError = null;
             await browser.wait(async () => {
                 if (!await elem.isPresent()) {
                     return false;
@@ -157,16 +160,16 @@ export async function getSingularElement(
 
             found = true;
         } catch (e) {
-            if (!e.name || e.name !== 'TimeoutError') {
-                staleElementError = e;
-                staleElementErrorCount++;
-                timeout = 1;
+            if (originalTimeout > (new Date().getTime() - startTime.getTime())) {
+                nonTimeoutError = e;
+                nonTimeoutErrorCount++;
+                timeout = Math.max(1, originalTimeout - (new Date().getTime() - startTime.getTime()));
             }
         }
-    } while (staleElementError && staleElementErrorCount < maxRetriesDueToStaleElements);
+    } while (nonTimeoutError);
 
     if (!found && errorMessage !== false) {
-        assert.fail(errorMessage + ` (getSingularElement did not return anything within ${timeout} ms)`);
+        assert.fail(errorMessage + ` (getSingularElement did not return anything within ${originalTimeout} ms, ${nonTimeoutErrorCount} retries)`);
     }
 
     // TODO: Ensure that there's only one of the kind

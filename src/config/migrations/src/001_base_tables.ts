@@ -7,6 +7,11 @@ export class BaseTablesMigration {
     constructor() {
       persistence.defineMigration(1, {
         up: function() {
+          this.executeSql(`DROP TABLE IF EXISTS article`);
+          this.executeSql(`DROP TABLE IF EXISTS articleimage`);
+          this.executeSql(`DROP TABLE IF EXISTS productentry`);
+          this.executeSql(`DROP TABLE IF EXISTS location`);
+
           this.createTable('article', (t) => {
             t.text('barcode');
             t.text('name');

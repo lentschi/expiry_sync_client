@@ -1,5 +1,5 @@
 Feature: Login ExpirySync users
-    
+
 Background:
 	Given the ExpirySync API server is in its pristine state and running
 

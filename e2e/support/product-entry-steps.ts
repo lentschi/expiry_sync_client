@@ -229,9 +229,12 @@ Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? (pro
     for (const entry of entries) {
         let xpath: string;
         if (whatParam === 'data') {
-            xpath = `//span[contains(.,"${entry.amount}")]`
-             + `/../span[contains(.,"${entry.article.name}")]`
-             + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`;
+            xpath = `//span[contains(.,"${entry.article.name}")]`;
+
+            if (entryOrArticleParam.includes('product')) {
+                xpath += `/../span[contains(.,"${entry.amount}")]`
+                    + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`;
+            }
         } else {
             xpath = `//span[contains(.,"${entry.article.name}")]`;
         }

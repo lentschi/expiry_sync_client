@@ -14,33 +14,33 @@ exports.config = {
   //     "seleniumAddress": 'http://172.24.0.1:4444/wd/hub',
   //     chromeOptions: {
   //       args: [
-  //               '--allow-file-access', 
-  //               '--use-file-for-fake-video-capture="/srv/project/out.y4m"', 
+  //               '--allow-file-access',
+  //               '--use-file-for-fake-video-capture="/srv/project/out.y4m"',
   //               '--use-fake-device-for-media-stream',
   //               '--disable-infobars'
   //             ]
-  //       }, 
+  //       },
   //       prefs: {
   //         intl: { accept_languages: "en-US" },
   //       },
   //   },
-  // ], 
+  // ],
   // chromeDriver: './protractor-chromedriver.sh',
   capabilities: {
     browserName: 'chrome',
     chromeOptions: {
       binary: '/usr/bin/google-chrome-stable',
       args: [
-        '--no-sandbox', 
+        '--no-sandbox',
         '--headless',
         '--window-size=1680,1050',
-        '--allow-file-access', 
-        '--use-file-for-fake-video-capture=//tmp//e2e.y4m', 
+        '--allow-file-access',
+        '--use-file-for-fake-video-capture=//tmp//e2e.y4m',
         '--use-fake-device-for-media-stream',
         '--use-fake-ui-for-media-stream',
         '--disable-infobars'
       ]
-    } 
+    }
   },
   // multiCapabilities:[
   //     {
@@ -49,19 +49,19 @@ exports.config = {
   //       chromeOptions: {
   //         binary: '/usr/bin/chromium-browser',
   //         args: [
-  //                 '--no-sandbox', 
+  //                 '--no-sandbox',
   //                 '--verbose',
-  //                 '--allow-file-access', 
-  //                 '--use-file-for-fake-video-capture="/srv/project/out.y4m"', 
+  //                 '--allow-file-access',
+  //                 '--use-file-for-fake-video-capture="/srv/project/out.y4m"',
   //                 '--use-fake-device-for-media-stream',
   //                 '--disable-infobars'
   //               ]
-  //         }, 
+  //         },
   //         prefs: {
   //           intl: { accept_languages: "en-US" },
   //         },
   //     },
-  //   ], 
+  //   ],
   directConnect: true,
   baseUrl: 'https://localhost:9002/',
   framework: 'custom',  // set to "custom" instead of cucumber.

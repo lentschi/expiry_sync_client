@@ -52,7 +52,8 @@ Given(/^the ExpirySync API server is in its pristine state and running$/, {timeo
 });
 
 Given(/^the app has just been freshly installed$/, async () => {
-    initializeBrowser(true);
+    await initializeBrowser(true);
+    await browser.get(browser.baseUrl);
 });
 
 

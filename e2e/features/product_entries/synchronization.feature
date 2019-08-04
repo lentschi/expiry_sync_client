@@ -1,5 +1,5 @@
 Feature: Product entry synchronization
-    
+
 Background:
 	Given the ExpirySync API server is in its pristine state and running
 		And there exists a user
@@ -14,7 +14,8 @@ Scenario: Synchronize new product entries between different devices with the sam
 	When I successfully add another product entry
 		And I switch back to the first device restarting the app
 	Then I should see that product entry's data in the product entry list
-	
+
+@fit
 Scenario: Synchronize deleted product entries between different devices with the same user
 	Given there exists a product entry
 		And I switch to a different device, on which the app has been freshly installed
@@ -31,7 +32,7 @@ Scenario: Synchronize updated product entries between different devices with the
 		And I try to login with the same user as on the first device
 	Then I should be logged in as that user
 		And I should see the product entry's data in the product entry list
-	When I try to change the product entry's data 
+	When I try to change the product entry's data
 		And I switch back to the first device restarting the app
 	Then I should see the updated product entry's data in the product entry list
 
@@ -58,7 +59,7 @@ Scenario: Synchronize product entries between different devices with the same us
 	When I try to delete that entry
 	Then I should see that deleting succeeded
 	When I switch back to the first device restarting the app
-		And I try to change the product entry's data 
+		And I try to change the product entry's data
 		And I try to login with the same user as previously
 	Then I should see the updated product entry's data in the product entry list
 	When I switch back to the second device restarting the app
@@ -77,5 +78,5 @@ Scenario: Synchronize article data between different devices with different user
     Then I should see the updated article's data in the product entry list
     When I switch back to the first device restarting the app
    	Then I should still see the updated article's data in the product entry list
-	
+
 

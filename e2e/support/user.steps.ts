@@ -17,13 +17,19 @@ const openRegistrationForm = async () => {
 };
 
 Given(/^the registration form is open$/, async () => {
-    await browser.get(browser.baseUrl);
     try {
         await browser.wait(until.elementLocated(
             by.xpath('//ion-title[contains(text(),"registration")]')
         ), 1000);
     } catch (e) {
-        await openRegistrationForm();
+        await browser.get(browser.baseUrl);
+        try {
+            await browser.wait(until.elementLocated(
+                by.xpath('//ion-title[contains(text(),"registration")]')
+            ), 1000);
+        } catch (e2) {
+            await openRegistrationForm();
+        }
     }
 });
 

@@ -10,17 +10,17 @@ import {
 const patterns: { code: StepDefinitionCode, pattern: RegExp }[] = [];
 
 function defineStep(
-    definitionFunction: Function,
-    pattern: RegExp,
-    optionsOrCode: StepDefinitionOptions | StepDefinitionCode,
-    code?: StepDefinitionCode) {
-if (typeof optionsOrCode === 'function') {
-    patterns.push({ code: optionsOrCode, pattern });
-    definitionFunction(pattern, optionsOrCode);
-} else {
-    patterns.push({ code, pattern });
-    definitionFunction(pattern, optionsOrCode, code);
-}
+        definitionFunction: Function,
+        pattern: RegExp,
+        optionsOrCode: StepDefinitionOptions | StepDefinitionCode,
+        code?: StepDefinitionCode) {
+    if (typeof optionsOrCode === 'function') {
+        patterns.push({ code: optionsOrCode, pattern });
+        definitionFunction(pattern, optionsOrCode);
+    } else {
+        patterns.push({ code, pattern });
+        definitionFunction(pattern, optionsOrCode, code);
+    }
 }
 
 export function Given(pattern: RegExp, optionsOrCode: StepDefinitionOptions | StepDefinitionCode, code?: StepDefinitionCode) {
