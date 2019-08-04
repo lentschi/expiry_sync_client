@@ -1,7 +1,7 @@
-import { browser } from './protractor-browser-wrapper';
 import { ScenarioMemory } from './scenario-memory';
 import { createWriteStream, readdir, unlink, exists, mkdir } from 'fs';
 import { promisify } from 'util';
+import { getAllBrowsers } from './protractor-browser-wrapper';
 
 const memory = ScenarioMemory.singleton();
 const readdirAsync = promisify(readdir);
@@ -27,25 +27,28 @@ export async function removeAllScreenshotsAndLogs() {
 }
 
 export async function takeScreenShotAndDumpLogs(message = 'Completed') {
-    let scenarioName = memory.recall('current scenario').pickle.name;
+    const scenario = memory.recall('current scenario');
 
-    let logs = message + '\n\n';
-    const logTypes = await browser.manage().logs().getAvailableLogTypes();
-    for (const type of logTypes) {
-        logs += '\n----- Log Type: ' + JSON.stringify(type) + '\n';
-        const browserLogs = await browser.manage().logs().get(type);
-        for (const log of browserLogs) {
-            logs += scenarioName + ': ' +
-                + JSON.stringify(log.level) + ' :: ' + JSON.stringify(log.message) + '\n';
+    let logs = scenario.sourceLocation.uri + ':' + scenario.sourceLocation.line + ' - ' + scenario.pickle.name
+        + ' - ' + message + '\n\n';
+    let i = 0;
+    for (const browser of getAllBrowsers()) {
+        logs += `--- BROWSER #${i++}:\n\n`;
+        const logTypes = await browser.manage().logs().getAvailableLogTypes();
+        for (const type of logTypes) {
+            logs += '\n----- Log Type: ' + JSON.stringify(type) + '\n';
+            const browserLogs = await browser.manage().logs().get(type);
+            for (const log of browserLogs) {
+                logs += JSON.stringify(log.message) + '\n';
+            }
+            logs += '----- END OF Log Type: ' + JSON.stringify(type) + '\n';
         }
-        logs += '----- END OF Log Type: ' + JSON.stringify(type) + '\n';
     }
 
-    if (scenarioName.length > 100) {
-        scenarioName = scenarioName.substr(0, 100) + '_' + (new Date()).getMilliseconds();
-    }
+    const fileBaseName = scenario.sourceLocation.uri.replace(/e2e\/features\//, '').replace('/', '_')
+        + '_line_' + scenario.sourceLocation.line;
 
-    const textStream = createWriteStream(`${TEST_LOG_DIR}/${scenarioName}.log`);
+    const textStream = createWriteStream(`${TEST_LOG_DIR}/${fileBaseName}.log`);
     await new Promise((resolve, reject) => {
         textStream.on('open', () => {
             textStream.write(Buffer.from(logs));
@@ -59,18 +62,21 @@ export async function takeScreenShotAndDumpLogs(message = 'Completed') {
 
     // console.error('Done Dumping logs for ' + logCount);
 
-    const data = await browser.takeScreenshot();
-    const stream = createWriteStream(`${TEST_LOG_DIR}/${scenarioName}.png`);
-    await new Promise((resolve, reject) => {
-        stream.on('open', () => {
-            stream.write(Buffer.from(data, 'base64'));
-            stream.end();
-        }).on('finish', () => {
-            resolve();
-        }).on('error', err => {
-            reject(err);
+    i = 0;
+    for (const browser of getAllBrowsers()) {
+        const data = await browser.takeScreenshot();
+        const stream = createWriteStream(`${TEST_LOG_DIR}/${fileBaseName}__browser_${i++}.png`);
+        await new Promise((resolve, reject) => {
+            stream.on('open', () => {
+                stream.write(Buffer.from(data, 'base64'));
+                stream.end();
+            }).on('finish', () => {
+                resolve();
+            }).on('error', err => {
+                reject(err);
+            });
         });
-    });
+    }
 
     // console.error('Done saving screenshot for ' + logCount);
 }

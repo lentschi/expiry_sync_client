@@ -8,7 +8,6 @@ import {
 
 export let browser: ProtractorBrowser = protractorDefaultBrowser;
 export let element: ElementHelper = protractorDefaultElement;
-
 let usedBrowsers: ProtractorBrowser[] = [];
 
 export async function setDefaultBrowser(newDefault: ProtractorBrowser) {
@@ -38,4 +37,11 @@ export async function closeAllNonDefaultProtractorBrowsers() {
         await currentBrowser.close();
     }
     usedBrowsers = [];
+}
+
+export function getAllBrowsers(): ProtractorBrowser[] {
+    const allBrowsers = [protractorDefaultBrowser];
+    allBrowsers.push(...usedBrowsers);
+
+    return allBrowsers;
 }
