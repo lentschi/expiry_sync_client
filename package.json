@@ -114,7 +114,10 @@
       "cordova-plugin-camera": {},
       "cordova-plugin-shared-preferences": {},
       "org.nypr.cordova.wakeupplugin": {},
-      "cordova-sqlite-ext": {}
+      "cordova-sqlite-ext": {},
+      "phonegap-plugin-barcodescanner": {
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
+      }
     },
     "platforms": [
       "android"

@@ -87,7 +87,9 @@
     <plugin name="cordova-plugin-shared-preferences" spec="~0.0.1" />
     <plugin name="org.nypr.cordova.wakeupplugin" spec="git://github.com/lentschi/cordova-plugin-wakeuptimer.git#ae50510c53136d90445f3281cafb6908bfbf5ae3" />
     <plugin name="cordova-sqlite-ext" spec="~3.0.0" />
-    <!--<plugin name="de.appplant.cordova.plugin.local-notification" spec="~0.8.5" />
-    <plugin name="phonegap-plugin-barcodescanner" spec="~8.1.0" /> -->
+    <!-- <plugin name="de.appplant.cordova.plugin.local-notification" spec="~0.8.5" /> -->
+    <plugin name="phonegap-plugin-barcodescanner" spec="8.0.1">
+        <variable name="ANDROID_SUPPORT_V4_VERSION" value="27.+" />
+    </plugin>
     <engine name="android" spec="7.1.4" />
 </widget>
