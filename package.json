@@ -113,7 +113,8 @@
       "cordova-plugin-app-version": {},
       "cordova-plugin-camera": {},
       "cordova-plugin-shared-preferences": {},
-      "org.nypr.cordova.wakeupplugin": {}
+      "org.nypr.cordova.wakeupplugin": {},
+      "cordova-sqlite-ext": {}
     },
     "platforms": [
       "android"
