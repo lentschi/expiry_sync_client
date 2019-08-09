@@ -31,10 +31,10 @@
                 "input": "node_modules/persistencejs/lib",
                 "output": "assets/js/persistencejs"
               },
-              { 
-                "glob": "**/*.svg", 
-                "input": "node_modules/@ionic/core/dist/ionic/svg", 
-                "output": "./svg" 
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/@ionic/core/dist/ionic/svg",
+                "output": "./svg"
               }
             ],
             "styles": [
