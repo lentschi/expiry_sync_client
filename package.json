@@ -112,7 +112,8 @@
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-app-version": {},
       "cordova-plugin-camera": {},
-      "cordova-plugin-shared-preferences": {}
+      "cordova-plugin-shared-preferences": {},
+      "org.nypr.cordova.wakeupplugin": {}
     },
     "platforms": [
       "android"
