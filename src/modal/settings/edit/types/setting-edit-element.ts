@@ -5,7 +5,7 @@ import { Setting } from 'src/app/models';
 
 export class SettingEditElement {
   @Input() public setting: Setting;
-  @ViewChild('settingForm') settingForm: NgForm;
+  @ViewChild('settingForm', { static: true }) settingForm: NgForm;
 
   constructor(protected modalCtrl: ModalController) {
 

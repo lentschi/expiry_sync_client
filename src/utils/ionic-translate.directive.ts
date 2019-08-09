@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Renderer, Input } from '@angular/core';
+import { Directive, ElementRef, Input, Renderer2 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 /**
@@ -21,7 +21,7 @@ export class IonicTranslateDirective {
   
   public constructor(
     private el: ElementRef,
-    private renderer: Renderer,
+    private renderer: Renderer2,
     private translateSvc:TranslateService
   ) { 
     this.translateSvc.onLangChange.subscribe(() => {
@@ -63,7 +63,7 @@ export class IonicTranslateDirective {
       const nodeKey = this.getNodeKey(node);
       if (nodeKey) {
         const translation = this.translateSvc.instant(nodeKey);
-        this.renderer.setElementProperty(node, 'textContent', translation);
+        this.renderer.setProperty(node, 'textContent', translation);
       }
       return;
     }

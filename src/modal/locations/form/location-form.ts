@@ -15,7 +15,7 @@ export class LocationFormModal extends ExpirySyncController implements OnInit {
   locationId: string;
   locationForm: NgForm;
   private app: ExpirySync;
-  @ViewChild('locationForm') currentForm: NgForm;
+  @ViewChild('locationForm', { static: false }) currentForm: NgForm;
 
   constructor(
     private modalCtrl: ModalController,

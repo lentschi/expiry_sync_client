@@ -85,7 +85,7 @@ export class ProductEntriesPage extends ExpirySyncController {
   loadingAfterLocationSwitchDone = false;
   currentUser: User;
 
-  @ViewChild('filterField') filterField: IonInput;
+  @ViewChild('filterField', { static: false }) filterField: IonInput;
 
   private deregisterBackButtonHandler: Function;
 

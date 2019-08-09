@@ -91,7 +91,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Reference to ion-nav
    */
-  @ViewChild(IonNav) nav: IonNav;
+  @ViewChild(IonNav, { static: false }) nav: IonNav;
 
   rootPage = ProductEntriesPage;
   curPage = ProductEntriesPage;

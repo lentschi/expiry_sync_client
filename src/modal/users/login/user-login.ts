@@ -18,7 +18,7 @@ export class UserLoginModal extends ExpirySyncController {
   loginForm: NgForm;
   serverValidationErrors: any = {};
   private app: ExpirySync;
-  @ViewChild('loginForm') currentForm: NgForm;
+  @ViewChild('loginForm', { static: false }) currentForm: NgForm;
 
   constructor(
     private modalCtrl: ModalController,

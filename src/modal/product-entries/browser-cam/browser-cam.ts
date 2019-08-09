@@ -9,7 +9,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['browser-cam.scss']
 })
 export class BrowserCamModal extends ExpirySyncController implements OnInit, OnDestroy {
-  @ViewChild('video') video: ElementRef;
+  @ViewChild('video', { static: true }) video: ElementRef;
   private localMediaStream: any;
 
   constructor(translate: TranslateService, private modalCtrl: ModalController) {

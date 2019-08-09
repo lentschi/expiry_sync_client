@@ -19,7 +19,7 @@ export class LocationSharesModal extends ExpirySyncController {
   locationId: string;
   shareUser: User = new User();
   serverValidationErrors: any = {};
-  @ViewChild('shareForm') currentForm: NgForm;
+  @ViewChild('shareForm', { static: false }) currentForm: NgForm;
 
   shares: Array<LocationShare>;
 

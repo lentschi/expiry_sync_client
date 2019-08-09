@@ -9,7 +9,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['quagga-barcode-scan.scss']
 })
 export class QuaggaBarcodeScanModal extends ExpirySyncController implements OnInit, OnDestroy {
-  @ViewChild('videowall') videoWall: ElementRef;
+  @ViewChild('videowall', { static: true }) videoWall: ElementRef;
 
   constructor(translate: TranslateService, private modalCtrl: ModalController) {
     super(translate);

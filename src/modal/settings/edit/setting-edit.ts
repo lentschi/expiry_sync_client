@@ -9,7 +9,7 @@ import { SettingEditElement } from './types/setting-edit-element';
 export class SettingEditModal implements AfterViewChecked, OnDestroy, OnInit {
   setting: Setting;
   settingKey: string;
-  @ViewChild('settingEditContainer', { read: ViewContainerRef }) settingEditContainer: ViewContainerRef;
+  @ViewChild('settingEditContainer', { read: ViewContainerRef, static: false }) settingEditContainer: ViewContainerRef;
   private cmpRef: ComponentRef<SettingEditElement>;
   private componentUpated = false;
 

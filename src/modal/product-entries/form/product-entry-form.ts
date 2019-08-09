@@ -32,15 +32,15 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   maxExpirationDate: string;
 
-  @ViewChild('entryForm') currentForm: NgForm;
+  @ViewChild('entryForm', { static: false }) currentForm: NgForm;
 
   /**
    * I don't know how to reference an input with an attribute such as
    * #barcode="ngModel" -> get the surrounding item instead, later use
    * getNativeElement().querySelector('input')
    */
-  @ViewChild('barcodeItem') barcodeItem: any;
-  @ViewChild('articleNameItem') articleNameItem: IonInput;
+  @ViewChild('barcodeItem', { static: false }) barcodeItem: any;
+  @ViewChild('articleNameItem', { static: false }) articleNameItem: IonInput;
 
   constructor(
     public params: NavParams,
