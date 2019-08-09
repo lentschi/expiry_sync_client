@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Response, Headers, RequestOptions, RequestMethod, URLSearchParams, QueryEncoder, ResponseContentType } from '@angular/http';
 import {timeout} from 'rxjs/operators';
 import * as escapeStringRegexp from 'escape-string-regexp';
 import * as moment from 'moment';
 import { Subscription } from 'rxjs';
 import { Setting } from 'src/app/models';
 import { ExpirySync } from 'src/app/app.expiry-sync';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpUrlEncodingCodec, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 /**
  * Enum of available API call IDs
@@ -149,13 +148,23 @@ export class ApiServer {
   /**
    * Default request options to use for api calls
    */
-  private requestOpts: RequestOptions = new RequestOptions({
-    headers: new Headers({
+  private requestOpts: {
+    body?: any;
+    headers?: HttpHeaders;
+    observe: 'response';
+    params?: HttpParams;
+    reportProgress?: boolean;
+    responseType: 'text';
+    withCredentials?: boolean;
+} = {
+    headers: new HttpHeaders({
       Accept: 'application/json; charset=utf-8',
       'Content-Type': 'application/json; charset=utf-8',
     }),
-    withCredentials: true
-  });
+    withCredentials: true,
+    responseType: 'text',
+    observe: 'response'
+  };
 
   /**
    * Milliseconds that the local time differs from the server's
@@ -276,38 +285,38 @@ export class ApiServer {
    * @return {Promise<any>}              Resolved as soon as the server returned a successful answer,
    *                                     rejected on failure response, timeout, or parser error
    */
-  private request(method: RequestMethod, path: string, requestData?: { [key: string]: any }): Promise<any> {
+  private request(method: string, path: string, requestData?: { [key: string]: any }): Promise<any> {
     console.log('API server request: ', new Date(), method, path, requestData);
     return new Promise((resolve, reject) => {
       const url: string = this.buildUrl(path);
 
-      this.requestOpts.method = method;
       this.requestOpts.headers.set('Accept-Language', Setting.cached('localeId'));
       this.requestOpts.headers.set('X-Expiry-Sync-Api-Version', String(ExpirySync.API_VERSION));
       if (requestData) {
         if (method === RequestMethod.Get) {
-          this.requestOpts.search = new URLSearchParams('', new FormQueryEncoder());
-          for (const key of Object.keys(requestData)) {
-            this.requestOpts.search.set(key, requestData[key]);
-          }
+          // TODO:
+          // this.requestOpts.search = new URLSearchParams(''); // TODO: , new FormQueryEncoder()
+          // for (const key of Object.keys(requestData)) {
+          //   this.requestOpts.search.set(key, requestData[key]);
+          // }
           this.requestOpts.body = null;
         } else {
           this.requestOpts.body = JSON.stringify(requestData);
-          this.requestOpts.search = null;
+          // this.requestOpts.search = null;
         }
       }
 
-
       this.currentRequestSubscription = this.http
-        .request(url, this.requestOpts)
+        .request(method, url, this.requestOpts)
         .pipe(timeout(this.REQUEST_TIMEOUT))
-        .subscribe(async (response: Response) => {
+        .subscribe(async response => {
           let data: any;
           try {
-            data = response.json();
+            data = JSON.parse(response.body);
           } catch (e) {
             reject(e);
           }
+
 
           const permanentRedirectUrl = response.headers.get('X-Expiry-Sync-Permanent-Redirect');
           if (permanentRedirectUrl && Setting.cached('host') !== permanentRedirectUrl) {
@@ -339,17 +348,19 @@ export class ApiServer {
    */
   fetchRemoteFileContents(path: string): Promise<string | ArrayBuffer> {
     return new Promise((resolve, reject) => {
-      const url: string = this.buildUrl(path);
-      this.http.request(url, { responseType: ResponseContentType.Blob }).subscribe((response: Response) => {
-        const reader: FileReader = new FileReader();
-        reader.readAsDataURL(response.blob());
-        reader.onloadend = () => {
-          resolve(reader.result);
-        };
-      }, (response: Response) => {
-        console.error('Error loading URL: \'' + path + '\'', response);
-        reject(response);
-      });
+      reject('Nope');
+      // TODO:
+      // const url: string = this.buildUrl(path);
+      // this.http.request(url, { responseType: ResponseContentType.Blob }).subscribe((response: Response) => {
+      //   const reader: FileReader = new FileReader();
+      //   reader.readAsDataURL(response.blob());
+      //   reader.onloadend = () => {
+      //     resolve(reader.result);
+      //   };
+      // }, (response: Response) => {
+      //   console.error('Error loading URL: \'' + path + '\'', response);
+      //   reject(response);
+      // });
     });
   }
 
@@ -357,7 +368,7 @@ export class ApiServer {
    * Update our guess of the time skew between client and API server
    * @param  {Response} response A server response to use to deduce the current time skew
    */
-  private async updateTimeSkew(response: Response) {
+  private async updateTimeSkew(response: HttpResponse<string>) {
     const responseTime = new Date(response.headers.get('Date'));
     this.timeSkew = parseInt(moment(responseTime).format('x'), 10) - parseInt(moment().format('x'), 10);
   }
@@ -428,7 +439,7 @@ export interface CallConfig {
   /**
    * GET/POST/PUT/DELETE
    */
-  method: RequestMethod;
+  method: string;
   /**
    * Path to call the server with
    */
@@ -443,7 +454,7 @@ export interface CallConfig {
 /**
  * Custom @angular/http QueryEncoder
  */
-class FormQueryEncoder extends QueryEncoder {
+class FormQueryEncoder extends HttpUrlEncodingCodec {
   /**
    * QueryEncoder won't encode characters such as '+' (which
    * is RFC3986 compliant)
@@ -454,4 +465,11 @@ class FormQueryEncoder extends QueryEncoder {
   encodeValue(v: string): string {
     return encodeURIComponent(v);
   }
+}
+
+class RequestMethod {
+  static Get = 'GET';
+  static Put = 'PUT';
+  static Delete = 'DELETE';
+  static Post = 'POST';
 }

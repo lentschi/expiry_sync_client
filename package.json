@@ -51,6 +51,7 @@
     "ionic-plugin-keyboard": "^2.2.1",
     "ngx-ellipsis": "^2.0.5",
     "phonegap-plugin-barcodescanner": "~8.0.1",
+    "persistencejs": "git://github.com/coresmart/persistencejs.git#f692c4eb554a4d5f289eb8f19614e501fae9de76",
     "quagga": "~0.12.1",
     "reflect-metadata": "~0.1.12",
     "rxjs": "~6.5.2",
