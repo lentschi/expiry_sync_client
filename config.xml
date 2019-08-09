@@ -84,12 +84,10 @@
     <plugin name="cordova-plugin-ionic-keyboard" spec="^2.0.5" />
     <plugin name="cordova-plugin-app-version" spec="~0.1.9" />
     <plugin name="cordova-plugin-camera" spec="~4.1.0" />
-    <plugin name="cordova-plugin-shared-preferences" spec="~0.1.0" />
+    <!-- <plugin name="cordova-plugin-shared-preferences" spec="~0.0.1" />
     <plugin name="org.nypr.cordova.wakeupplugin" spec="git://github.com/lentschi/cordova-plugin-wakeuptimer.git#ae50510c53136d90445f3281cafb6908bfbf5ae3" />
     <plugin name="cordova-sqlite-ext" spec="~3.0.0" />
     <plugin name="de.appplant.cordova.plugin.local-notification" spec="~0.8.5" />
-    <plugin name="phonegap-plugin-barcodescanner" spec="~8.1.0" />
-    <plugin name="cordova-plugin-cszbar" spec="git://github.com/lentschi/csZBar.git#b13870816b24c788f2222ebf814c4fd46871608d" />
-    <plugin name="cordova.custom.plugins.exitapp" spec="~1.0.0" />
+    <plugin name="phonegap-plugin-barcodescanner" spec="~8.1.0" /> -->
     <engine name="android" spec="7.1.4" />
 </widget>
