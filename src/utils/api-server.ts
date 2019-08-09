@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Http, Response, Headers, RequestOptions, RequestMethod, URLSearchParams, QueryEncoder, ResponseContentType } from '@angular/http';
+import { Response, Headers, RequestOptions, RequestMethod, URLSearchParams, QueryEncoder, ResponseContentType } from '@angular/http';
 import {timeout} from 'rxjs/operators';
 import * as escapeStringRegexp from 'escape-string-regexp';
 import * as moment from 'moment';
 import { Subscription } from 'rxjs';
 import { Setting } from 'src/app/models';
 import { ExpirySync } from 'src/app/app.expiry-sync';
+import { HttpClient } from '@angular/common/http';
 
 /**
  * Enum of available API call IDs
@@ -83,7 +84,7 @@ export enum ApiServerCall {
 @Injectable()
 export class ApiServer {
 
-  constructor(private http: Http) {
+  constructor(private http: HttpClient) {
     ApiServer.instance = this;
   }
 

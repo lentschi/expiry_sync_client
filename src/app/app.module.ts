@@ -29,7 +29,6 @@ import { GreaterThanValidator, LessThanValidator, UrlValidator, IntegerValidator
 import { EllipsisPipe } from 'src/utils/custom-pipes';
 import { IonicTranslateDirective } from 'src/utils/ionic-translate.directive';
 import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { DbManager } from 'src/utils/db-manager';
 import { ApiServer } from 'src/utils/api-server';
@@ -106,7 +105,6 @@ export function createTranslateLoader(http: HttpClient) {
     AppRoutingModule,
     FormsModule,
     MomentModule,
-    HttpModule,
     HttpClientModule,
     EllipsisModule,
     BrowserAnimationsModule,
@@ -125,7 +123,6 @@ export function createTranslateLoader(http: HttpClient) {
     UiHelper,
     BarcodeScanner,
     LocalNotifications,
-    HttpModule,
     HttpClientModule,
     Device,
     Camera,

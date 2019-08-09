@@ -9,7 +9,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { FormsModule } from '@angular/forms';
 import { MomentModule } from 'angular2-moment';
-import { HttpModule } from '@angular/http';
 import { EllipsisModule } from 'ngx-ellipsis';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DbManager } from 'src/utils/db-manager';
@@ -44,7 +43,6 @@ describe('ExpirySync', () => {
         UiHelper,
         BarcodeScanner,
         LocalNotifications,
-        HttpModule,
         HttpClientModule,
         Device,
         Camera,
@@ -55,7 +53,6 @@ describe('ExpirySync', () => {
         IonicModule.forRoot(),
         FormsModule,
         MomentModule,
-        HttpModule,
         HttpClientModule,
         EllipsisModule,
         BrowserAnimationsModule,
