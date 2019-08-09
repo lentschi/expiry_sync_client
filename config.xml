@@ -92,5 +92,6 @@
         <variable name="ANDROID_SUPPORT_V4_VERSION" value="27.+" />
     </plugin>
     <plugin name="cordova-plugin-app-exit" spec="0.0.1" />
+    <plugin name="cordova-plugin-cszbar" spec="git://github.com/lentschi/csZBar.git#b13870816b24c788f2222ebf814c4fd46871608d" />
     <engine name="android" spec="7.1.4" />
 </widget>
