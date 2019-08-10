@@ -152,7 +152,7 @@ export class ApiServer {
     body?: any;
     headers?: HttpHeaders;
     observe: 'response';
-    params?: HttpParams;
+    params?: HttpParams | {[key: string]: any};
     reportProgress?: boolean;
     responseType: 'text';
     withCredentials?: boolean;
@@ -294,15 +294,10 @@ export class ApiServer {
       this.requestOpts.headers.set('X-Expiry-Sync-Api-Version', String(ExpirySync.API_VERSION));
       if (requestData) {
         if (method === RequestMethod.Get) {
-          // TODO:
-          // this.requestOpts.search = new URLSearchParams(''); // TODO: , new FormQueryEncoder()
-          // for (const key of Object.keys(requestData)) {
-          //   this.requestOpts.search.set(key, requestData[key]);
-          // }
+          this.requestOpts.params = requestData;
           this.requestOpts.body = null;
         } else {
           this.requestOpts.body = JSON.stringify(requestData);
-          // this.requestOpts.search = null;
         }
       }
 
@@ -348,19 +343,17 @@ export class ApiServer {
    */
   fetchRemoteFileContents(path: string): Promise<string | ArrayBuffer> {
     return new Promise((resolve, reject) => {
-      reject('Nope');
-      // TODO:
-      // const url: string = this.buildUrl(path);
-      // this.http.request(url, { responseType: ResponseContentType.Blob }).subscribe((response: Response) => {
-      //   const reader: FileReader = new FileReader();
-      //   reader.readAsDataURL(response.blob());
-      //   reader.onloadend = () => {
-      //     resolve(reader.result);
-      //   };
-      // }, (response: Response) => {
-      //   console.error('Error loading URL: \'' + path + '\'', response);
-      //   reject(response);
-      // });
+      const url: string = this.buildUrl(path);
+      this.http.request(RequestMethod.Get, url, {responseType: 'blob'}).subscribe((response: Blob) => {
+        const reader: FileReader = new FileReader();
+        reader.readAsDataURL(response);
+        reader.onloadend = () => {
+          resolve(reader.result);
+        };
+      }, (response: Response) => {
+        console.error('Error loading URL: \'' + path + '\'', response);
+        reject(response);
+      });
     });
   }
 

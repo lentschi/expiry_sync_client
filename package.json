@@ -123,7 +123,8 @@
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },
       "cordova-plugin-app-exit": {},
-      "cordova-plugin-cszbar": {}
+      "cordova-plugin-cszbar": {},
+      "de.appplant.cordova.plugin.local-notification": {}
     },
     "platforms": [
       "android"
