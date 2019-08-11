@@ -251,7 +251,14 @@ export class SynchronizationHandler {
      * locally changed in the mean time)
      */
     private async storeServerChangesLocally() {
-        const selectedLocation = await Location.findBy('isSelected', true);
+        let selectedLocation: Location;
+        try {
+            selectedLocation = <Location> await Location.findBy('isSelected', true);
+        } catch (e) {
+            if (!(e instanceof RecordNotFoundError)) {
+                throw e;
+            }
+        }
         const locationsChangedInTheMeanTime = await Location.getOutOfSync();
         for (const location of this.remotelyChangedLocations.locations) {
             if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.id === location.id)) {

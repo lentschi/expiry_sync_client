@@ -80,7 +80,6 @@
     <plugin name="cordova-plugin-statusbar" spec="2.4.2" />
     <plugin name="cordova-plugin-device" spec="2.0.2" />
     <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
-    <plugin name="cordova-plugin-intent" spec="^0.1.2" />
     <plugin name="cordova-plugin-ionic-webview" spec="^4.0.0" />
     <plugin name="cordova-plugin-ionic-keyboard" spec="^2.0.5" />
     <plugin name="cordova-plugin-app-version" spec="~0.1.9" />
@@ -94,5 +93,4 @@
     </plugin>
     <plugin name="cordova-plugin-app-exit" spec="0.0.1" />
     <plugin name="cordova-plugin-cszbar" spec="git://github.com/lentschi/csZBar.git#b13870816b24c788f2222ebf814c4fd46871608d" />
-    <engine name="android" spec="7.1.4" />
 </widget>

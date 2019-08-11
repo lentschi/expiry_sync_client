@@ -88,10 +88,6 @@ export class ExpirySync extends ExpirySyncController {
    */
   version = ExpirySync.FALLBACK_APP_VERSION;
 
-  /**
-   * Reference to ion-nav
-   */
-  @ViewChild(IonNav, { static: false }) nav: IonNav;
 
   rootPage = ProductEntriesPage;
   curPage = ProductEntriesPage;
@@ -360,10 +356,6 @@ export class ExpirySync extends ExpirySyncController {
         this.preventNextBackButton = false;
         return;
       }
-      if (this.nav.canGoBack()) {
-        this.nav.pop();
-        return;
-      }
 
       // Don't do anything while a loader is open:
       const loader = await this.loadingCtrl.getTop();
@@ -416,9 +408,13 @@ export class ExpirySync extends ExpirySyncController {
         }
       });
 
+      // TODO: Probably replace this
+      // plugin (git://github.com/napolitano/cordova-plugin-intent.git#0a47226e64da1e349e2ab2f5e9e0cc2a4e1c5555) 
+      //  with the newer https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent:
       window.plugins.intent.getCordovaIntent(async intent => {
-        console.log('Inital intent: ' + JSON.stringify(intent) + ', ' + JSON.stringify(!!window.navigator)
-          + ', ' + JSON.stringify(!!window.navigator.app) + ', ' + JSON.stringify(!!window.navigator.app.exitApp));
+        console.log('Initial intent: ' + JSON.stringify(intent) + ', ' + JSON.stringify(!!window.navigator)
+          + ', ' + JSON.stringify(!!window.navigator.app) + ', ' + JSON.stringify(!!window.navigator.app.exitApp)
+          + ', ' + JSON.stringify(intent.extras ? !!intent.extras.wakeup : false));
         if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
           // the app has not been running and a wakeup occurred
           // -> show the reminder and then exit the app again:
@@ -914,9 +910,7 @@ export class ExpirySync extends ExpirySyncController {
       }
 
       // menu point configured to open a page:
-      this.nav.setRoot(menuPoint.component, data);
-      this.synchronizationHandler.localChangesMutex.release();
-      return;
+      // TODO: currently not implemented
     }
 
     console.error('Menu point ' + menuPoint.id + 'doesn\'t do anyting');

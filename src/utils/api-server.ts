@@ -290,8 +290,8 @@ export class ApiServer {
     return new Promise((resolve, reject) => {
       const url: string = this.buildUrl(path);
 
-      this.requestOpts.headers.set('Accept-Language', Setting.cached('localeId'));
-      this.requestOpts.headers.set('X-Expiry-Sync-Api-Version', String(ExpirySync.API_VERSION));
+      this.requestOpts.headers = this.requestOpts.headers.set('Accept-Language', Setting.cached('localeId'));
+      this.requestOpts.headers = this.requestOpts.headers.set('X-Expiry-Sync-Api-Version', String(ExpirySync.API_VERSION));
       if (requestData) {
         if (method === RequestMethod.Get) {
           this.requestOpts.params = requestData;

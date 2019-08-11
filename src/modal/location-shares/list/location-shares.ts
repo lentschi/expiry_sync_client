@@ -109,6 +109,7 @@ export class LocationSharesModal extends ExpirySyncController {
       this.uiHelper.toast(await this.translate('User has been removed from \"\".', { location: this.location.name }));
     } catch (e) {
       if (e instanceof LocationShareRemovalRefused) {
+        // TODO-upgrade: Check if this still works after upgrade:
         this.uiHelper.errorToast((await e.response.json()).errors.join('\n'));
       } else {
         this.app.loadingDone(task);
