@@ -125,7 +125,7 @@
       "cordova-plugin-app-exit": {},
       "cordova-plugin-cszbar": {},
       "de.appplant.cordova.plugin.local-notification": {},
-      "com.napolitano.cordova.plugin.intent": {}
+      "cordova-plugin-intent": {}
     },
     "platforms": [
       "android"
