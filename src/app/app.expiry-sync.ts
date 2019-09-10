@@ -409,7 +409,7 @@ export class ExpirySync extends ExpirySyncController {
       });
 
       // TODO: Probably replace this
-      // plugin (git://github.com/napolitano/cordova-plugin-intent.git#0a47226e64da1e349e2ab2f5e9e0cc2a4e1c5555) 
+      // plugin (git://github.com/napolitano/cordova-plugin-intent.git#0a47226e64da1e349e2ab2f5e9e0cc2a4e1c5555)
       //  with the newer https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent:
       window.plugins.intent.getCordovaIntent(async intent => {
         console.log('Initial intent: ' + JSON.stringify(intent) + ', ' + JSON.stringify(!!window.navigator)
@@ -506,7 +506,7 @@ export class ExpirySync extends ExpirySyncController {
         led: 'FFFFFF',
         data: { startupLocationId }
       };
-      console.log('Displaying notification: ', notificationConf);
+      console.log('Displaying notification: ' + JSON.stringify(notificationConf));
       this.localNotifications.schedule(notificationConf);
 
       await Setting.set('lastReminder', ApiServer.dateToHttpDate(new Date()));

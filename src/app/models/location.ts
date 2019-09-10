@@ -3,6 +3,7 @@ import { ProductEntry, ProductEntrySyncList, LocationShare } from '../models';
 import { User } from '../models';
 import { ApiServer, ApiServerCall } from '../../utils/api-server';
 import { ExpirySync } from '../app.expiry-sync';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @PersistenceModel
 export class Location extends AppModel {
@@ -240,8 +241,16 @@ export class Location extends AppModel {
       params['location'] = this.toServerData();
     }
 
-    const locationData = await ApiServer.call(callId, params);
-    return Location.createFromServerData(locationData.location);
+    try {
+      const locationData = await ApiServer.call(callId, params);
+      return this.deletedAt ? null : Location.createFromServerData(locationData.location);
+    } catch (e) {
+      if (this.deletedAt && e instanceof HttpErrorResponse && e.status === 404) {
+        return null;
+      } else {
+        throw e;
+      }
+    }
   }
 
   async storeInLocalDb(syncDoneTimestamp: Date): Promise<Location> {

@@ -39,10 +39,11 @@ import { Camera } from '@ionic-native/camera/ngx';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { MomentModule } from 'angular2-moment';
 import { EllipsisModule } from 'ngx-ellipsis';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SynchronizationHandler } from './services/synchronization-handler.service';
+import { AppHttpParamsInterceptor } from './app.http-params-interceptor';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -126,7 +127,12 @@ export function createTranslateLoader(http: HttpClient) {
     HttpClientModule,
     Device,
     Camera,
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AppHttpParamsInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [ExpirySync]
 })
