@@ -237,9 +237,9 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {number}        productEntryUpdateId ID of a product entry that has just been updated locally (won't be pulled)
    * @return {Promise<void>}                      resolved after sync has finished (either successfully or with an error)
    */
-  async synchronize(requestedManually = false): Promise<void> {
+  async synchronize(requestedManually = false, skipLocalChangesMutexCheck = false): Promise<void> {
     try {
-      await this.synchronizationHandler.mutexedSynchronize();
+      await this.synchronizationHandler.mutexedSynchronize(skipLocalChangesMutexCheck);
     } catch (e) {
       console.error('Error during sync: ', e);
       if (requestedManually) {

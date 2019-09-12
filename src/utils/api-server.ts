@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { Subscription } from 'rxjs';
 import { Setting } from 'src/app/models';
 import { ExpirySync } from 'src/app/app.expiry-sync';
-import { HttpClient, HttpUrlEncodingCodec, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpUrlEncodingCodec, HttpHeaders, HttpParams, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 /**
  * Enum of available API call IDs
@@ -121,7 +121,6 @@ export class ApiServer {
     { id: ApiServerCall.getLocations, method: RequestMethod.Get, path: '/locations/index_mine_changed' },
     { id: ApiServerCall.createLocation, method: RequestMethod.Put, path: '/locations/{{location_id}}' },
     { id: ApiServerCall.updateLocation, method: RequestMethod.Put, path: '/locations/{{location_id}}' },
-    { id: ApiServerCall.deleteLocation, method: RequestMethod.Delete, path: '/locations/{{location_id}}' },
     { id: ApiServerCall.shareLocation, method: RequestMethod.Post, path: '/locations/{{location_id}}/location_shares' },
     {
       id: ApiServerCall.removeLocationShare,
@@ -249,7 +248,7 @@ export class ApiServer {
     try {
       return await this.request(callData.method, path, requestData);
     } catch (e) {
-      if (e instanceof Response && callData.errors && callData.errors[e.status]) {
+      if (e instanceof HttpErrorResponse && callData.errors && callData.errors[e.status]) {
         throw new callData.errors[e.status](e);
       }
       throw e;

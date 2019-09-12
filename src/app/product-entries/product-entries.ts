@@ -1,12 +1,11 @@
 import { Component, ViewChild } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
-import { NavController, ModalController, Events, Platform, IonInput } from '@ionic/angular';
+import { ModalController, Events, IonInput } from '@ionic/angular';
 import { ProductEntry, Location, Setting, User } from '../../app/models';
 import { ExpirySync } from '../../app/app.expiry-sync';
 import { ExpirySyncController } from '../../app/app.expiry-sync-controller';
 import { ProductEntriesListAdapter } from './product-entries-list-adapter';
-import { ChangeDetectorRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { UiHelper } from 'src/utils/ui-helper';
 import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-entry-form';
@@ -63,7 +62,7 @@ export class ProductEntriesPage extends ExpirySyncController {
 
     events.subscribe('app:syncDone', () => {
       this.synchronizationHandler.localChangesMutex.acquireFor(
-        this.showListAndFilters()
+        () => this.showListAndFilters()
       );
     });
 
@@ -252,7 +251,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     productEntry.inSync = false;
 
     await productEntry.save();
-    await this.onEntryUpdated(productEntry, false);
+    await this.onEntryUpdated(productEntry);
 
     this.synchronizationHandler.localChangesMutex.release();
 
@@ -267,7 +266,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     productEntry.inSync = false;
 
     await productEntry.save();
-    await this.onEntryUpdated(productEntry, false);
+    await this.onEntryUpdated(productEntry);
     this.synchronizationHandler.localChangesMutex.release();
 
     productEntry.addRemoveAnimation = 'green';

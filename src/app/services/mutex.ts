@@ -16,12 +16,12 @@ export class Mutex {
         console.log('--- Mutex acquired:', this.name);
     }
 
-    async acquireFor(guardedPromise: Promise<any>, releaseOnError = true, rethrowError = true) {
+    async acquireFor(guardedPromise: () => Promise<any>, releaseOnError = true, rethrowError = true) {
         await this.acquire();
 
         let caughtError: Error;
         try {
-            await guardedPromise;
+            await guardedPromise();
         } catch (e) {
             caughtError = e;
         }

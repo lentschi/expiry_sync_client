@@ -46,8 +46,8 @@ export class LocationsModal extends ExpirySyncController {
 
   private async onLocationUpdated(location: Location) {
     if (this.app.currentUser.loggedIn) {
+      await this.app.synchronize(false, true);
       await this.showList();
-      this.app.synchronize();
     } else {
       this.events.publish('app:syncDone');
     }

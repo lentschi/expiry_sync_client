@@ -7,6 +7,7 @@ import 'moment/min/locales';
 import { Mutex } from './mutex';
 import { ExpirySync } from '../app.expiry-sync';
 import { RecordNotFoundError } from 'src/utils/orm';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable()
 export class SynchronizationHandler {
@@ -37,11 +38,15 @@ export class SynchronizationHandler {
 
     constructor(private server: ApiServer) { }
 
-    async mutexedSynchronize() {
+    async mutexedSynchronize(skipAnyMutexes: boolean) {
         console.log('SYNC: Waiting for previous sync to finish...');
-        await this.syncMutex.acquireFor(
-            this.synchronize()
-        );
+        if (!skipAnyMutexes) {
+            await this.syncMutex.acquireFor(
+                () => this.synchronize()
+            );
+        } else {
+            await this.synchronize(true);
+        }
         console.log('SYNC: Done');
     }
 
@@ -60,10 +65,15 @@ export class SynchronizationHandler {
         }
     }
 
-    private async synchronize() {
-        await this.localChangesMutex.acquire();
+    private async synchronize(skipLocalChangesMutexCheck = false) {
+        if (!skipLocalChangesMutexCheck) {
+            await this.localChangesMutex.acquire();
+        }
         await this.retrieveLocalChanges();
-        await this.localChangesMutex.release();
+
+        if (!skipLocalChangesMutexCheck) {
+            await this.localChangesMutex.release();
+        }
 
         this.beforeSync = new Date();
 
@@ -75,11 +85,15 @@ export class SynchronizationHandler {
 
         this.afterSync = new Date();
 
-        await this.localChangesMutex.acquire();
+        if (!skipLocalChangesMutexCheck) {
+            await this.localChangesMutex.acquire();
+        }
         await this.replaceDefaultLocationIfRequired();
         await this.storeServerChangesLocally();
         await this.markSynchronizationCompleted();
-        await this.localChangesMutex.release();
+        if (!skipLocalChangesMutexCheck) {
+            await this.localChangesMutex.release();
+        }
     }
 
     /**
@@ -165,10 +179,28 @@ export class SynchronizationHandler {
         };
         for (const location of locations) {
             let currentEntriesSyncList: ProductEntrySyncList;
-            currentEntriesSyncList = await location.fetchProductEntriesSyncList(this.lastSync);
+            const fromTimeStamp = this.localLocations.some(
+                localLocation => localLocation.id === location.id
+            ) ? this.lastSync : null;
+            try {
+                currentEntriesSyncList = await location.fetchProductEntriesSyncList(fromTimeStamp);
+            } catch (e) {
+                if (e instanceof HttpErrorResponse && e.status === 404) {
+                    // If the same user removed the location from another app instance
+                    // it won't show up in deletedLocations above, but this call will fail
+                    // -> add it to deleted locations here:
+                    this.remotelyChangedLocations.deletedLocations.push(location);
+                    continue;
+                }
+                throw e;
+            }
             this.remotelyChangedEntries.productEntries.push(...currentEntriesSyncList.productEntries);
             this.remotelyChangedEntries.deletedProductEntries.push(...currentEntriesSyncList.deletedProductEntries);
         }
+
+        this.remotelyChangedLocations.locations = this.remotelyChangedLocations.locations.filter(location =>
+            !this.remotelyChangedLocations.deletedLocations.includes(location)
+        );
     }
 
     /**
@@ -269,6 +301,27 @@ export class SynchronizationHandler {
             location.isSelected = selectedLocation && selectedLocation.id === location.id;
 
             await location.storeInLocalDb(this.afterSync);
+        }
+
+        for (const locationToDelete of this.remotelyChangedLocations.deletedLocations) {
+            if (locationsChangedInTheMeanTime.some(currentLocation => currentLocation.id === locationToDelete.id)) {
+                continue; // skip, if location has changed in the mean time
+            }
+
+            try {
+                await locationToDelete.delete();
+            } catch (e) {
+                if (!(e instanceof RecordNotFoundError)) {
+                    throw(e);
+                }
+            }
+
+            // remove associated product entries:
+            await ProductEntry
+                .all()
+                .filter('locationId', '=', locationToDelete.id)
+                .prefetch('location')
+                .delete();
         }
 
         const entriesChangedInTheMeanTime = await ProductEntry.getOutOfSync();

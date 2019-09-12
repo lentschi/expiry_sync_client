@@ -76,13 +76,19 @@ export class Location extends AppModel {
   }
 
   static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
-    return Location
+    await Location
       .all()
       .filter('syncInProgress', '=', true)
       .update([
         {propertyName: 'syncInProgress', value: false},
         {propertyName: 'lastSuccessfulSync', value: syncDoneTimestamp},
       ]);
+
+    await Location
+      .all()
+      .filter('inSync', '=', true)
+      .filter('deletedAt', '<>', null)
+      .delete();
   }
 
   private static createFromServerData(locationData): Location {
@@ -163,12 +169,13 @@ export class Location extends AppModel {
   }
 
   async markForDeletion(): Promise<void> {
-    if (!this.lastSuccessfulSync) {
-      await ProductEntry
+    await ProductEntry
         .all()
         .filter('locationId', '=', this.id)
         .prefetch('location')
         .delete();
+
+    if (!this.lastSuccessfulSync) {
       return this.delete();
     }
 

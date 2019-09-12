@@ -154,13 +154,19 @@ export class ProductEntry extends AppModel {
   }
 
   static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
-    return ProductEntry
+    await ProductEntry
       .all()
       .filter('syncInProgress', '=', true)
       .update([
         {propertyName: 'syncInProgress', value: false},
         {propertyName: 'lastSuccessfulSync', value: syncDoneTimestamp},
       ]);
+
+     await ProductEntry
+      .all()
+      .filter('inSync', '=', true)
+      .filter('deletedAt', '<>', null)
+      .delete();
   }
 
 
