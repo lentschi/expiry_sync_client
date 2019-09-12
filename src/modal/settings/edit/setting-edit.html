@@ -1,0 +1,14 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>edit setting</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <span ion-text color="primary" showWhen="ios" translate>cancel</span>
+        <ion-icon name="md-close" hideWhen="ios"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="setting-edit">
+  <div #settingEditContainer *ngIf="setting"></div>
+</ion-content>

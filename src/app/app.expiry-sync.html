@@ -1,0 +1,82 @@
+<ion-app>
+  <ion-split-pane>
+    <ion-menu>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Menu</ion-title>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <ion-list id="main-menu">
+          <ion-menu-toggle auto-hide="false" *ngFor="let menuPoint of menuPoints">
+            <ng-container *ngIf="!menuPoint.disabled">
+              <ion-item (click)="openMenuPoint(menuPoint)">
+                <ng-container [ngSwitch]="menuPoint.id">
+                  <ng-container *ngSwitchCase="menuPointIds.locationList">
+                    <ion-icon slot="start" name="home"></ion-icon>
+                    <ion-label translate>locations</ion-label>
+                  </ng-container>
+                  
+                  <ng-container *ngSwitchCase="menuPointIds.settings">
+                    <ion-icon slot="start" name="settings"></ion-icon>
+                    <ion-label translate>settings</ion-label>
+                  </ng-container>        
+                  <ng-container *ngSwitchCase="menuPointIds.selectAll">
+                    <ion-icon slot="start" name="done-all"></ion-icon>
+                    <ion-label translate>select all products</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.deselectAll">
+                    <ion-icon slot="start" name="checkbox-outline"></ion-icon>
+                    <ion-label translate>deselect all products</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.filterAllUsers">
+                    <ion-icon slot="start" name="people"></ion-icon>
+                    <ion-label translate>show everyone's products</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.filterCurrentUser">
+                    <ion-icon slot="start" name="contact"></ion-icon>
+                    <ion-label translate>show own products only</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.recipeSearch">
+                    <ion-icon slot="start" name="list-box"></ion-icon>
+                    <ion-label translate>recipe search</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.moveEntriesToAnotherLocation">
+                    <ion-icon slot="start" name="move"></ion-icon>
+                    <ion-label translate>move products</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.synchronize">
+                    <ion-icon slot="start" name="sync"></ion-icon>
+                    <ion-label translate>synchronize</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.registration">
+                    <ion-icon slot="start" name="person-add"></ion-icon>
+                    <ion-label translate>register</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.login">
+                    <ion-icon slot="start" name="log-in"></ion-icon>
+                    <ion-label translate>login</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.logout">
+                    <ion-icon slot="start" name="log-out"></ion-icon>
+                    <ion-label class="no-first-upper">{{'Logout' | translate:currentUser}}</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.about">
+                    <ion-icon slot="start" name="information-circle"></ion-icon>
+                    <ion-label translate>about</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>TODO: {{menuPoint.id}}</ng-container>
+                </ng-container>
+              </ion-item>
+            </ng-container>
+          </ion-menu-toggle>
+        </ion-list>
+      </ion-content>
+
+    </ion-menu>
+
+    <!-- Disable swipe-to-go-back because it's poor UX to combine STGB with side menus -->
+    <ion-router-outlet main></ion-router-outlet>
+  </ion-split-pane>
+</ion-app>

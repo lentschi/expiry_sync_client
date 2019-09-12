@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>locations</ion-title>
+    <ion-buttons *ngIf="locations" slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+      <ion-button (click)="openLocationForm()">
+        <ion-icon name="add-circle"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list id="locations-list">
+    <ion-item *ngFor="let location of locations" (click)="openLocationForm(location)">
+      <span class="name">{{location.name}}</span>
+      <ion-button *ngIf="location.lastSuccessfulSync" slot="end" (click)="shareTapped($event, location)">
+        <ion-icon name="share"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

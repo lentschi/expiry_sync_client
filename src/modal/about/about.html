@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>ExpirySync v{{version}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content id="about">
+  <ion-list>
+    <ion-item class="app">
+      <div>
+        <h2 translate>App</h2>
+        <div class="info">
+          <span class="label" translate>developed by</span>
+          <span class="value">Florian Lentsch</span>
+        </div>
+        <div class="info">
+          <span class="label" translate>version</span>
+          <span class="value">{{version}}</span>
+        </div>
+        <div class="info">
+          <span class="label" translate>privacy statement</span>
+          <span class="value"><a target="_blank" href="http://florian-lentsch.at/expiry-sync-privacy-statement/statement.html">http://florian-lentsch.at/expiry-sync-privacy-statement/statement.html</a></span>
+        </div>
+        <div class="info">
+          <span class="label" translate>project page<br />→ change requests, bugs, source code (GPL)</span>
+          <span class="value"><a target="_blank" href="https://github.com/lentschi/expiry_sync_client">https://github.com/lentschi/expiry_sync_client</a></span>
+        </div>
+        <div class="info">
+          <span class="label" translate>utilized app framework</span>
+          <span class="value"><a target="_blank" href="https://ionicframework.com/">Ionic</a></span>
+        </div>
+      </div>
+    </ion-item>
+    <ion-item class="api-server">
+      <div>
+        <h2 translate>API Server</h2>
+        <div class="info">
+          <span class="label" translate>You chose the following API server to sync with:</span>
+          <span class="value">
+            <a class="api-server-link" *ngIf="apiServer" target="_blank" [href]="apiServer">{{apiServer}}</a>
+            <span class="none" *ngIf="!apiServer" translate>none (offline mode)</span>
+          </span>
+        </div>
+        <div class="info">
+          <span class="label" translate>last successful synchronization</span>
+          <span class="value">
+            <span class="last-sync" *ngIf="lastSync">{{lastSync | amDateFormat:'LLLL'}}</span>
+            <span class="none" *ngIf="!lastSync" translate>never</span>
+          </span>
+        </div>
+      </div>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,16 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>take a picture</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="cam">
+  <div class="video-wall">
+    <video autoplay #video width="100%" height="100%"></video>
+  </div>
+  <ion-button expand="full" translate (click)="takePicture()">take picture</ion-button>
+</ion-content>

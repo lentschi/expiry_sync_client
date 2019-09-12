@@ -1,62 +1,73 @@
-import { AppModel, Column, PersistenceModel, HasOne, RecordNotFoundError } from '../utils/orm';
+import { AppModel, Column, PersistenceModel, HasOne, RecordNotFoundError } from '../../utils/orm';
 import { ProductEntry, ProductEntrySyncList, LocationShare } from '../models';
 import { User } from '../models';
-import { ApiServer, ApiServerCall } from '../utils/api-server';
-import { ExpirySync } from '../app.expiry-sync'
+import { ApiServer, ApiServerCall } from '../../utils/api-server';
+import { ExpirySync } from '../app.expiry-sync';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @PersistenceModel
 export class Location extends AppModel {
+
+  get ownedByCurrentUser(): boolean {
+    const app: ExpirySync = ExpirySync.getInstance();
+    return (!this.creatorId || (app.currentUser && app.currentUser.id === this.creatorId));
+  }
   static tableName = 'Location';
+  static allowImplicitCreation = true;
 
   @HasOne('User')
-  creator:User;
+  creator: User;
 
   // @HasMany('LocationShare')
-  locationShares:Array<LocationShare>;
+  locationShares: Array<LocationShare>;
 
   @Column()
-  name:string;
+  name: string;
 
   @Column()
-  isSelected:boolean = false;
+  isSelected: boolean;
 
   @Column()
-  inSync:boolean = false;
-
-  @Column("DATE")
-  createdAt:Date;
-
-  @Column("DATE")
-  updatedAt:Date;
-
-  @Column("DATE")
-  deletedAt:Date;
+  inSync: boolean;
 
   @Column()
-  creatorId:string;
+  syncInProgress: boolean;
+
+  @Column('DATE')
+  lastSuccessfulSync: Date;
+
+  @Column('DATE')
+  createdAt: Date = new Date();
+
+  @Column('DATE')
+  updatedAt: Date = new Date();
+
+  @Column('DATE')
+  deletedAt: Date;
 
   @Column()
-  serverId:number;
+  creatorId: string;
 
-  justCreatedByPull:boolean = false;
-
-  static async createDefault():Promise<Location> {
-    console.log("Creating default location");
-    let location:Location = new this();
+  static async createDefault(): Promise<Location> {
+    console.log('Creating default location');
+    const location: Location = new this();
     location.isSelected = true;
-    location.name = await ExpirySync.getInstance().translate('At home');
+    location.name = await Location.defaultName();
     await location.save();
 
     return location;
   }
 
-  static async getSelected():Promise<Location> {
+  static async defaultName(): Promise<string> {
+    return ExpirySync.getInstance().translate('At home');
+  }
+
+  static async getSelected(): Promise<Location> {
     try {
-      let location:Location = <Location> await this.findBy('isSelected', true);
+      const location: Location = <Location>await this.findBy('isSelected', true);
       return location;
-    }
-    catch(e) {
-      if (await this.all().count() == 0) {
+    } catch (e) {
+      if (await this.all().count() === 0) {
         return this.createDefault();
       }
 
@@ -64,25 +75,25 @@ export class Location extends AppModel {
     }
   }
 
-  async markForDeletion():Promise<void> {
-    if (!this.serverId) {
-      await ProductEntry
-        .all()
-        .filter('locationId', '=', this.id)
-        .prefetch('location')
-        .delete();
-      return this.delete();
-    }
+  static async markAllSyncInProgressDone(syncDoneTimestamp: Date): Promise<void> {
+    await Location
+      .all()
+      .filter('syncInProgress', '=', true)
+      .update([
+        {propertyName: 'syncInProgress', value: false},
+        {propertyName: 'lastSuccessfulSync', value: syncDoneTimestamp},
+      ]);
 
-    this.deletedAt = new Date();
-    this.inSync = false;
-    this.isSelected = false;
-    return this.save();
+    await Location
+      .all()
+      .filter('inSync', '=', true)
+      .filter('deletedAt', '<>', null)
+      .delete();
   }
 
-  private static createFromServerData(locationData):Location {
-    let app:ExpirySync = ExpirySync.getInstance();
-    let location = new Location();
+  private static createFromServerData(locationData): Location {
+    const app: ExpirySync = ExpirySync.getInstance();
+    const location = new Location();
     location.name = locationData.name;
     location.createdAt = ApiServer.parseHttpDate(locationData.created_at);
     location.updatedAt = ApiServer.parseHttpDate(locationData.updated_at);
@@ -92,73 +103,98 @@ export class Location extends AppModel {
     }
     if (locationData.users !== undefined) {
       location.locationShares = [];
-      for (let userData of locationData.users) {
-        let share:LocationShare = new LocationShare();
+      for (const userData of locationData.users) {
+        const share: LocationShare = new LocationShare();
         share.user = User.createFromServerData(userData);
         share.location = location;
 
-        if (share.user.serverId != app.currentUser.serverId) { // ignore current user
+        if (share.user.serverId !== app.currentUser.serverId) { // ignore current user
           location.locationShares.push(share);
         }
       }
     }
-    location.serverId = locationData.id;
+    location.id = locationData.id;
     return location;
   }
 
-  toServerData() {
-    let locationData:any = {
-      name: this.name
+  static async fetchSyncList(modifiedAfter?: Date): Promise<LocationSyncList> {
+    const params: any = {};
+    if (modifiedAfter) {
+      params.from_timestamp = ApiServer.dateToHttpDate(modifiedAfter);
+      params.time_skew = ApiServer.getInstance().timeSkew;
+    }
+    const serverData = await ApiServer.call(ApiServerCall.getLocations, params);
+    const syncList: LocationSyncList = {
+      locations: [],
+      deletedLocations: []
     };
 
-    if (this.serverId) {
-      locationData.id = this.serverId;
+    for (const locationData of serverData.locations) {
+      syncList.locations.push(Location.createFromServerData(locationData));
     }
+
+    for (const locationData of serverData.deleted_locations) {
+      syncList.deletedLocations.push(Location.createFromServerData(locationData));
+    }
+
+    return syncList;
+  }
+
+  static async getOutOfSync(includeSyncInProgress = false): Promise<Location[]> {
+    const locations: Array<Location> = <Array<Location>>await Location
+      .all()
+      .filter('inSync', '=', false)
+      .list();
+
+    if (includeSyncInProgress) {
+      locations.push(...<Array<Location>>await Location
+        .all()
+        .filter('syncInProgress', '=', true)
+        .list()
+      );
+    }
+
+    return locations;
+  }
+
+  static async pushAll(): Promise<void> {
+    const locations: Array<Location> = <Array<Location>>await Location
+      .all()
+      .filter('inSync', '=', false)
+      .list();
+
+    for (const location of locations) {
+      await location.storeOnServer();
+    }
+  }
+
+  async markForDeletion(): Promise<void> {
+    await ProductEntry
+        .all()
+        .filter('locationId', '=', this.id)
+        .prefetch('location')
+        .delete();
+
+    if (!this.lastSuccessfulSync) {
+      return this.delete();
+    }
+
+    this.deletedAt = new Date();
+    this.inSync = false;
+    this.isSelected = false;
+    return this.save();
+  }
+
+  toServerData() {
+    const locationData: any = {
+      id: this.id,
+      name: this.name
+    };
 
     return locationData;
   }
 
-  static async hasRemoteChanges(modifiedAfter?:Date):Promise<boolean> {
-    const locationSyncList:LocationSyncList = await Location.fetchSyncList(modifiedAfter);
-    return locationSyncList.locations.length > 0 || locationSyncList.deletedLocations.length > 0;
-  }
-
-  static async pullAll(modifiedAfter?:Date, updateId?:number):Promise<Array<Location>> {
-    let newLocations = [];
-    let app:ExpirySync = ExpirySync.getInstance();
-    let locationSyncList:LocationSyncList = await Location.fetchSyncList(modifiedAfter);
-    let updateFirstWithoutServerId:boolean = !modifiedAfter;
-    for (let location of locationSyncList.locations) {
-      if (location.serverId == updateId) {
-        continue; // we're going to update it in the same process -> don't pull
-      }
-
-      location.inSync = true;
-      await location.updateOrAddByServerId(updateFirstWithoutServerId && location.creator.serverId == app.currentUser.serverId);
-      if (location.creator.serverId == app.currentUser.serverId) {
-        updateFirstWithoutServerId = false;
-      }
-      if (location.justCreatedByPull) {
-        newLocations.push(location);
-      }
-    }
-
-    for (let locationToDelete of locationSyncList.deletedLocations) {
-      try {
-        let dbLocation:Location = <Location> await Location.findBy('serverId', locationToDelete.serverId);
-        await dbLocation.delete();
-      }
-      catch(e) {
-        if (!(e instanceof RecordNotFoundError)) {
-          throw(e);
-        }
-      }
-    }
-
-    return newLocations;
-  }
-
-  private async deleteAllShares():Promise<void> {
+  private async deleteAllShares(): Promise<void> {
     return LocationShare
       .all()
       .filter('locationId', '=', this.id)
@@ -166,183 +202,97 @@ export class Location extends AppModel {
       .delete();
   }
 
-  async delete():Promise<void> {
+  async delete(): Promise<void> {
     await this.deleteAllShares();
     await super.delete();
   }
 
-  private static async fetchSyncList(modifiedAfter?:Date):Promise<LocationSyncList> {
-    let params:any = {};
-    if (modifiedAfter) {
-      params.from_timestamp = ApiServer.dateToHttpDate(modifiedAfter);
-      params.time_skew = ApiServer.getInstance().timeSkew;
-    }
-    let serverData = await ApiServer.call(ApiServerCall.getLocations, params);
-    let syncList:LocationSyncList = {
-      locations: [],
-      deletedLocations: []
-    }
-
-    for (let locationData of serverData.locations) {
-      syncList.locations.push(Location.createFromServerData(locationData));
-    }
-
-    for (let locationData of serverData.deleted_locations) {
-      syncList.deletedLocations.push(Location.createFromServerData(locationData));
-    }
-
-    return syncList;
-  }
-
-  async fetchProductEntriesSyncList(modifiedAfter?:Date):Promise<ProductEntrySyncList> {
-    let params:any = {
-      location_id: this.serverId
+  async fetchProductEntriesSyncList(modifiedAfter?: Date): Promise<ProductEntrySyncList> {
+    const params: any = {
+      location_id: this.id
     };
     if (modifiedAfter) {
       params.from_timestamp = ApiServer.dateToHttpDate(modifiedAfter);
     }
-    let serverData = await ApiServer.call(ApiServerCall.getProductEntries, params);
-    let syncList:ProductEntrySyncList = {
+    const serverData = await ApiServer.call(ApiServerCall.getProductEntries, params);
+    const syncList: ProductEntrySyncList = {
       productEntries: [],
       deletedProductEntries: []
-    }
+    };
 
-    for (let productEntryData of serverData.product_entries) {
+    for (const productEntryData of serverData.product_entries) {
       syncList.productEntries.push(ProductEntry.createFromServerData(productEntryData));
     }
 
-    for (let productEntryData of serverData.deleted_product_entries) {
+    for (const productEntryData of serverData.deleted_product_entries) {
       syncList.deletedProductEntries.push(ProductEntry.createFromServerData(productEntryData));
     }
 
     return syncList;
   }
 
-  static async hasLocalChanges():Promise<boolean> {
-    const count = await Location
-      .all()
-      .filter('inSync', '=', false)
-      .count();
+  public async storeOnServer(): Promise<Location> {
+    let callId: number = ApiServerCall.createLocation;
+    const params: any = {};
+    const app: ExpirySync = ExpirySync.getInstance();
 
-    return count > 0;
-  }
-
-  static async pushAll():Promise<void> {
-    let locations:Array<Location> = <Array<Location>> await Location
-      .all()
-      .filter('inSync', '=', false)
-      .list();
-
-    for (let location of locations) {
-      await location.push();
-    }
-  }
-
-  public async push():Promise<void> {
-    let callId:number = ApiServerCall.createLocation;
-    let params:any = {};
-    let app:ExpirySync = ExpirySync.getInstance();
-
-    if (this.serverId) {
-      params['location_id'] = this.serverId;
-      if (this.deletedAt) {
-        callId = ApiServerCall.removeLocationShare;
-        params['user_id'] = app.currentUser.serverId;
-      }
-      else {
-        callId = ApiServerCall.updateLocation;
-      }
+    params['location_id'] = this.id;
+    if (this.deletedAt) {
+      callId = ApiServerCall.removeLocationShare;
+      params['user_id'] = app.currentUser.serverId;
+    } else {
+      callId = ApiServerCall.updateLocation;
     }
 
     if (!this.deletedAt) {
       params['location'] = this.toServerData();
     }
 
-    let locationData = await ApiServer.call(callId, params);
-    if (this.deletedAt) {
-      await ProductEntry
-        .all()
-        .filter('locationId', '=', this.id)
-        .prefetch('location')
-        .delete();
-      await this.delete();
-    }
-    else {
-      let receivedLocation:Location = Location.createFromServerData(locationData.location);
-      this.serverId = receivedLocation.serverId;
-      this.inSync = true;
-      await this.save();
+    try {
+      const locationData = await ApiServer.call(callId, params);
+      return this.deletedAt ? null : Location.createFromServerData(locationData.location);
+    } catch (e) {
+      if (this.deletedAt && e instanceof HttpErrorResponse && e.status === 404) {
+        return null;
+      } else {
+        throw e;
+      }
     }
   }
 
-  async addRemoteShare(user:User):Promise<User> {
-    let params:any = {
-      location_id: this.serverId,
+  async storeInLocalDb(syncDoneTimestamp: Date): Promise<Location> {
+    this.inSync = true;
+    this.lastSuccessfulSync = syncDoneTimestamp;
+    this.creator = await this.creator.updateOrAddByServerId();
+    this.creatorId = this.creator.id;
+    await this.save();
+    await this.updateShares();
+    return this;
+  }
+
+  async addRemoteShare(user: User): Promise<User> {
+    const params: any = {
+      location_id: this.id,
       user: {}
     };
 
     if (user.userName) {
       params.user.username = user.userName;
-    }
-    else if (user.email) {
+    } else if (user.email) {
       params.user.email = user.email;
     }
 
-    let userData = await ApiServer.call(ApiServerCall.shareLocation, params);
+    const userData = await ApiServer.call(ApiServerCall.shareLocation, params);
     return User.createFromServerData(userData.user);
   }
 
-  public async updateOrAddByServerId(updateFirstWithoutServerId?:boolean):Promise<Location> {
-    let location:Location = null;
-    try {
-      // update record with matching serverId:
-      location = <Location> await Location.findBy('serverId', this.serverId);
-    }
-    catch(e) { }
 
-    if (updateFirstWithoutServerId) {
-      try {
-        // update first without serverId:
-        location = <Location> await Location
-          .all()
-          .filter('serverId', '=', null)
-          .one();
-
-        location.serverId = this.serverId;
-      }
-      catch(e2) { }
-    }
-
-    if (location) {
-      // update:
-      location.name = this.name;
-      location.createdAt = this.createdAt;
-      location.updatedAt = this.updatedAt;
-      location.deletedAt = this.deletedAt;
-      location.inSync = this.inSync;
-      location.locationShares = this.locationShares;
-      location.creator = this.creator;
-    }
-    else {
-      // create:
-      this.justCreatedByPull = true;
-      location = this;
-    }
-
-    location.creator = await location.creator.updateOrAddByServerId();
-    location.creatorId = location.creator.id;
-
-    await location.save();
-    await location.updateShares();
-    return location;
-  }
-
-  private async updateShares():Promise<void> {
+  private async updateShares(): Promise<void> {
     // Remove all shares:
     await this.deleteAllShares();
 
     // Add them back in:
-    for (let share of this.locationShares) {
+    for (const share of this.locationShares) {
       share.user = await share.user.updateOrAddByServerId();
       share.userId = share.user.id;
       share.location = this;
@@ -351,22 +301,17 @@ export class Location extends AppModel {
     }
   }
 
-  async save():Promise<void> {
-    let app:ExpirySync = ExpirySync.getInstance();
-    if (!this.creatorId && !this.serverId && app.currentUser) {
+  async save(): Promise<void> {
+    const app: ExpirySync = ExpirySync.getInstance();
+    if (!this.creatorId && !this.lastSuccessfulSync && app.currentUser) {
       this.creatorId = app.currentUser.id;
     }
     return await super.save();
-  }
-
-  get ownedByCurrentUser():boolean {
-    const app:ExpirySync = ExpirySync.getInstance();
-    return (!this.creatorId || (app.currentUser && app.currentUser.id == this.creatorId));
   }
 }
 
 
 export interface LocationSyncList {
-  locations: Array<Location>,
-  deletedLocations: Array<Location>
+  locations: Array<Location>;
+  deletedLocations: Array<Location>;
 }

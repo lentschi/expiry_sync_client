@@ -1,0 +1,126 @@
+<ion-header id="product-entries-header">
+  <ion-toolbar *ngIf="!showFilter">
+    <div class="product-entries-header">
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title *ngIf="locations">
+        <ion-item>
+          <ion-label translate>location</ion-label>
+          <ion-select 
+              [(ngModel)]="selectedLocationId" 
+              (ionChange)="locationSwitched()"
+              [class.no-location-selected]="!selectedLocation">
+            <ion-select-option *ngIf="locations?.length > 1" [value]="''" translate>All locations</ion-select-option>
+            <ng-container *ngFor="let location of locations">
+              <ion-select-option [value]="location.id">{{location.name}}</ion-select-option>
+            </ng-container>
+          </ion-select>
+        </ion-item>
+      </ion-title>
+      <ion-buttons *ngIf="productEntries" start>
+        <ion-button *ngIf="selectedLocation" (click)="openEntryForm()">
+          <ion-icon name="add-circle"></ion-icon>
+        </ion-button>
+        <ion-button [disabled]="productEntries.selected.length == 0" (click)="deleteAllTapped()">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+        <ion-button (click)="toggleSearchTapped()">
+          <ion-icon name="search"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+  </ion-toolbar>
+  <ion-toolbar *ngIf="showFilter">
+    <div class="filter-bar">
+      <ion-button class="close-btn" (click)="toggleSearchTapped()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+      <ion-item>
+        <ion-input [(ngModel)]="productEntries.filterValue" (keyup)="showListAndFilters()" maxlength="255" #filterField></ion-input>
+      </ion-item>
+      <ion-button class="clear-btn" *ngIf="productEntries.filterValue != ''" (click)="clearFilterValue()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content (window:resize)="enableDisableMenuPoints()" id="product-entries" scroll="false">
+  <div id="wrapper">
+    <div id="product-entries-list-header">
+      <div id="list-sorters" [class.sort-ascending]="productEntries.sortAscending" *ngIf="productEntries.length > 0">
+        <span class="product-entry-selection">
+          <ion-checkbox [(ngModel)]="productEntries.allSelected"></ion-checkbox>
+        </span>
+        <span class="amount" [class.active]="productEntries.sortBy == 'amount'" (click)="sortTapped('amount')" translate>Σ</span>
+        <span class="name" [class.active]="productEntries.sortBy == 'name'" (click)="sortTapped('name')" translate>name</span>
+        <span class="creation" [class.active]="productEntries.sortBy == 'creator'" (click)="sortTapped('creator')" translate>owner</span>
+        <span class="location"  *ngIf="!selectedLocation" [class.active]="productEntries.sortBy == 'location'" (click)="sortTapped('location')" translate>location</span>
+        <span class="expiration" [class.active]="productEntries.sortBy == 'expirationDate'" (click)="sortTapped('expirationDate')" translate>expiration date</span>
+      </div>
+    </div>
+    <div id="list-wrapper">
+      <ion-list [class.filtered-by-location]="selectedLocation" #productEntriesList>
+        <ion-item-sliding #slidingItem *ngFor="let productEntry of productEntries">
+          <ion-item 
+              *ngIf="loadingAfterLocationSwitchDone"
+              [class.activated]="productEntry.selected" 
+              [class.gone-bad]="productEntry.goneBad" 
+              [class.gone-medium]="!productEntry.goneBad && productEntry.goneMedium" 
+              (click)="openEntryForm(productEntry)">
+            <div class="product-entry-wrapper">
+              <span (click)="productEntryCheckboxTapped($event,productEntry)" class="product-entry-selection">
+                <input [checked]="productEntry.selected" type="checkbox" />
+              </span>
+              <span 
+                  [@addRemoveAnimation]="productEntry.addRemoveAnimation" 
+                  (@addRemoveAnimation.done)="productEntry.addRemoveAnimation = 'normal'"
+                  class="amount">
+                {{productEntry.amount}}
+              </span>
+              <span class="name" 
+                ellipsis
+                ellipsis-resize-detection="window"
+                [ellipsis-content]="productEntry.article.name"></span>
+              <span class="creation" [class.inline]="!selectedLocation" [class.free-to-take]="productEntry.freeToTake">
+                <ion-icon class="icon" name="share" *ngIf="productEntry.freeToTake"></ion-icon>
+                <span class="label" translate>owner</span>
+                <span class="creator">
+                  <ng-container *ngIf="productEntry.creator.id == currentUser.id" translate>you</ng-container>
+                  <ng-container *ngIf="productEntry.creator.id != currentUser.id">{{productEntry.creator.userName | ellipsis:25}}</ng-container>
+                  <ng-container *ngIf="productEntry.freeToTake">: </ng-container>
+                </span>
+                <span class="invitation" *ngIf="productEntry.freeToTake" translate>"Free for all!"</span>
+              </span>
+              <span *ngIf="!selectedLocation" class="location">
+                <span class="label" translate>location</span>
+                <span class="location-name">{{productEntry.location.name | ellipsis:25}}</span>
+              </span>
+              <span class="expiration">
+                <span class="label" translate>expiration date</span>
+                <span class="expiration-date">{{productEntry.expirationDate | amDateFormat:'l'}}</span>
+              </span>
+            </div>
+          </ion-item>
+          <ion-item-options side="start" (ionSwipe)="productEntrySwipedLeft(productEntry)">
+          </ion-item-options>
+          <ion-item-options side="end" (ionSwipe)="productEntrySwipedRight(productEntry)">
+          </ion-item-options>
+        </ion-item-sliding>
+        <ion-item *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
+          <div class="no-products">
+            <span class="label" *ngIf="productEntries.filterValue == ''" translate>There aren't any products in the list.</span>
+            <span class="label" *ngIf="productEntries.filterValue != ''" translate>There are no products matching your search.</span>
+            <ion-button *ngIf="selectedLocation" (click)="openEntryForm()" translate>Add one now</ion-button>
+          </div>
+        </ion-item>
+        <ion-item *ngIf="!loadingAfterLocationSwitchDone">
+          <div class="no-products">
+            <span class="label" translate>Please wait...</span>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+  </div>
+</ion-content>

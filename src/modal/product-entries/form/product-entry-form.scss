@@ -1,0 +1,62 @@
+// TODO: Not sure, if this is still required and why:
+.modal-wrapper {
+  .scroll-content {
+    margin-top: 56px;
+  }
+}
+
+#product-entries-form {
+  .location {
+    margin: 10px 0px 20px 16px;
+    color: var(--ion-color-medium-dark);
+
+    .label {
+      display:inline-block;
+      font-weight: bold;
+
+      &::first-letter {
+        text-transform: uppercase;
+      }
+
+      &:after {
+        content: ': ';
+      }
+    }
+  }
+
+  .barcode-controls {
+    display:flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    button {
+      width:60px;
+      margin: 10px 0px 0px 16px;
+    }
+
+    ion-item {
+      flex: 1;
+      width:auto;
+    }
+  }
+
+  .image-controls {
+    text-align: center;
+    margin: 20px 0px;
+
+    ion-button {
+      margin-top: 15px;
+    }
+
+    .image-wrapper {
+      padding:0;
+    }
+  }
+
+  .submit-controls {
+    text-align: center;
+    ion-button[type="button"] {
+      margin: 20px 0px;
+    }
+  }
+}

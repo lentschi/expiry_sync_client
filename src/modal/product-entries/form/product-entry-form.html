@@ -1,0 +1,106 @@
+<ion-header>
+  <ion-toolbar *ngIf="productEntry">
+    <ion-title *ngIf="!productEntry.id" translate>add product entry</ion-title>
+    <ion-title *ngIf="productEntry.id" translate>edit product entry</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+      <ng-container>
+        <ion-button *ngIf="productEntry.id" (click)="deleteEntry(productEntry)">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+        <ion-button (click)="saveEntry(productEntry)">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="product-entries-form">
+  <form #entryForm="ngForm" class="list" (ngSubmit)="saveEntry(entryForm.valid)" *ngIf="productEntry" novalidate>
+    <div *ngIf="displayLocation" class="location">
+      <span class="label" translate>location</span>
+      <span class="value">{{productEntry.location.name}}</span>
+    </div>
+    <div class="barcode-controls">
+      <ion-button type="button" (click)="scanBarcode()">
+        <ion-icon name="barcode"></ion-icon>
+      </ion-button>
+      <ion-item #barcodeItem>
+        <ion-input
+          [(ngModel)]="productEntry.article.barcode"
+          (ionBlur)="loadArticleByBarcode()"
+          name="barcode"
+          maxlength="255"
+          [placeholder]="'Barcode' | translate"
+          #barcode="ngModel"></ion-input>
+      </ion-item>
+    </div>
+    <ion-item>
+      <ion-label position="floating" translate>name</ion-label>
+      <ion-input #articleNameItem [(ngModel)]="productEntry.article.name" name="name" maxlength="255" #name="ngModel" required></ion-input>
+    </ion-item>
+    <div *ngIf="name.errors && (name.dirty || name.touched)"
+           class="validation-error">
+          <div [hidden]="!name.errors.required" translate>Name is required</div>
+    </div>
+    <ion-item>
+      <ion-label position="floating" translate>expiration date</ion-label>
+      <ion-datetime
+        displayFormat="{{dateFormat}}"
+        max="{{maxExpirationDate}}"
+        pickerFormat="MMM DD YYYY"
+        [cancelText]="'cancel' | translate"
+        [doneText]="'done' | translate"
+        [(ngModel)]="productEntry.expirationDateIsoStr"
+        required
+        name="expirationDate"
+        #expirationDate="ngModel"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating" translate>amount</ion-label>
+      <ion-input
+        type="number"
+        validateGreaterThan="0"
+        validateLessThan="100000"
+        validateInteger
+        required
+        [(ngModel)]="productEntry.amount"
+        name="amount"
+        #amount="ngModel"></ion-input>
+    </ion-item>
+    <div *ngIf="amount.errors && (amount.dirty || amount.touched)"
+           class="validation-error">
+          <div [hidden]="!amount.errors.required" translate>Amount is required</div>
+          <div [hidden]="!amount.errors.validateGreaterThan" translate>Amount must be larger than 0</div>
+          <div [hidden]="!amount.errors.validateInteger" translate>Amount must be an integer</div>
+    </div>
+    <ion-item>
+      <ion-label position="floating" translate>description</ion-label>
+      <ion-input [(ngModel)]="productEntry.description" name="description" maxlength="255" #description="ngModel"></ion-input>
+    </ion-item>
+    <ion-item *ngIf="productEntry.ownedByCurrentUser">
+      <ion-label translate>Free to take for everyone</ion-label>
+      <ion-checkbox [(ngModel)]="productEntry.freeToTake" name="freeToTake" #description="ngModel"></ion-checkbox>
+    </ion-item>
+    <div class="image-controls">
+      <div class="image-wrapper">
+          <img *ngIf="productEntry.article.hasAnyImage" [src]="productEntry.article.images[productEntry.article.images.length - 1].imageData" />
+          <ng-container *ngIf="!productEntry.article.hasAnyImage" translate>There is no picture for this article.</ng-container>
+      </div>
+      <ion-button color="light" icon-left type="button" (click)="takePicture()">
+        <ion-icon name="image"></ion-icon>
+        <ng-container *ngIf="!productEntry.article.hasAnyImage" translate>take picture</ng-container>
+        <ng-container *ngIf="productEntry.article.hasAnyImage" translate>take another picture</ng-container>
+      </ion-button>
+    </div>
+    <div class="submit-controls">
+      <ion-button *ngIf="productEntry.id" color="light" icon-left type="button" (click)="cloneEntry(entryForm.valid)" translate>
+        <ion-icon name="copy"></ion-icon>
+        save as copy
+      </ion-button>
+      <ion-button type="submit" expand="full" translate>save</ion-button>
+    </div>
+  </form>
+</ion-content>

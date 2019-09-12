@@ -1,5 +1,7 @@
 {
-  "name": "expirySync",
-  "app_id": "",
-  "type": "ionic-angular"
+  "name": "expiry_sync_client",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
 }

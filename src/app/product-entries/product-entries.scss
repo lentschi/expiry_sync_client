@@ -1,0 +1,436 @@
+html, body {
+  height:100%;
+  margin:0;
+}
+
+#product-entries-header {
+  ion-toolbar {
+    --padding-top:0;
+    --padding-end:0;
+    --padding-bottom:0;
+    --padding-start:0;
+  }
+
+  ion-item {
+    --border-width: 0 0 0 0;
+  }
+
+  ion-select {
+    --padding-start: 0;
+    font-size: 1.35rem;
+    font-weight: 500;
+
+    &.no-location-selected {
+      font-style: italic;
+      padding-right: 3px;
+    }
+
+    // TODO: Upgrade: Check what this did:
+    // &.select-md {
+    //   max-width: none;
+    //   padding-left:0;
+    // }
+  }
+}
+
+// TODO: Upgrade: Check if this is still required:
+// .platform-android .product-entries-header {
+//   height:58px; //<- required for AOT-compilation for some inexplicable reason
+// }
+
+#product-entries-header {
+    .product-entries-header { 
+      display: flex;
+    }
+    
+    ion-label {
+      display: none;
+    }
+
+    ion-select.select-ios {
+      padding-right:0px;
+      max-width: none;
+
+      .select-icon {
+        width: 15px;
+      }
+    }
+
+    .toolbar-ios ion-title ion-select {
+      margin-left: 50px;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+
+      ion-item {
+        flex:1;
+        display:inline-block;
+      }
+
+      button {
+        font-size: 2rem;
+        padding: 0 1rem;
+        background-color: transparent;
+      }
+
+    }
+}
+
+
+ion-content#product-entries { 
+  ion-item {
+    --padding-start: 0;
+  }
+
+  #wrapper {
+    display:flex;
+    flex-direction: column;
+    height:100%;
+    margin:0;
+  }
+
+  span.label {
+    display:inline-block;
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  /**
+   * Table header (sort buttons)
+   */
+  #product-entries-list-header {
+    border-bottom: 1px solid var(--ion-color-dark);
+    font-size: 16px;
+
+    #list-sorters {
+      @media (max-width: 350px) {
+        display:none;
+      }
+
+      background-color: var(--ion-color-light);
+      overflow: hidden;
+
+      .amount, .name, .expiration, .product-entry-selection, .creation, .location {
+        display:block;
+        float:left;
+        padding: 10px 2px 10px 2px;
+      }
+
+      .product-entry-selection .checkbox-icon {
+        margin-left: 4px;
+      }
+
+      .expiration {
+        float:right;
+        padding-right: 5%;
+      }
+
+      .active {
+        color: var(--ion-color-primary);
+      }
+
+      .active::after {
+        content: "↑";
+        speak:none;
+        font-family: "Ionicons";
+        padding-left: 2px;
+      }
+
+      .product-entry-selection {
+        width:4%;
+        max-width: 60px;
+        min-width: 40px;
+        margin-left: 1%;
+      }
+
+      .amount {
+        width:10%;
+        max-width: 40px;
+        text-align: right;
+      }
+
+      .creation, .location {
+        display:none;
+      }
+
+      .name {
+        width: 20%;
+      }
+
+      .expiration {
+        width: 50%;
+        text-align:right;
+      }
+
+      @media (min-width: 640px) {
+        .creation, .location {
+          display:inline-block;
+          width: 10%;
+        }
+
+        .filtered-by-location {
+          .creation, .location {
+            width: 20%;
+          }
+        }
+
+        .expiration {
+          width: 20%;
+        }
+        .name {
+          width: 40%;
+        }
+      }
+    }
+
+    #list-sorters.sort-ascending .active::after {
+      content: "↓";
+    }
+  }
+
+
+  /**
+   * The list itself
+   */
+  #list-wrapper {
+    display:flex;
+    flex:1;
+    overflow-y:scroll;
+
+    ion-list {
+      width:100%;
+
+      .item-md {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .product-entry-wrapper {
+        width: 100%;
+      }
+
+      // TODO: UPGRADE: These are shadow DOMed:
+      .item-md .item-inner {
+        padding-right: 0;
+      }
+
+      .item-md .item-inner .label-md {
+        margin-right: 0;
+      }
+
+      .item-md .item-inner .label-md > * {
+        vertical-align: middle;
+      }
+
+      ion-item.gone-bad {
+        color: var(--color-bad);
+      }
+
+      ion-item.gone-medium {
+        color: var(--color-medium-danger);
+      }
+
+      .no-products {
+        text-align: center;
+        width: 100%;
+        margin: 10px;
+
+        .label {
+          color: var(--ion-color-medium-dark);
+          display: block;
+          margin-bottom: 30px;
+          text-align: center;
+          font-size: 20px;
+          white-space: inherit;
+        }
+      }
+
+      .amount::after {
+        content: 'x';
+      }
+
+      .creation {
+        padding-left:3px;
+      }
+
+      .location, .creation {
+        font-size: 12px;
+        .label::after {
+          content: ':';
+        }
+      }
+
+      .location .label::before {
+        content: '• ';
+      }
+
+      .creation {
+        ion-icon.icon {
+          color: var(--ion-color-medium-dark);
+          font-size: 18px;
+          margin-right: 3px;
+        }
+
+        &.free-to-take {
+          margin-right: 5px;
+          margin-top: 5px;
+          .label {
+            display:none;
+          }
+        }
+      }
+
+      .product-entry-selection {
+        display: block;
+        float:left;
+        height: 30px;
+      }
+
+      .amount {
+        height: 60px;
+        float:left;
+        text-align: right;
+      }
+
+      .product-entry-selection, .amount, .name, .expiration { // .creation
+        display:block;
+        overflow: hidden;
+        padding: 2px;
+      }
+
+      .expiration .label {
+        margin-right: 5px;
+      }
+
+
+      @media (max-width: 350px) {
+        .amount {
+          width: 35px;
+        }
+
+        .product-entry-selection {
+          margin: 0px 4px 0px 4px;
+          input {
+            margin-top: 2px;
+            width: 15px;
+            height: 15px;
+          }
+        }
+
+        .expiration {
+          .label::after {
+            content: ':';
+          }
+        }
+      }
+
+      @media (min-width: 350px) {
+        .product-entry-selection {
+          width:4%;
+          max-width: 60px;
+          min-width: 40px;
+          text-align: center;
+          margin-left: 1%;
+
+          input {
+            // TODO: UPGRADE - Derive this from ionic as it used to be
+            width: 21px;
+            height: 21px;
+            margin: 8px 16px 8px 2px;
+
+            max-width: 100%;
+            display:inline-block;
+          }
+        }
+
+        .amount {
+          width:10%;
+          max-width: 40px;
+          padding-top:11px;
+          color: var(--ion-color-medium-dark);
+        }
+
+        .name {
+          align-items: center;
+          width: 40%;
+          display:flex;
+          height:40px;
+          white-space: normal;
+        }
+
+        .creation {
+          width: 40%;
+          white-space: normal;
+        }
+
+        .expiration {
+          float:right;
+          padding-right: 5%;
+          width: 30%;
+          text-align:right;
+          .label {
+            display: none;
+          }
+        }
+      }
+
+      @media (min-width: 350px) and (max-width: 640px) {
+        .creation {
+          display:inline-block;
+
+          &.inline {
+            width: auto;
+          }
+
+          &.free-to-take {
+            position:relative;
+            left: -17px;
+          }
+        }
+
+        .location {
+          display:inline-block;
+        }
+
+        .expiration {
+          position:relative;
+          margin-top:-35px;
+        }
+      }
+
+      @media (min-width: 640px) {
+        .name {
+          width: 40%;
+          float:left;
+        }
+
+        .creation, .location {
+          font-size: 16px;
+          display:block;
+          float:left;
+          margin-top: 9px;
+          width: 10%;
+          .label {
+            display:none;
+          }
+        }
+
+        .filtered-by-location {
+          .creation {
+            width: 20%;
+          }
+        }
+
+        .expiration {
+          margin-top: 9px;
+          width: 20%;
+        }
+      }
+
+    }
+  }
+}

@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>choose a server</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content id="alternate-servers">  
+  <div id="wrapper">
+    <div class="introduction" translate>This app connects to a server to retrieve information about barcodes and synchronize your entries between multiple devices.<br /><br />The following servers - provided by the community (no warranty!) - are available:</div>
+    
+    <div id="list-wrapper">
+      <ion-list *ngIf="alternateServers">
+        <ion-item *ngFor="let alternateServer of alternateServers" (click)="serverTapped(alternateServer)">
+          <div>
+            <div class="name">{{alternateServer.name}}</div>
+            <div class="description">{{alternateServer.description}}</div>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+    <a id="privacy-statement" target="_blank" href="http://florian-lentsch.at/expiry-sync-privacy-statement/statement.html" translate>
+      ExpirySync privacy statement
+    </a>
+  </div>
+  
+</ion-content>

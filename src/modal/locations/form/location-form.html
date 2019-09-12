@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar *ngIf="location">
+    <ion-title *ngIf="!locationId; else editHeader" translate>add location</ion-title>
+    <ng-template #editHeader>
+      <ion-title>{{'edit location' | translate:location}}</ion-title>
+    </ng-template>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+      <ng-container *ngIf="location.id">
+        <ion-button (click)="deleteTapped(location)">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content id="location-form" *ngIf="location">
+  <ng-container *ngIf="location.ownedByCurrentUser">
+    <form #locationForm="ngForm" class="list" (ngSubmit)="submitTapped(locationForm.valid)" novalidate>
+      <ion-item>
+        <ion-label position="floating" translate>name</ion-label>
+        <ion-input 
+          required 
+          [(ngModel)]="location.name" 
+          name="name" 
+          maxlength="255"
+          validateUniqueLocationName
+          #name="ngModel"></ion-input>
+      </ion-item>
+      <div *ngIf="name.errors && (name.dirty || name.touched)"
+             class="validation-error">
+            <div [hidden]="!name.errors.required" translate>Setting value is required</div>
+      </div>
+      
+      <ion-button type="submit" expand="full" translate>save</ion-button>
+    </form>
+  </ng-container>
+  <div class="info" *ngIf="!location.ownedByCurrentUser">
+    <ion-icon name="information-circle"></ion-icon>
+    <span translate>
+      This location cannot be edited as it hasn't been created by you.
+    </span>
+    <div>
+      <ion-button icon-left type="button" (click)="deleteTapped(location)" translate>
+        <ion-icon name="trash"></ion-icon>
+        remove this location from your list
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

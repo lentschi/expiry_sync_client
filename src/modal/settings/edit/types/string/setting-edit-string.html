@@ -1,0 +1,21 @@
+<form #settingForm="ngForm" class="list" (ngSubmit)="saveSetting()" novalidate>
+  <ion-item>
+    <ion-label fixed>
+      <setting-label [setting]="setting"></setting-label>
+    </ion-label>
+    <ion-input 
+      [(ngModel)]="setting.value"
+      type="text"
+      maxlength="255"
+      name="settingValue" 
+      #settingValue="ngModel" 
+      required>
+    </ion-input>
+  </ion-item>
+  <div *ngIf="settingValue.errors && (settingValue.dirty || settingValue.touched)"
+         class="validation-error">
+        <div [hidden]="!settingValue.errors.required" translate>Setting value is required</div>
+  </div>
+  <setting-info [setting]="setting"></setting-info>
+  <ion-button type="submit" expand="full" translate>Save</ion-button>
+</form>
