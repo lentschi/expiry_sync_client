@@ -125,10 +125,6 @@ export class ProductEntriesPage extends ExpirySyncController {
 
     const previouslySelectedEntries: Array<ProductEntry> = this.productEntries.selected;
 
-    for (let i = 0; i < 10; i++) {
-      dbEntries.push(...<Array<ProductEntry>>await query.list());
-    }
-
     // sort the retrieved entries:
     this.productEntries.setValues(dbEntries);
     this.productEntries.sortBySortField();

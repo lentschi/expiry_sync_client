@@ -1,4 +1,4 @@
-import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation, HostListener } from '@angular/core';
 import {
   Platform, ModalController, Events, LoadingController, MenuController,
   IonNav,
@@ -350,8 +350,7 @@ export class ExpirySync extends ExpirySyncController {
   }
 
   private handleBackButton() {
-    // TODO: UPGRADE: Check if this works:
-    this.platform.backButton.subscribe(async (e) => {
+    this.platform.backButton.subscribeWithPriority(9999, async () => {
       if (this.preventNextBackButton) {
         this.preventNextBackButton = false;
         return;
@@ -369,7 +368,8 @@ export class ExpirySync extends ExpirySyncController {
       // Close modals, or remove toasts/overlays if any:
       const modal = await this.modalCtrl.getTop();
       if (modal) {
-        return modal.dismiss();
+        modal.dismiss();
+        return;
       }
 
       // Close menu if open:
@@ -381,6 +381,7 @@ export class ExpirySync extends ExpirySyncController {
       window.navigator.app.exit();
     });
   }
+
 
   /**
    * Sets up the daily reminder
