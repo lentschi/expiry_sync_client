@@ -44,6 +44,7 @@ import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SynchronizationHandler } from './services/synchronization-handler.service';
 import { AppHttpParamsInterceptor } from './app.http-params-interceptor';
+import { SettingWeekdaysElement } from 'src/modal/settings/edit/types/weekdays/setting-weekdays';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -71,6 +72,7 @@ export function createTranslateLoader(http: HttpClient) {
     SettingInfoElement,
     SettingEditIntegerElement,
     SettingEditStringElement,
+    SettingWeekdaysElement,
     SettingSelectElement,
     GreaterThanValidator,
     LessThanValidator,
@@ -98,6 +100,7 @@ export function createTranslateLoader(http: HttpClient) {
     UserLoginModal,
     SettingEditIntegerElement,
     SettingEditStringElement,
+    SettingWeekdaysElement,
     SettingSelectElement,
   ],
   imports: [

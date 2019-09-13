@@ -98,7 +98,6 @@ export class ProductEntriesPage extends ExpirySyncController {
 
   async showList() {
     // var loadingTask:Symbol = this.app.loadingStarted('Listing entries');
-
     this.selectedLocation = await Location.getSelected();
     if (this.selectedLocation) {
       this.selectedLocationId = this.selectedLocation.id;
@@ -125,6 +124,10 @@ export class ProductEntriesPage extends ExpirySyncController {
     const dbEntries: Array<ProductEntry> = <Array<ProductEntry>>await query.list();
 
     const previouslySelectedEntries: Array<ProductEntry> = this.productEntries.selected;
+
+    for (let i = 0; i < 10; i++) {
+      dbEntries.push(...<Array<ProductEntry>>await query.list());
+    }
 
     // sort the retrieved entries:
     this.productEntries.setValues(dbEntries);

@@ -391,6 +391,12 @@ export class ExpirySync extends ExpirySyncController {
       this.scheduleReminder();
     });
 
+    Setting.onChange('showReminder', (setting: Setting) => {
+      if (setting.value === '1') {
+        this.scheduleReminder();
+      }
+    });
+
     // handle the wakeup plugin's events:
     if (typeof (window.plugins) !== 'undefined') {
       console.log('Intent plugin found');
@@ -439,6 +445,11 @@ export class ExpirySync extends ExpirySyncController {
       return;
     }
 
+    const showReminderSetting = Setting.cached('showReminder');
+    if (showReminderSetting !== '1') {
+      return;
+    }
+
     const reminderTimeSetting = Setting.cached('reminderTime');
     const md = reminderTimeSetting.match(/([0-9]{2}):([0-9]{2})/);
     if (!md || md.length !== 3) {
@@ -472,6 +483,15 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     this.localNotifications.cancelAll();
+
+    const showReminder = Setting.cached('showReminder') === '1';
+    const reminderWeekdaysSetting = Setting.cached('reminderWeekdays');
+    const reminderWeekdays: number[] = reminderWeekdaysSetting ? JSON.parse(reminderWeekdaysSetting) : [];
+
+    if (!showReminder || !reminderWeekdays.includes(moment().weekday())) {
+      return;
+    }
+
     let productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
       .order('expirationDate', true)
@@ -793,14 +813,7 @@ export class ExpirySync extends ExpirySyncController {
   private async switchLanguage(localeId: string) {
     this.translateSvc.use(localeId);
     moment.locale(localeId);
-
-    const momentLocaleId = moment.locale();
-    const momentLocale = moment.localeData(momentLocaleId);
-    // TODO: UPGRADE
-    // this.config.set('monthNames', momentLocale.months());
-    // this.config.set('monthShortNames', momentLocale.monthsShort());
-    // this.config.set('dayNames', momentLocale.weekdays());
-    // this.config.set('dayShortNames', momentLocale.weekdaysMin());
+    Setting.setLanguageDependentLabels();
   }
 
   /**

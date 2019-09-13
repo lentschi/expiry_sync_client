@@ -15,7 +15,10 @@ export class SettingEditElement {
     if (!this.settingForm.valid) {
       return;
     }
-    const setting: Setting = await Setting.set(this.setting.key, this.setting.value);
+    const setting: Setting = await Setting.set(
+      this.setting.key,
+      typeof this.setting.value === 'string' ? this.setting.value : JSON.stringify(this.setting.value)
+    );
     this.modalCtrl.dismiss(setting);
   }
 }

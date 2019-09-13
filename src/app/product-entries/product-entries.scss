@@ -15,10 +15,15 @@ html, body {
     --border-width: 0 0 0 0;
   }
 
+  ion-title {
+    overflow: hidden;
+  }
+
   ion-select {
     --padding-start: 0;
     font-size: 1.35rem;
     font-weight: 500;
+    max-width: 100%;
 
     &.no-location-selected {
       font-style: italic;
@@ -39,10 +44,10 @@ html, body {
 // }
 
 #product-entries-header {
-    .product-entries-header { 
+    .product-entries-header {
       display: flex;
     }
-    
+
     ion-label {
       display: none;
     }
@@ -79,7 +84,7 @@ html, body {
 }
 
 
-ion-content#product-entries { 
+ion-content#product-entries {
   ion-item {
     --padding-start: 0;
   }
@@ -199,7 +204,13 @@ ion-content#product-entries {
   #list-wrapper {
     display:flex;
     flex:1;
-    overflow-y:scroll;
+    overflow-y: auto;
+
+    #list-sub-wrapper {
+      overflow-y: show;
+      width:100%;
+    }
+
 
     ion-list {
       width:100%;

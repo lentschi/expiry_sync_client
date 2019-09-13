@@ -3,6 +3,10 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { NavController, NavParams, ModalController } from '@ionic/angular';
 import { SettingEditModal } from '../edit/setting-edit';
 import { Setting } from 'src/app/models';
+import { SettingWeekdaysElement } from '../edit/types/weekdays/setting-weekdays';
+import * as moment from 'moment';
+import 'moment/min/locales';
+import { ExpirySync } from 'src/app/app.expiry-sync';
 
 @Component({
   templateUrl: 'settings.html',
@@ -11,6 +15,7 @@ import { Setting } from 'src/app/models';
 })
 export class SettingsModal {
   settings: Array<Setting>;
+  allTranslation: string;
 
   constructor(
     public navCtrl: NavController,
@@ -23,11 +28,18 @@ export class SettingsModal {
     this.settings = [];
 
     Setting.all().list().then((settings: Array<Setting>) => {
-      this.settings = settings;
+      this.settings = settings.sort((s1, s2) => s1.position > s2.position ? 1 : -1);
+      console.log(this.settings.map(setting => setting.position + ': ' + setting.key + ' - ' + setting.editComponent));
     });
+
+    ExpirySync.getInstance().translate('on all').then(translation => this.allTranslation = translation);
   }
 
-  async settingTapped(event, item) {
+  async settingTapped(_: MouseEvent, item: Setting) {
+    if (item.settingConfig.disabled) {
+      return;
+    }
+
     const modal = await this.modalCtrl.create({
       component: SettingEditModal,
       componentProps: { settingKey: item.key }
@@ -56,5 +68,24 @@ export class SettingsModal {
 
   dismiss() {
     this.modalCtrl.dismiss();
+  }
+
+  getChoiceLabel(setting: Setting): string {
+    if (setting.editComponent !== SettingWeekdaysElement) {
+      for (const choice of setting.settingConfig.choices) {
+        if (choice.key === setting.value) {
+          return choice.label;
+        }
+      }
+      return '';
+    }
+
+    const values: number[] = setting.value ? JSON.parse(setting.value) : [];
+
+    if (values.length === 7) {
+      return this.allTranslation;
+    }
+
+    return values.map(value => moment.weekdays(value)).join(', ');
   }
 }

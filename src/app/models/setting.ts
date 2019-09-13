@@ -3,6 +3,7 @@ import { ExpirySync } from '../app.expiry-sync';
 import { ApiServer } from '../../utils/api-server';
 import { User } from './';
 import { SettingEditStringElement } from '../../modal/settings/edit/types/string/setting-edit-string';
+import { SettingWeekdaysElement } from '../../modal/settings/edit/types/weekdays/setting-weekdays';
 import { SettingEditIntegerElement } from '../../modal/settings/edit/types/integer/setting-edit-integer';
 import { SettingSelectElement } from '../../modal/settings/edit/types/select/setting-select';
 import { SettingEditElement } from '../../modal/settings/edit/types/setting-edit-element';
@@ -20,37 +21,51 @@ export interface SettingConfiguration {
   editComponent?: Type<SettingEditElement>;
   inlineEditableBoolean?: boolean;
   timeButton?: boolean;
-  choices?: Array<{ key: string, label: string }>;
+  weekdaysSelect?: boolean;
+  choices?: Array<{ key: string | number, label: string }>;
+  disabled?: boolean;
+}
+
+class ReminderTimeSetting implements SettingConfiguration {
+  default = '15:00';
+  timeButton = true;
+
+  get disabled(): boolean {
+    try {
+      return Setting.cached('showReminder') !== '1';
+    } catch (_) {
+      return true;
+    }
+  }
+}
+
+class ReminderWeekdaysSetting  implements SettingConfiguration {
+  default = '[0,1,2,3,4,5,6]';
+  weekdaysSelect = true;
+  choices = [];
+  editComponent = SettingWeekdaysElement;
+
+  get disabled(): boolean {
+    try {
+      return Setting.cached('showReminder') !== '1';
+    } catch (_) {
+      return true;
+    }
+  }
 }
 
 @PersistenceModel
 export class Setting extends AppModel {
-
-  get settingConfig(): SettingConfiguration {
-    return Setting.settingConfig[this.key];
-  }
-
-  get editable(): boolean {
-    return this.settingConfig
-      && (
-        typeof (this.settingConfig.editComponent) !== 'undefined'
-        || this.settingConfig.inlineEditableBoolean
-        || this.settingConfig.timeButton
-      );
-  }
-
-  get editComponent() {
-    return this.settingConfig && this.settingConfig.editComponent;
-  }
   static tableName = 'Setting';
-
 
   /**
    * Dictionary of setting configurations
    * Key: name of the setting key, Value: setting config
    */
   static settingConfig: { [settingKey: string]: SettingConfiguration } = {
-    reminderTime: { default: '15:00', timeButton: true },
+    showReminder: { default: '1', inlineEditableBoolean: true },
+    reminderTime: new ReminderTimeSetting(),
+    reminderWeekdays: new ReminderWeekdaysSetting(),
     lastReminder: { default: '' },
     localeId: {
       default: '', editComponent: SettingSelectElement, choices: [
@@ -80,6 +95,27 @@ export class Setting extends AppModel {
     syncInterval: { default: '5000' },
   };
 
+  get settingConfig(): SettingConfiguration {
+    return Setting.settingConfig[this.key];
+  }
+
+  get position(): number {
+    return Object.keys(Setting.settingConfig).indexOf(this.key);
+  }
+
+  get editable(): boolean {
+    return this.settingConfig
+      && (
+        typeof (this.settingConfig.editComponent) !== 'undefined'
+        || this.settingConfig.inlineEditableBoolean
+        || this.settingConfig.timeButton
+      );
+  }
+
+  get editComponent() {
+    return this.settingConfig && this.settingConfig.editComponent;
+  }
+
   private static settingsCache: { [settingKey: string]: string } = {};
 
   static changeListeners = [];
@@ -106,6 +142,13 @@ export class Setting extends AppModel {
     for (const changeListener of this.changeListeners[setting.key]) {
       changeListener(setting);
     }
+  }
+
+  static setLanguageDependentLabels() {
+    const isoWeekdays = moment.weekdays();
+    Setting.settingConfig.reminderWeekdays.choices = moment.weekdays(true).map(weekday => {
+        return {key: isoWeekdays.indexOf(weekday), label: weekday};
+    });
   }
 
 

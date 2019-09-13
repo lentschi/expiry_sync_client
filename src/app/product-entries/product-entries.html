@@ -5,10 +5,10 @@
         <ion-menu-button></ion-menu-button>
       </ion-buttons>
       <ion-title *ngIf="locations">
-        <ion-item>
+        <ion-item class="location-selector">
           <ion-label translate>location</ion-label>
-          <ion-select 
-              [(ngModel)]="selectedLocationId" 
+          <ion-select
+              [(ngModel)]="selectedLocationId"
               (ionChange)="locationSwitched()"
               [class.no-location-selected]="!selectedLocation">
             <ion-select-option *ngIf="locations?.length > 1" [value]="''" translate>All locations</ion-select-option>
@@ -61,66 +61,68 @@
       </div>
     </div>
     <div id="list-wrapper">
-      <ion-list [class.filtered-by-location]="selectedLocation" #productEntriesList>
-        <ion-item-sliding #slidingItem *ngFor="let productEntry of productEntries">
-          <ion-item 
-              *ngIf="loadingAfterLocationSwitchDone"
-              [class.activated]="productEntry.selected" 
-              [class.gone-bad]="productEntry.goneBad" 
-              [class.gone-medium]="!productEntry.goneBad && productEntry.goneMedium" 
-              (click)="openEntryForm(productEntry)">
-            <div class="product-entry-wrapper">
-              <span (click)="productEntryCheckboxTapped($event,productEntry)" class="product-entry-selection">
-                <input [checked]="productEntry.selected" type="checkbox" />
-              </span>
-              <span 
-                  [@addRemoveAnimation]="productEntry.addRemoveAnimation" 
-                  (@addRemoveAnimation.done)="productEntry.addRemoveAnimation = 'normal'"
-                  class="amount">
-                {{productEntry.amount}}
-              </span>
-              <span class="name" 
-                ellipsis
-                ellipsis-resize-detection="window"
-                [ellipsis-content]="productEntry.article.name"></span>
-              <span class="creation" [class.inline]="!selectedLocation" [class.free-to-take]="productEntry.freeToTake">
-                <ion-icon class="icon" name="share" *ngIf="productEntry.freeToTake"></ion-icon>
-                <span class="label" translate>owner</span>
-                <span class="creator">
-                  <ng-container *ngIf="productEntry.creator.id == currentUser.id" translate>you</ng-container>
-                  <ng-container *ngIf="productEntry.creator.id != currentUser.id">{{productEntry.creator.userName | ellipsis:25}}</ng-container>
-                  <ng-container *ngIf="productEntry.freeToTake">: </ng-container>
+      <div id="list-sub-wrapper">
+        <ion-list [class.filtered-by-location]="selectedLocation" #productEntriesList>
+          <ion-item-sliding *ngFor="let productEntry of productEntries" #slidingItem>
+            <ion-item
+                *ngIf="loadingAfterLocationSwitchDone"
+                [class.activated]="productEntry.selected"
+                [class.gone-bad]="productEntry.goneBad"
+                [class.gone-medium]="!productEntry.goneBad && productEntry.goneMedium"
+                (click)="openEntryForm(productEntry)">
+              <div class="product-entry-wrapper">
+                <span (click)="productEntryCheckboxTapped($event,productEntry)" class="product-entry-selection">
+                  <input [checked]="productEntry.selected" type="checkbox" />
                 </span>
-                <span class="invitation" *ngIf="productEntry.freeToTake" translate>"Free for all!"</span>
-              </span>
-              <span *ngIf="!selectedLocation" class="location">
-                <span class="label" translate>location</span>
-                <span class="location-name">{{productEntry.location.name | ellipsis:25}}</span>
-              </span>
-              <span class="expiration">
-                <span class="label" translate>expiration date</span>
-                <span class="expiration-date">{{productEntry.expirationDate | amDateFormat:'l'}}</span>
-              </span>
+                <span
+                    [@addRemoveAnimation]="productEntry.addRemoveAnimation"
+                    (@addRemoveAnimation.done)="productEntry.addRemoveAnimation = 'normal'"
+                    class="amount">
+                  {{productEntry.amount}}
+                </span>
+                <span class="name"
+                  ellipsis
+                  ellipsis-resize-detection="window"
+                  [ellipsis-content]="productEntry.article.name"></span>
+                <span class="creation" [class.inline]="!selectedLocation" [class.free-to-take]="productEntry.freeToTake">
+                  <ion-icon class="icon" name="share" *ngIf="productEntry.freeToTake"></ion-icon>
+                  <span class="label" translate>owner</span>
+                  <span class="creator">
+                    <ng-container *ngIf="productEntry.creator.id == currentUser.id" translate>you</ng-container>
+                    <ng-container *ngIf="productEntry.creator.id != currentUser.id">{{productEntry.creator.userName | ellipsis:25}}</ng-container>
+                    <ng-container *ngIf="productEntry.freeToTake">: </ng-container>
+                  </span>
+                  <span class="invitation" *ngIf="productEntry.freeToTake" translate>"Free for all!"</span>
+                </span>
+                <span *ngIf="!selectedLocation" class="location">
+                  <span class="label" translate>location</span>
+                  <span class="location-name">{{productEntry.location.name | ellipsis:25}}</span>
+                </span>
+                <span class="expiration">
+                  <span class="label" translate>expiration date</span>
+                  <span class="expiration-date">{{productEntry.expirationDate | amDateFormat:'l'}}</span>
+                </span>
+              </div>
+            </ion-item>
+            <ion-item-options side="start" (ionSwipe)="productEntrySwipedLeft(productEntry)">
+            </ion-item-options>
+            <ion-item-options side="end" (ionSwipe)="productEntrySwipedRight(productEntry)">
+            </ion-item-options>
+          </ion-item-sliding>
+          <ion-item *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
+            <div class="no-products">
+              <span class="label" *ngIf="productEntries.filterValue == ''" translate>There aren't any products in the list.</span>
+              <span class="label" *ngIf="productEntries.filterValue != ''" translate>There are no products matching your search.</span>
+              <ion-button *ngIf="selectedLocation" (click)="openEntryForm()" translate>Add one now</ion-button>
             </div>
           </ion-item>
-          <ion-item-options side="start" (ionSwipe)="productEntrySwipedLeft(productEntry)">
-          </ion-item-options>
-          <ion-item-options side="end" (ionSwipe)="productEntrySwipedRight(productEntry)">
-          </ion-item-options>
-        </ion-item-sliding>
-        <ion-item *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
-          <div class="no-products">
-            <span class="label" *ngIf="productEntries.filterValue == ''" translate>There aren't any products in the list.</span>
-            <span class="label" *ngIf="productEntries.filterValue != ''" translate>There are no products matching your search.</span>
-            <ion-button *ngIf="selectedLocation" (click)="openEntryForm()" translate>Add one now</ion-button>
-          </div>
-        </ion-item>
-        <ion-item *ngIf="!loadingAfterLocationSwitchDone">
-          <div class="no-products">
-            <span class="label" translate>Please wait...</span>
-          </div>
-        </ion-item>
-      </ion-list>
+          <ion-item *ngIf="!loadingAfterLocationSwitchDone">
+            <div class="no-products">
+              <span class="label" translate>Please wait...</span>
+            </div>
+          </ion-item>
+        </ion-list>
+      </div>
     </div>
   </div>
 </ion-content>
