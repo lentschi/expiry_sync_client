@@ -117,6 +117,7 @@
     "Show notification when products expire": "Erinnerungen beim Ablaufen von Produkten anzeigen",
     "On which weekdays do you want to be reminded?": "An welchen Wochentagen wollen Sie erinnert werden?",
     "on all": "an allen",
+    "When adding a new product, start barcode scanning automatically": "Barcode-Scan beim Hinzufügen eines neuen Produktes automatisch starten",
     "When do you want to be reminded?": "Wann wollen Sie erinnert werden?",
     "UI Language": "UI-Sprache",
     "Days before marking as bad": "Tage bevor Eintrag als \"schlecht\" markiert wird",

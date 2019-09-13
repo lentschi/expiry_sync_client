@@ -89,7 +89,10 @@ export class ProductEntryFormModal extends ExpirySyncController {
         this.productEntry.locationId = selectedLocation.id;
         this.productEntry.article = new Article();
       });
-      this.scanBarcode();
+
+      if (Setting.cached('startBarcodeScanningAutomatically') === '1') {
+        this.scanBarcode();
+      }
     }
 
   }
