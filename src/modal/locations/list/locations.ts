@@ -49,6 +49,7 @@ export class LocationsModal extends ExpirySyncController {
       await this.app.synchronize(false, true);
       await this.showList();
     } else {
+      await this.showList();
       this.events.publish('app:syncDone');
     }
   }

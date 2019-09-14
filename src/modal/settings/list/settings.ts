@@ -29,7 +29,6 @@ export class SettingsModal {
 
     Setting.all().list().then((settings: Array<Setting>) => {
       this.settings = settings.sort((s1, s2) => s1.position > s2.position ? 1 : -1);
-      console.log(this.settings.map(setting => setting.position + ': ' + setting.key + ' - ' + setting.editComponent));
     });
 
     ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);

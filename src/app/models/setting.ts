@@ -94,6 +94,7 @@ export class Setting extends AppModel {
     serverChosen: { default: environment.defaultServerChosen ? '1' : '0' },
     lastUserId: { default: '' },
     syncInterval: { default: '5000' },
+    notificationTappedLocationId: { default: ''}
   };
 
   get settingConfig(): SettingConfiguration {

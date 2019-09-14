@@ -410,7 +410,9 @@ export class ExpirySync extends ExpirySyncController {
           if (this.exitAfterReminder) {
             // the app was in background when the wakeup occurred
             // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
-            window.navigator.app.exitApp();
+            setTimeout(() => {
+              window.navigator.app.exitApp();
+            }, 1000);
           }
         }
       });
@@ -527,6 +529,7 @@ export class ExpirySync extends ExpirySyncController {
         led: 'FFFFFF',
         data: { startupLocationId }
       };
+      Setting.set('notificationTappedLocationId', startupLocationId);
       console.log('Displaying notification: ' + JSON.stringify(notificationConf));
       this.localNotifications.schedule(notificationConf);
 
@@ -542,14 +545,11 @@ export class ExpirySync extends ExpirySyncController {
    * Initialize db & locale; trigger auto login and auto synchronization ...
    */
   private initializeApp() {
+    window.skipLocalNotificationReady = true;
+
     ExpirySync.readyPromise = new Promise<{}>(async resolve => {
       await this.platform.ready();
-
-      // Check, if the app has been launched due to a notification click:
-      let tappedNotificationData: any = null;
-      this.localNotifications.on('click').subscribe(async (notification) => {
-        tappedNotificationData = JSON.parse(notification.data);
-      });
+      this.localNotifications.fireQueuedEvents();
 
       console.log('--- Platform ready');
       await this.detectVersion();
@@ -570,8 +570,18 @@ export class ExpirySync extends ExpirySyncController {
       await Setting.addDefaultsForMissingKeys();
 
       // switch location if required by notification tap:
-      if (tappedNotificationData) {
-        await this.changeLocationForTappedNotification(tappedNotificationData);
+      this.localNotifications.on('click').subscribe(async (notification) => {
+        await this.changeLocationForTappedNotification(notification.data.startupLocationId);
+      });
+
+      if (cordova.plugins.notification
+          && cordova.plugins.notification.local
+          && cordova.plugins.notification.local.launchDetails
+          && cordova.plugins.notification.local.launchDetails.action === 'click') {
+        const locationId = Setting.cached('notificationTappedLocationId');
+        if (locationId) {
+          await this.changeLocationForTappedNotification(locationId);
+        }
       }
 
       // find/create current user in the db:
@@ -647,17 +657,17 @@ export class ExpirySync extends ExpirySyncController {
    * switch to the first product entry's location after a notification has been tapped
    * @param  {any} tappedNotificationData notification data containing the first location id
    */
-  private async changeLocationForTappedNotification(tappedNotificationData) {
+  private async changeLocationForTappedNotification(startupLocationId: string) {
     const currentLocation = <Location>await Location.getSelected();
     let currentLocationId: string = null;
     if (currentLocation) {
       currentLocationId = currentLocation.id;
     }
 
-    if (tappedNotificationData.startupLocationId !== currentLocationId) {
+    if (startupLocationId !== currentLocationId) {
       try {
-        if (tappedNotificationData.startupLocationId) {
-          const startupLocation = <Location>await Location.findBy('id', tappedNotificationData.startupLocationId);
+        if (startupLocationId) {
+          const startupLocation = <Location>await Location.findBy('id', startupLocationId);
           startupLocation.isSelected = true;
           await startupLocation.save();
         }
