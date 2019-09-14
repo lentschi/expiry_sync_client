@@ -60,7 +60,10 @@ export class ProductEntriesPage extends ExpirySyncController {
       });
 
       events.subscribe('app:timeLocaleAdjusted', () => {
-        this.showList();
+        // TODO: Unsure: Why this is required:
+        this.productEntries.setValues([]);
+        this.loadingAfterLocationSwitchDone = false;
+        this.showListAndFilters();
       });
     });
 

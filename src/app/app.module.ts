@@ -37,7 +37,7 @@ import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import { Device } from '@ionic-native/device/ngx';
 import { Camera } from '@ionic-native/camera/ngx';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { MomentModule } from 'angular2-moment';
+import { MomentModule } from 'ngx-moment';
 import { EllipsisModule } from 'ngx-ellipsis';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
