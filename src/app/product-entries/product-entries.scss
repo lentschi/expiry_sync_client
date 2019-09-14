@@ -211,6 +211,9 @@ ion-content#product-entries {
       width:100%;
     }
 
+    ion-item.no-products-item {
+      --padding-end: 0px;
+    }
 
     ion-list {
       width:100%;

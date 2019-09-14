@@ -109,14 +109,14 @@
             <ion-item-options side="end" (ionSwipe)="productEntrySwipedRight(productEntry)">
             </ion-item-options>
           </ion-item-sliding>
-          <ion-item *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone">
+          <ion-item  *ngIf="productEntries.length == 0 && loadingAfterLocationSwitchDone" class="no-products-item">
             <div class="no-products">
               <span class="label" *ngIf="productEntries.filterValue == ''" translate>There aren't any products in the list.</span>
               <span class="label" *ngIf="productEntries.filterValue != ''" translate>There are no products matching your search.</span>
               <ion-button *ngIf="selectedLocation" (click)="openEntryForm()" translate>Add one now</ion-button>
             </div>
           </ion-item>
-          <ion-item *ngIf="!loadingAfterLocationSwitchDone">
+          <ion-item *ngIf="!loadingAfterLocationSwitchDone" class="no-products-item">
             <div class="no-products">
               <span class="label" translate>Please wait...</span>
             </div>

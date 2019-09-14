@@ -351,10 +351,17 @@ export class SynchronizationHandler {
                 continue; // skip, if article has changed in the mean time
             }
             const newArticleId = this.updatedArticleIds[oldArticleId];
-            await Article
+            const article = await Article
                 .all()
                 .filter('id', '=', oldArticleId)
-                .updateField('id', newArticleId);
+                .one();
+
+            // updateField for a primary key won't work with persistencejs, so delete the article and then
+            // recreate it with the new ID:
+            const clone = article.clone();
+            await article.delete();
+            clone.id = newArticleId;
+            await clone.save();
 
             await ProductEntry
                 .all()

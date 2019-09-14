@@ -58,6 +58,10 @@ export class ProductEntriesPage extends ExpirySyncController {
           await this.showListAndFilters();
         }
       });
+
+      events.subscribe('app:timeLocaleAdjusted', () => {
+        this.showList();
+      });
     });
 
     events.subscribe('app:syncDone', () => {

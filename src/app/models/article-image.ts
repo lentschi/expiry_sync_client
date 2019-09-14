@@ -61,6 +61,7 @@ export class ArticleImage extends AppModel {
     }
 
     return {
+      id: this.id,
       image_data: this.imageData.replace(re, ''),
       mime_type: md[1],
       original_extname: this.originalExtName

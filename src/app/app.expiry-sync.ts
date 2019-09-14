@@ -814,6 +814,7 @@ export class ExpirySync extends ExpirySyncController {
   private async switchLanguage(localeId: string) {
     this.translateSvc.use(localeId);
     moment.locale(localeId);
+    this.events.publish('app:timeLocaleAdjusted');
     Setting.setLanguageDependentLabels();
   }
 

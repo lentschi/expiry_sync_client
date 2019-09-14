@@ -15,7 +15,7 @@ import { ExpirySync } from 'src/app/app.expiry-sync';
 })
 export class SettingsModal {
   settings: Array<Setting>;
-  allTranslation: string;
+  allDaysTranslation: string;
 
   constructor(
     public navCtrl: NavController,
@@ -32,7 +32,10 @@ export class SettingsModal {
       console.log(this.settings.map(setting => setting.position + ': ' + setting.key + ' - ' + setting.editComponent));
     });
 
-    ExpirySync.getInstance().translate('on all').then(translation => this.allTranslation = translation);
+    ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);
+    Setting.onChange('localeId', _ => {
+      ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);
+    });
   }
 
   async settingTapped(_: MouseEvent, item: Setting) {
@@ -83,7 +86,7 @@ export class SettingsModal {
     const values: number[] = setting.value ? JSON.parse(setting.value) : [];
 
     if (values.length === 7) {
-      return this.allTranslation;
+      return this.allDaysTranslation;
     }
 
     return values.map(value => moment.weekdays(value)).join(', ');
