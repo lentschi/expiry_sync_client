@@ -489,7 +489,7 @@ export class ExpirySync extends ExpirySyncController {
     const reminderWeekdaysSetting = Setting.cached('reminderWeekdays');
     const reminderWeekdays: number[] = reminderWeekdaysSetting ? JSON.parse(reminderWeekdaysSetting) : [];
 
-    if (!showReminder || !reminderWeekdays.includes(moment().weekday())) {
+    if (!showReminder || !reminderWeekdays.includes(moment().isoWeekday())) {
       return;
     }
 
