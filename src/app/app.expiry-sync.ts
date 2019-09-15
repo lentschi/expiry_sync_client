@@ -23,6 +23,7 @@ import { LoadingOptions, OverlayEventDetail } from '@ionic/core';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
 import { SynchronizationHandler } from './services/synchronization-handler.service';
+import * as _ from 'lodash';
 
 declare var window: any;
 declare var cordova: any;
@@ -529,7 +530,7 @@ export class ExpirySync extends ExpirySyncController {
         led: 'FFFFFF',
         data: { startupLocationId }
       };
-      Setting.set('notificationTappedLocationId', startupLocationId);
+      Setting.set('notificationTappedLocationId', startupLocationId || '');
       console.log('Displaying notification: ' + JSON.stringify(notificationConf));
       this.localNotifications.schedule(notificationConf);
 
@@ -549,7 +550,9 @@ export class ExpirySync extends ExpirySyncController {
 
     ExpirySync.readyPromise = new Promise<{}>(async resolve => {
       await this.platform.ready();
-      this.localNotifications.fireQueuedEvents();
+      if (this.platform.is('cordova')) {
+        this.localNotifications.fireQueuedEvents();
+      }
 
       console.log('--- Platform ready');
       await this.detectVersion();
@@ -570,17 +573,16 @@ export class ExpirySync extends ExpirySyncController {
       await Setting.addDefaultsForMissingKeys();
 
       // switch location if required by notification tap:
-      this.localNotifications.on('click').subscribe(async (notification) => {
-        await this.changeLocationForTappedNotification(notification.data.startupLocationId);
-      });
+      if (this.platform.is('cordova')) {
+        this.localNotifications.on('click').subscribe(async (notification) => {
+          await this.changeLocationForTappedNotification(notification.data.startupLocationId, true);
+        });
 
-      if (cordova.plugins.notification
-          && cordova.plugins.notification.local
-          && cordova.plugins.notification.local.launchDetails
-          && cordova.plugins.notification.local.launchDetails.action === 'click') {
-        const locationId = Setting.cached('notificationTappedLocationId');
-        if (locationId) {
-          await this.changeLocationForTappedNotification(locationId);
+        if (_.get(cordova, 'plugins.notification.local.launchDetails.action') === 'click') {
+          const locationId = Setting.cached('notificationTappedLocationId');
+          if (locationId) {
+            await this.changeLocationForTappedNotification(locationId);
+          }
         }
       }
 
@@ -657,7 +659,7 @@ export class ExpirySync extends ExpirySyncController {
    * switch to the first product entry's location after a notification has been tapped
    * @param  {any} tappedNotificationData notification data containing the first location id
    */
-  private async changeLocationForTappedNotification(startupLocationId: string) {
+  private async changeLocationForTappedNotification(startupLocationId: string, emitEvent = false) {
     const currentLocation = <Location>await Location.getSelected();
     let currentLocationId: string = null;
     if (currentLocation) {
@@ -675,6 +677,10 @@ export class ExpirySync extends ExpirySyncController {
         if (currentLocation) {
           currentLocation.isSelected = false;
           await currentLocation.save();
+        }
+
+        if (emitEvent) {
+          this.events.publish('app:localeChangedByNotificationTap');
         }
       } catch (e) {
         console.error('Unable to switch location after notification has been tapped');

@@ -40,7 +40,7 @@ class ReminderTimeSetting implements SettingConfiguration {
 }
 
 class ReminderWeekdaysSetting  implements SettingConfiguration {
-  default = '[0,1,2,3,4,5,6]';
+  default = '[1,2,3,4,5,6,7]';
   weekdaysSelect = true;
   choices = [];
   editComponent = SettingWeekdaysElement;
@@ -147,10 +147,13 @@ export class Setting extends AppModel {
   }
 
   static setLanguageDependentLabels() {
-    const isoWeekdays = moment.weekdays();
-    Setting.settingConfig.reminderWeekdays.choices = moment.weekdays(true).map(weekday => {
-        return {key: isoWeekdays.indexOf(weekday), label: weekday};
-    });
+    Setting.settingConfig.reminderWeekdays.choices = [];
+    for (let i = 0; i < 7; i++) {
+      const day = moment().weekday(i);
+      Setting.settingConfig.reminderWeekdays.choices.push(
+        {key: day.isoWeekday(), label: day.format('dddd')}
+      );
+    }
   }
 
 

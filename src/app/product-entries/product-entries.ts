@@ -73,6 +73,12 @@ export class ProductEntriesPage extends ExpirySyncController {
       );
     });
 
+    events.subscribe('app:localeChangedByNotificationTap', () => {
+      this.synchronizationHandler.localChangesMutex.acquireFor(
+        () => this.showListAndFilters()
+      );
+    });
+
     events.subscribe('productEntries:selectionChanged', () => {
       this.enableDisableMenuPoints();
     });
