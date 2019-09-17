@@ -45,6 +45,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SynchronizationHandler } from './services/synchronization-handler.service';
 import { AppHttpParamsInterceptor } from './app.http-params-interceptor';
 import { SettingWeekdaysElement } from 'src/modal/settings/edit/types/weekdays/setting-weekdays';
+import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -130,6 +131,7 @@ export function createTranslateLoader(http: HttpClient) {
     HttpClientModule,
     Device,
     Camera,
+    BackgroundMode,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     {
       provide: HTTP_INTERCEPTORS,

@@ -24,6 +24,7 @@ import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/alternate-servers-choice';
 import { SynchronizationHandler } from './services/synchronization-handler.service';
 import * as _ from 'lodash';
+import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 
 declare var window: any;
 declare var cordova: any;
@@ -183,7 +184,9 @@ export class ExpirySync extends ExpirySyncController {
     public events: Events,
     private loadingCtrl: LoadingController,
     private localNotifications: LocalNotifications,
-    private uiHelper: UiHelper, public device: Device
+    private uiHelper: UiHelper,
+    public device: Device,
+    private backgroundMode: BackgroundMode
   ) {
     super(translate);
     ExpirySync.appInstance = this;
@@ -410,10 +413,8 @@ export class ExpirySync extends ExpirySyncController {
           await this.showReminder();
           if (this.exitAfterReminder) {
             // the app was in background when the wakeup occurred
-            // -> simply exit the app (backgroundMode's moveToBackground would be better, but has some issues):
-            setTimeout(() => {
-              window.navigator.app.exitApp();
-            }, 1000);
+            // -> move it back there again
+            this.backgroundMode.moveToBackground();
           }
         }
       });
