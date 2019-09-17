@@ -42,6 +42,13 @@ export class ChangeSyncFieldsMigration {
           UPDATE ArticleImage SET
             articleId = "Article-" || (SELECT serverId FROM Article WHERE id = ArticleImage.articleId)
           WHERE EXISTS (SELECT serverId FROM Article WHERE id = ArticleImage.articleId AND NOT serverId IS NULL)`);
+
+        // Some bug caused duplicate article serverIds - clear that up before moving to IDs
+        this.executeSql(`delete from article where id IN (
+          select id from article group by serverId having COUNT(serverId) > 1 and serverId IS NOT NULL and id NOT IN (
+           select articleId from productentry
+        ))`);
+
         this.executeSql('UPDATE Article SET id = "Article-" || serverId WHERE NOT serverId IS NULL');
         this.removeColumn('Article', 'serverId');
         this.executeSql('UPDATE ArticleImage SET id = "ArticleImage-" || serverId WHERE NOT serverId IS NULL');
