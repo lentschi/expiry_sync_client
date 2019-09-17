@@ -147,7 +147,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * If true, the app will exit right after showing the reminder
    */
-  private exitAfterReminder = false;
+  private moveToBackgroundAfterReminder = false;
 
   /**
    * resolved when auto login and initial sync have finished (no matter if successful or not)
@@ -411,9 +411,10 @@ export class ExpirySync extends ExpirySyncController {
           // the app has been running and a wakeup occurred
           // -> show the reminder:
           await this.showReminder();
-          if (this.exitAfterReminder) {
+          if (this.moveToBackgroundAfterReminder) {
             // the app was in background when the wakeup occurred
             // -> move it back there again
+            this.moveToBackgroundAfterReminder = false;
             this.backgroundMode.moveToBackground();
           }
         }
@@ -464,7 +465,7 @@ export class ExpirySync extends ExpirySyncController {
 
     window.wakeuptimer.wakeup((p: any) => {
       if (typeof (p.type) !== 'undefined' && p.type === 'wakeup' && !this.active) {
-        this.exitAfterReminder = true;
+        this.moveToBackgroundAfterReminder = true;
       }
     },
       (error) => {

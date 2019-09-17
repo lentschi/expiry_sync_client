@@ -88,7 +88,10 @@ export class Setting extends AppModel {
     },
     startBarcodeScanningAutomatically: { default: '1', inlineEditableBoolean: true },
     // searchUrl: {default: 'http://www.chefkoch.de/rs/s0/{{ingredients}}/Rezepte.html', editComponent: SettingEditStringElement},
-    searchUrl: { default: 'http://www.google.com/#q={{recipeTranslation}}%20{{ingredients}}', editComponent: SettingEditStringElement },
+    searchUrl: {
+      default: 'https://www.google.com/search?q={{recipeTranslation}}%20{{ingredients}}',
+      editComponent: SettingEditStringElement
+    },
     host: { default: environment.defaultServerUrl, editComponent: SettingEditStringElement },
     lastSync: { default: '' },
     serverChosen: { default: environment.defaultServerChosen ? '1' : '0' },
