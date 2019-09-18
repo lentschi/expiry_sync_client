@@ -377,12 +377,11 @@ export class ExpirySync extends ExpirySyncController {
       }
 
       // Close menu if open:
-      if (this.menuCtrl.isOpen()) {
-        this.menuCtrl.close();
+      if (await this.menuCtrl.isOpen() && await this.menuCtrl.close()) {
         return;
       }
 
-      window.navigator.app.exit();
+      window.navigator.app.exitApp();
     });
   }
 
