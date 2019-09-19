@@ -1,7 +1,7 @@
 Feature: Product entry adding
     The user should be able to create new product entries for a location.
     The referenced articles should be created/reused automatically.
-    
+
 Background:
 	Given the ExpirySync API server is in its pristine state and running
 		And there exists a user
@@ -31,13 +31,13 @@ Scenario Outline: Add a product entry with valid data by entering it manually
     Then I should see the product entry's data in the product entry list
     When I open the edit product screen for that product entry
     Then I should see that product entry's data in the form fields
-    
+
 Examples:
    	|containing_what|
    	|including a barcode|
    	|without a barcode|
    	|with a photo|
-   	
+
 
 Scenario Outline: Add a product with invalid data
 	When I open the add product screen
@@ -53,7 +53,7 @@ Examples:
 	|containing_what|
 	|without a name|
 	|with an invalid amount|
-	
+
 Scenario: Adding a product, that has earlier been deleted, back to the list
 	Given I have deleted a product entry
 	When I open the add product screen
@@ -64,6 +64,5 @@ Scenario: Adding a product, that has earlier been deleted, back to the list
 	When I enter the deleted product entry's barcode
 		And I conlude my entry by tapping another field
 	Then the other fields should be automatically filled with the deleted entry's data
-	
+
 Scenario: Adding several product entries in a row (without returning to the home screen in between)
-	

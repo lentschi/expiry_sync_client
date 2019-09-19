@@ -46,7 +46,7 @@ AfterAll(async () => {
     // TODO
 });
 
-Given(/^the ExpirySync API server is in its pristine state and running$/, {timeout: 60000}, async () => {
+Given(/^the ExpirySync API server is in its pristine state and running$/, {timeout: 200000}, async () => {
     await utils.runFrontend();
     await utils.runBackend();
 });

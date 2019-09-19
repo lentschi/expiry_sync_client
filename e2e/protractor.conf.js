@@ -8,24 +8,6 @@ exports.config = {
   specs: [
     './src/**/*.e2e-spec.ts'
   ],
-  // multiCapabilities:[
-  //   {
-  //     "browserName": "chrome",
-  //     "seleniumAddress": 'http://172.24.0.1:4444/wd/hub',
-  //     chromeOptions: {
-  //       args: [
-  //               '--allow-file-access',
-  //               '--use-file-for-fake-video-capture="/srv/project/out.y4m"',
-  //               '--use-fake-device-for-media-stream',
-  //               '--disable-infobars'
-  //             ]
-  //       },
-  //       prefs: {
-  //         intl: { accept_languages: "en-US" },
-  //       },
-  //   },
-  // ],
-  // chromeDriver: './protractor-chromedriver.sh',
   capabilities: {
     browserName: 'chrome',
     chromeOptions: {
@@ -42,26 +24,6 @@ exports.config = {
       ]
     }
   },
-  // multiCapabilities:[
-  //     {
-  //       "browserName": "chrome",
-  //       seleniumAddress: 'http://localhost:9515',
-  //       chromeOptions: {
-  //         binary: '/usr/bin/chromium-browser',
-  //         args: [
-  //                 '--no-sandbox',
-  //                 '--verbose',
-  //                 '--allow-file-access',
-  //                 '--use-file-for-fake-video-capture="/srv/project/out.y4m"',
-  //                 '--use-fake-device-for-media-stream',
-  //                 '--disable-infobars'
-  //               ]
-  //         },
-  //         prefs: {
-  //           intl: { accept_languages: "en-US" },
-  //         },
-  //     },
-  //   ],
   directConnect: true,
   baseUrl: 'https://localhost:9002/',
   framework: 'custom',  // set to "custom" instead of cucumber.

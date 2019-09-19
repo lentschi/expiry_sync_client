@@ -15,7 +15,6 @@ Scenario: Synchronize new product entries between different devices with the sam
 		And I switch back to the first device restarting the app
 	Then I should see that product entry's data in the product entry list
 
-@fit
 Scenario: Synchronize deleted product entries between different devices with the same user
 	Given there exists a product entry
 		And I switch to a different device, on which the app has been freshly installed
