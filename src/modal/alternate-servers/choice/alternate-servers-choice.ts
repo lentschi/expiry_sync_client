@@ -43,7 +43,7 @@ export class AlternateServersChoiceModal extends ExpirySyncController {
     // add alternate servers suggested by current server:
     const task = this.app.loadingStarted('Loading alternate servers', null, true);
     try {
-      const serversData = await ApiServer.call(ApiServerCall.getAlternateServers);
+      const serversData = await ApiServer.hammer(ApiServerCall.getAlternateServers);
       for (const serverData of serversData.alternate_servers) {
         this.alternateServers.push(AlternateServer.fromServerData(serverData));
       }

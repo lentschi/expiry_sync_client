@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Device } from '@ionic-native/device/ngx';
 import * as migrations from '../config/migrations';
+import { Setting } from 'src/app/models';
 
 // https://x-team.com/blog/include-javascript-libraries-in-an-ionic-2-typescript-project/
 // https://ionicframework.com/docs/v2/resources/app-scripts/
@@ -65,6 +66,7 @@ export class DbManager {
     await this.executeSql('CREATE TABLE schema_version (current_version INTEGER)');
     await this.executeSql('INSERT INTO schema_version (current_version) VALUES (?)', [1]);
     console.log('Done with v0.7 upgrade');
+    Setting.v07UpgradeRequired = true;
   }
 
   private getRawDb() {

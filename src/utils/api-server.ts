@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {timeout} from 'rxjs/operators';
 import * as escapeStringRegexp from 'escape-string-regexp';
 import * as moment from 'moment';
-import { Subscription } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
 import { Setting } from 'src/app/models';
 import { ExpirySync } from 'src/app/app.expiry-sync';
 import { HttpClient, HttpUrlEncodingCodec, HttpHeaders, HttpParams, HttpResponse, HttpErrorResponse } from '@angular/common/http';
@@ -183,6 +183,26 @@ export class ApiServer {
       throw new Error('Tried to get api server instance, before component ini');
     }
     return ApiServer.instance;
+  }
+
+  static async hammer(
+      callId: number,
+      requestData?: { [key: string]: any },
+      stopOnErrors:  Array<typeof ApiErrorResponse> = [],
+      maxAttempts = 3,
+      sleepAfterFailure = 1000
+    ): Promise<any> {
+    for (let i = 0; true; i++) {
+      try {
+        return await ApiServer.call(callId, requestData);
+      } catch (e) {
+        if (i === maxAttempts - 1 || stopOnErrors.some(errorType => e instanceof errorType)) {
+          throw(e);
+        }
+
+        await timer(sleepAfterFailure).toPromise();
+      }
+    }
   }
 
   /**

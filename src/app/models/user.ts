@@ -66,7 +66,7 @@ export class User extends AppModel {
       throw new InvalidLogin(); // don't even try without a username
     }
 
-    const userData = await ApiServer.call(ApiServerCall.login, { user: this.toServerData() });
+    const userData = await ApiServer.hammer(ApiServerCall.login, { user: this.toServerData() }, [InvalidLogin]);
     this.loadFromServerData(userData.user);
 
     let existingUser: User;

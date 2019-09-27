@@ -55,7 +55,7 @@ export class SynchronizationHandler {
         let task: Symbol;
 
         if (showLoader) {
-            task = app.loadingStarted('Synchronizing');
+            task = app.loadingStarted('Synchronizing local changes');
         }
 
         await this.localChangesMutex.acquire();

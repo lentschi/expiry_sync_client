@@ -58,6 +58,8 @@ class ReminderWeekdaysSetting  implements SettingConfiguration {
 export class Setting extends AppModel {
   static tableName = 'Setting';
 
+  static v07UpgradeRequired = false;
+
   /**
    * Dictionary of setting configurations
    * Key: name of the setting key, Value: setting config
@@ -216,7 +218,9 @@ export class Setting extends AppModel {
       }
     }
 
-    await Setting.migrateV0_7Preferences();
+    if (Setting.v07UpgradeRequired) {
+      await Setting.migrateV0_7Preferences();
+    }
   }
 
   private static migrateV0_7Preferences(): Promise<void> {

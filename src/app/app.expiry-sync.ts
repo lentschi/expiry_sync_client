@@ -1,11 +1,9 @@
-import { Component, ViewChild, ViewEncapsulation, HostListener } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import {
   Platform, ModalController, Events, LoadingController, MenuController,
-  IonNav,
-  Config,
 } from '@ionic/angular';
 import { Device } from '@ionic-native/device/ngx';
-import { Setting, User, ProductEntry, Location, ProductEntrySyncList } from './models';
+import { Setting, User, ProductEntry, Location } from './models';
 import { TranslateService } from '@ngx-translate/core';
 import { ExpirySyncController } from './app.expiry-sync-controller';
 import * as moment from 'moment';
@@ -369,20 +367,32 @@ export class ExpirySync extends ExpirySyncController {
         return;
       }
 
-      // Close modals, or remove toasts/overlays if any:
-      const modal = await this.modalCtrl.getTop();
-      if (modal) {
-        modal.dismiss();
-        return;
-      }
-
-      // Close menu if open:
-      if (await this.menuCtrl.isOpen() && await this.menuCtrl.close()) {
+      if (await this.closeAnyOverlay()) {
         return;
       }
 
       window.navigator.app.exitApp();
     });
+  }
+
+  /**
+   * Close any modal or the main menu
+   * @returns true, if something needed closing, else false
+   */
+  private async closeAnyOverlay(): Promise<boolean> {
+    // Close modals, or remove toasts/overlays if any:
+    const modal = await this.modalCtrl.getTop();
+    if (modal) {
+      await modal.dismiss();
+      return true;
+    }
+
+    // Close menu if open:
+    if (await this.menuCtrl.isOpen() && await this.menuCtrl.close()) {
+      return true;
+    }
+
+    return false;
   }
 
 
@@ -391,7 +401,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   private setupReminder() {
     this.scheduleReminder();
-    Setting.onChange('reminderTime', (setting: Setting) => {
+    Setting.onChange('reminderTime', () => {
       this.scheduleReminder();
     });
 
@@ -467,7 +477,7 @@ export class ExpirySync extends ExpirySyncController {
         this.moveToBackgroundAfterReminder = true;
       }
     },
-      (error) => {
+      () => {
         console.error('Wakeup error');
       },
       {
@@ -617,6 +627,7 @@ export class ExpirySync extends ExpirySyncController {
 
       // when the host setting is changed, the db has to be cleaned:
       Setting.onChange('host', async () => {
+        await this.closeAnyOverlay();
         await this.synchronizationHandler.syncMutex.acquire();
         await User.clearUserRelatedData();
         await this.logout(false);
@@ -628,6 +639,7 @@ export class ExpirySync extends ExpirySyncController {
 
       // when offline mode is changed, login/logout has to be performed:
       Setting.onChange('offlineMode', async (setting: Setting) => {
+        await this.closeAnyOverlay();
         if (setting.value !== '1') {
           await this.autoLogin();
           console.log('Logged in after offline mode has been deactivated');
@@ -661,6 +673,8 @@ export class ExpirySync extends ExpirySyncController {
    * @param  {any} tappedNotificationData notification data containing the first location id
    */
   private async changeLocationForTappedNotification(startupLocationId: string, emitEvent = false) {
+    await this.closeAnyOverlay();
+
     const currentLocation = <Location>await Location.getSelected();
     let currentLocationId: string = null;
     if (currentLocation) {
