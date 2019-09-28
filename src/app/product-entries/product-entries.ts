@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 import { ModalController, Events, IonInput } from '@ionic/angular';
@@ -40,6 +40,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     private modalCtrl: ModalController,
     private uiHelper: UiHelper,
     private synchronizationHandler: SynchronizationHandler,
+    private cd: ChangeDetectorRef,
     events: Events,
     translate: TranslateService
   ) {
@@ -75,7 +76,10 @@ export class ProductEntriesPage extends ExpirySyncController {
 
     events.subscribe('app:localeChangedByNotificationTap', () => {
       this.synchronizationHandler.localChangesMutex.acquireFor(
-        () => this.showListAndFilters()
+        async () => {
+          await this.showListAndFilters();
+          this.cd.detectChanges();
+        }
       );
     });
 
