@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import {
   Platform, ModalController, Events, LoadingController, MenuController,
 } from '@ionic/angular';
@@ -61,7 +61,7 @@ interface MenuPointConfig { id: number; component?: any; method?: Function; moda
   styleUrls: ['app.expiry-sync.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class ExpirySync extends ExpirySyncController {
+export class ExpirySync extends ExpirySyncController implements AfterViewChecked {
   /**
    * Fallback version to display if determining the real version fails
    */
@@ -97,6 +97,10 @@ export class ExpirySync extends ExpirySyncController {
    * @member {boolean}
    */
   private active = true;
+
+  logs = '';
+  logsRequireScrollDown = false;
+  @ViewChild('logsTextarea', {static: true}) logsTextarea: ElementRef<HTMLTextAreaElement>;
 
   /**
    * The active user
@@ -552,12 +556,73 @@ export class ExpirySync extends ExpirySyncController {
     this.scheduleReminder();
   }
 
+  ngAfterViewChecked() {
+    if (this.logsRequireScrollDown && this.logsTextarea && this.logsTextarea.nativeElement) {
+      this.logsRequireScrollDown = false;
+      this.logsTextarea.nativeElement.scrollTop = this.logsTextarea.nativeElement.scrollHeight;
+      if (this.logsTextarea.nativeElement.parentElement !== document.body) {
+        document.body.append(this.logsTextarea.nativeElement);
+      }
+    }
+  }
+
+  logsClicked() {
+    this.logsTextarea.nativeElement.select();
+    document.execCommand('copy');
+    this.uiHelper.toast('Logs copied to clipboard');
+  }
 
   /**
    * Initialize db & locale; trigger auto login and auto synchronization ...
    */
   private initializeApp() {
     window.skipLocalNotificationReady = true;
+
+    const oldLog = console.log;
+    function getErrorObject() {
+      try { throw Error(''); } catch (err) { return err; }
+    }
+    function getCallerDetails(): string {
+      try {
+        const err = getErrorObject();
+        const caller_line = err.stack.split('\n')[4];
+        const index = caller_line.indexOf('at ');
+        return caller_line.slice(index + 2, caller_line.length);
+      } catch (e) {
+        return 'unknown';
+      }
+    }
+    console.log = (...params) => {
+      try {
+        this.logs += params.map(param => JSON.stringify(param)).join(', ') + ' @' + getCallerDetails() + '\n';
+      } catch (e) {
+        this.logs += `${params} @${getCallerDetails()}\n`;
+      }
+      this.logsRequireScrollDown = true;
+      oldLog.apply(console, params);
+    };
+
+    const oldWarnLog = console.warn;
+    console.warn = (...params) => {
+      try {
+        this.logs += 'WARN: ' + params.map(param => JSON.stringify(param)).join(', ') + ' @' + getCallerDetails() + '\n';
+      } catch (e) {
+        this.logs += `${params} @${getCallerDetails()}\n`;
+      }
+      this.logsRequireScrollDown = true;
+      oldWarnLog.apply(console, params);
+    };
+
+    const oldErrorLog = console.error;
+    console.error = (...params) => {
+      try {
+        this.logs += 'ERROR: ' + params.map(param => JSON.stringify(param)).join(', ') + ' @' + getCallerDetails() + '\n';
+      } catch (e) {
+        this.logs += `${params} @${getCallerDetails()}\n`;
+      }
+      this.logsRequireScrollDown = true;
+      oldErrorLog.apply(console, params);
+    };
 
     ExpirySync.readyPromise = new Promise<{}>(async resolve => {
       await this.platform.ready();
@@ -582,6 +647,8 @@ export class ExpirySync extends ExpirySyncController {
       }
       this.adeptPlatformDependingSettings();
       await Setting.addDefaultsForMissingKeys();
+
+      throw new Error('lala');
 
       // switch location if required by notification tap:
       if (this.platform.is('cordova')) {

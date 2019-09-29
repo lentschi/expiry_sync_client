@@ -78,5 +78,10 @@
 
     <!-- Disable swipe-to-go-back because it's poor UX to combine STGB with side menus -->
     <ion-router-outlet main></ion-router-outlet>
+    <textarea 
+      [(ngModel)]="logs" 
+      style="position: absolute; z-index: 999999; bottom:0; height: 20vh; width: 100%; display: block;" 
+      (click)="logsClicked()"
+      #logsTextarea></textarea>
   </ion-split-pane>
 </ion-app>
