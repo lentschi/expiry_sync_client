@@ -14,6 +14,13 @@ export class ChangeSyncFieldsMigration {
         this.addColumn('ProductEntry', 'lastSuccessfulSync', 'DATETIME');
         this.addIndex('ProductEntry', 'lastSuccessfulSync');
 
+        // Some bug caused duplicate location serverIds - clear that up before moving to IDs
+        this.executeSql(`
+          UPDATE location set serverid=null where rowid not in (
+            SELECT min(rowid) from location group by serverid
+          )
+        `);
+        this.executeSql('UPDATE Location SET inSync = 0 WHERE serverId IS NULL');
 
         this.executeSql(`
           UPDATE ProductEntry SET
