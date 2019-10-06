@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Device } from '@ionic-native/device/ngx';
 import * as migrations from '../config/migrations';
 import { Setting } from 'src/app/models';
+import { ExpirySync } from 'src/app/app.expiry-sync';
 
 // https://x-team.com/blog/include-javascript-libraries-in-an-ionic-2-typescript-project/
 // https://ionicframework.com/docs/v2/resources/app-scripts/
@@ -13,13 +14,19 @@ declare var openDatabase: any;
 @Injectable()
 export class DbManager {
   private rawDb;
+  private app: ExpirySync;
 
   constructor(private device: Device) { }
 
   public async initialize(preventSqlite: boolean): Promise<any> {
+    this.app = ExpirySync.getInstance();
+    await this.app.setLoaderText('Configuring database...');
     this.configure(preventSqlite);
+    await this.app.setLoaderText('Running v0.7 migrations (if required)...');
     await this.migrateFromV0_7();
+    await this.app.setLoaderText('Loading migrations...');
     this.loadMigrations();
+    await this.app.setLoaderText('Running migrations...');
     await this.runMigrations();
   }
 

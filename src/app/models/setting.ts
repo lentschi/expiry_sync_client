@@ -200,15 +200,19 @@ export class Setting extends AppModel {
    * @param  {Function} callback Optional callback function
    */
   static async addDefaultsForMissingKeys(): Promise<void> {
+    const app = ExpirySync.getInstance();
+    await app.setLoaderText('Loading existing settings...');
     const settings = <Array<Setting>>await Setting.all().list();
 
     for (const settingKey of Object.keys(this.settingConfig)) {
+      await app.setLoaderText(`Configuring setting '${settingKey}'...`);
       const settingConfig = this.settingConfig[settingKey];
 
       let setting = settings.find(curSetting => (curSetting.key === settingKey));
       if (setting) {
         Setting.settingsCache[settingKey] = setting.value;
       } else {
+        await app.setLoaderText(`Creating setting '${settingKey}'...`);
         // setting with that key doesn't exist
         // -> created it with the default value:
         setting = new Setting();
@@ -219,6 +223,7 @@ export class Setting extends AppModel {
     }
 
     if (Setting.v07UpgradeRequired) {
+      await app.setLoaderText('Migrating v0.7 preferences...');
       await Setting.migrateV0_7Preferences();
     }
   }

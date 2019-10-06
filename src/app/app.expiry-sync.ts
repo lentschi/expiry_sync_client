@@ -23,6 +23,7 @@ import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/
 import { SynchronizationHandler } from './services/synchronization-handler.service';
 import * as _ from 'lodash';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
+import { timer } from 'rxjs';
 
 declare var window: any;
 declare var cordova: any;
@@ -283,6 +284,15 @@ export class ExpirySync extends ExpirySyncController {
         this.synchronize();
       }
     }, parseInt(Setting.cached('syncInterval'), 10));
+  }
+
+  async setLoaderText(message: string): Promise<void> {
+    while (!this.loader) {
+      await timer(100).toPromise();
+    }
+
+    this.loader.message = message;
+    await timer(500).toPromise();
   }
 
   /**
@@ -576,14 +586,18 @@ export class ExpirySync extends ExpirySyncController {
       try {
         await this.dbManager.initialize(this.runningInBrowser);
       } catch (e) {
+        await this.setLoaderText('DB ini failed!');
         console.error('DB ini failed with error: ', e);
         alert('Database initialization failed - Ensure that your platform supports WebSQL or SQLite!');
         return;
       }
+      await this.setLoaderText('Adapting platform depending settings...');
       this.adeptPlatformDependingSettings();
+      await this.setLoaderText('Auto configuring ExpirySync...');
       await Setting.addDefaultsForMissingKeys();
 
       // switch location if required by notification tap:
+      await this.setLoaderText('Hooking up notifications...');
       if (this.platform.is('cordova')) {
         this.localNotifications.on('click').subscribe(async (notification) => {
           await this.changeLocationForTappedNotification(notification.data.startupLocationId, true);
@@ -598,6 +612,7 @@ export class ExpirySync extends ExpirySyncController {
       }
 
       // find/create current user in the db:
+      await this.setLoaderText('Initializing user...');
       try {
         this.currentUser = <User>await User.findBy('usedForLogin', true);
       } catch (e) {
@@ -615,9 +630,11 @@ export class ExpirySync extends ExpirySyncController {
       }
 
       // i18n:
+      await this.setLoaderText('Auto configure language and date format...');
       await this.setupI18n();
 
       // show server choice dialog if this hasn't happened before:
+      await this.setLoaderText('Choosing a server...');
       let justChoseAServer = false;
       if (Setting.cached('serverChosen') !== '1') {
         this.loadingDone(task);
@@ -626,6 +643,7 @@ export class ExpirySync extends ExpirySyncController {
       }
 
       // when the host setting is changed, the db has to be cleaned:
+      await this.setLoaderText('Hook up setting change listeners...');
       Setting.onChange('host', async () => {
         await this.closeAnyOverlay();
         await this.synchronizationHandler.syncMutex.acquire();
@@ -651,6 +669,7 @@ export class ExpirySync extends ExpirySyncController {
       });
 
       // configure the daily reminder about expired/expiring products
+      await this.setLoaderText('Setting reminder...');
       this.setupReminder();
 
       // allow access even before user login has completed (changes should sync later):
