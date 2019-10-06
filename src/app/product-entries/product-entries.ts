@@ -122,10 +122,21 @@ export class ProductEntriesPage extends ExpirySyncController {
       this.selectedLocationId = '';
     }
 
-    this.locations = <Array<Location>>await Location
+    const locations = <Array<Location>>await Location
       .all()
       .filter('deletedAt', '=', null)
       .list();
+
+    // only replace locations, if there has been a change (makes the ion-select reset):
+    const locationsChanged = !this.locations || locations.length !== this.locations.length || !locations.every(currentLocation =>
+      this.locations.some(currentExistingLocation =>
+        currentExistingLocation.id === currentLocation.id
+        && currentExistingLocation.name === currentLocation.name
+      )
+    );
+    if (locationsChanged) {
+      this.locations = locations;
+    }
 
     const query = ProductEntry
       .all()
