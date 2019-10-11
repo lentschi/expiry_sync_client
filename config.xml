@@ -38,6 +38,7 @@
     <plugin name="cordova-plugin-camera" spec="~4.1.0" />
     <plugin name="cordova-plugin-background-mode" spec="~0.7.3" />
     <plugin name="cordova-plugin-shared-preferences" spec="~0.0.1" />
+    <plugin name="com-darryncampbell-cordova-plugin-intent" spec="~1.1.8" />
     <plugin name="org.nypr.cordova.wakeupplugin" spec="git://github.com/lentschi/cordova-plugin-wakeuptimer.git#ae50510c53136d90445f3281cafb6908bfbf5ae3" />
     <plugin name="cordova-sqlite-ext" spec="~3.0.0" />
     <plugin name="de.appplant.cordova.plugin.local-notification" spec="git://github.com/katzer/cordova-plugin-local-notifications#a75c0979ceab65b519b53c28047194ce1b82f324" />

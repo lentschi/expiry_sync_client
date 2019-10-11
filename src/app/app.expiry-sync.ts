@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import {
   Platform, ModalController, Events, LoadingController, MenuController,
 } from '@ionic/angular';
@@ -65,7 +65,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Fallback version to display if determining the real version fails
    */
-  static readonly FALLBACK_APP_VERSION = '1.4 web';
+  static readonly FALLBACK_APP_VERSION = '1.9 web';
   static readonly API_VERSION = 3;
 
   /**
@@ -399,7 +399,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Sets up the daily reminder
    */
-  private setupReminder() {
+  private async setupReminder() {
     this.scheduleReminder();
     Setting.onChange('reminderTime', () => {
       this.scheduleReminder();
@@ -412,11 +412,15 @@ export class ExpirySync extends ExpirySyncController {
     });
 
     // handle the wakeup plugin's events:
-    if (typeof (window.plugins) !== 'undefined') {
-      console.log('Intent plugin found');
-      window.plugins.intent.setNewIntentHandler(async intent => {
-        console.log('New intent received: ' + JSON.stringify(intent));
-        if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
+    if (this.platform.is('cordova')) {
+      // Not using @ionic-native/web-intent because of this bug:
+      // https://github.com/ionic-team/ionic-native/issues/1609
+      window.plugins.intentShim.onIntent(async intent => {
+        console.log('New intent received during runtime: ' + JSON.stringify(intent));
+        if (typeof (intent.extras) !== 'undefined'
+            && typeof ((<any> intent.extras).wakeup) !== 'undefined'
+            && (<any> intent.extras).wakeup) {
+          console.log('Intent looks like a wakeup -> show reminder (if required) and moving to background');
           // the app has been running and a wakeup occurred
           // -> show the reminder:
           await this.showReminder();
@@ -429,24 +433,25 @@ export class ExpirySync extends ExpirySyncController {
         }
       });
 
-      // TODO: Probably replace this
-      // plugin (git://github.com/napolitano/cordova-plugin-intent.git#0a47226e64da1e349e2ab2f5e9e0cc2a4e1c5555)
-      //  with the newer https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent:
-      window.plugins.intent.getCordovaIntent(async intent => {
-        console.log('Initial intent: ' + JSON.stringify(intent) + ', ' + JSON.stringify(!!window.navigator)
-          + ', ' + JSON.stringify(!!window.navigator.app) + ', ' + JSON.stringify(!!window.navigator.app.exitApp)
-          + ', ' + JSON.stringify(intent.extras ? !!intent.extras.wakeup : false));
-        if (typeof (intent.extras) !== 'undefined' && typeof (intent.extras.wakeup) !== 'undefined' && intent.extras.wakeup) {
-          // the app has not been running and a wakeup occurred
-          // -> show the reminder and then exit the app again:
-          await this.showReminder();
-          window.navigator.app.exitApp();
-        }
-      }, () => {
-        console.error('unknown cdvintent error');
-      });
-    } else {
-      console.log('No intent plugin');
+      let intent: any;
+
+      try {
+        intent = await new Promise((resolve, reject) => {
+          window.plugins.intentShim.getIntent(result => resolve(result), error => reject(error));
+        });
+      } catch (e) {
+        console.error('Failed to get extra', e);
+      }
+
+      if (intent.extras && intent.extras.wakeup) {
+        console.log('Wakeup intent received at startup -> showing reminder (if required) & exiting');
+        // the app has not been running and a wakeup occurred
+        // -> show the reminder and then exit the app again:
+        await this.showReminder();
+        window.navigator.app.exitApp();
+      } else {
+        console.log('Normal startup (no wakeup intent received) - leaving the app open and in the foreground');
+      }
     }
   }
 
