@@ -811,10 +811,15 @@ export class ExpirySync extends ExpirySyncController {
       await Setting.set('localeId', localeId);
     }
 
-    await this.switchLanguage(localeId);
+    await this.switchLanguage(localeId, (Setting.cached('useSystemLocaleForDates') === '1') ? navigator.language : localeId);
 
     Setting.onChange('localeId', (setting: Setting) => {
-      this.switchLanguage(setting.value);
+      this.switchLanguage(setting.value, (Setting.cached('useSystemLocaleForDates') === '1') ? navigator.language : setting.value);
+    });
+
+    Setting.onChange('useSystemLocaleForDates', (setting: Setting) => {
+      localeId = Setting.cached('localeId');
+      this.switchLanguage(localeId, (setting.value === '1') ? navigator.language : localeId);
     });
   }
 
@@ -845,11 +850,12 @@ export class ExpirySync extends ExpirySyncController {
 
   /**
    * Set ngx-translate's language, moment's locale, and ionic's datepicker configs
-   * @param  {string} localeId BCP 47 language code
+   * @param localeId BCP 47 language code
+   * @param dateFormatLocaleId language code for the date format
    */
-  private async switchLanguage(localeId: string) {
+  private async switchLanguage(localeId: string, dateFormatLocaleId: string) {
     this.translateSvc.use(localeId);
-    moment.locale(localeId);
+    moment.locale(dateFormatLocaleId);
     this.events.publish('app:timeLocaleAdjusted');
     Setting.setLanguageDependentLabels();
   }

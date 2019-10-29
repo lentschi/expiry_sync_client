@@ -120,6 +120,7 @@
     "When adding a new product, start barcode scanning automatically": "Avviare automaticamente la scansione del codice a barre quando si aggiunge un nuovo prodotto",
     "When do you want to be reminded?": "Quando vuoi ricevere il promemoria?",
     "UI Language": "Lingua dell'interfaccia utente",
+    "Use system language for date format (instead of language chosen above)": "Utilizza la lingua di sistema per il formato della data (anziché la lingua selezionata sopra)",
     "Days before marking as bad": "Giorni prima di segnare come scaduto",
     "Days before marking as medium": "Giorni prima di segnare come in scadenza",
     "URL used for recipe search": "URL utilizzato per la ricerca di ricette",

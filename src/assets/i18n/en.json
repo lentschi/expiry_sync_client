@@ -121,6 +121,7 @@
   "When adding a new product, start barcode scanning automatically": "When adding a new product, start barcode scanning automatically",
   "When do you want to be reminded?": "When do you want to be reminded?",
   "UI Language": "UI Language",
+  "Use system language for date format (instead of language chosen above)": "Use system language for date format (instead of language chosen above)",
   "Days before marking as bad": "Days before marking as bad",
   "Days before marking as medium": "Days before marking as medium",
   "URL used for recipe search": "URL used for recipe search",
