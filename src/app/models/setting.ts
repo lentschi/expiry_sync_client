@@ -75,7 +75,8 @@ export class Setting extends AppModel {
         { key: 'en', label: 'English' },
         { key: 'es', label: 'Español' },
         { key: 'fr', label: 'Français' },
-        { key: 'it', label: 'Italiano' }
+        { key: 'it', label: 'Italiano' },
+        { key: 'ru', label: 'Русский' }
       ]
     },
     daysBeforeBad: { default: '-3', editComponent: SettingEditIntegerElement },
