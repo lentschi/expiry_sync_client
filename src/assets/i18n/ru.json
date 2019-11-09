@@ -128,6 +128,7 @@
   "When adding a new product, start barcode scanning automatically": "Начинать сканировать штрих-код автоматически при добавлении нового продукта",
   "When do you want to be reminded?": "Когда вы хотите получать уведомления?",
   "UI Language": "Язык интерфейса",
+  "Use system language for date format (instead of language chosen above)": "Используйте системный язык для формата даты (вместо языка, выбранного выше)",
   "Days before marking as bad": "Дней до отметки \"плохой\"",
   "Days before marking as medium": "Дней до отметки \"средний\"",
   "URL used for recipe search": "URL для поиска рецептов",
