@@ -150,10 +150,10 @@
   "move products": "move products",
   "move products to another location": "move products to another location",
   "move": "move",
-  "Are you you want to move products to location?": {
+  "Are you sure you want to move products to location?": {
     "_plurals": {
-      "1": "Are you you want to move this product to \"{{location}}\"?",
-      "other": "Are you you want to move {{n}} products to \"{{location}}\"?"
+      "1": "Are you sure you want to move this product to \"{{location}}\"?",
+      "other": "Are you sure you want to move {{n}} products to \"{{location}}\"?"
     }
   }
 }

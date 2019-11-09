@@ -149,7 +149,7 @@
     "move products": "déplacer des produits",
     "move products to another location": "déplacer des produits vers un autre lieu",
     "move": "déplacer",
-    "Are you you want to move products to location?": {
+    "Are you sure you want to move products to location?": {
         "_plurals": {
             "1": "Êtes-vous sûr de vouloir déplacer ce produit vers \"{{location}}\"?",
             "other": "Êtes-vous sûr de vouloir déplacer les {{n}} produits vers \"{{location}}\"?"

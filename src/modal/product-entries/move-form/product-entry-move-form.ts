@@ -45,7 +45,7 @@ export class ProductEntryMoveFormModal extends ExpirySyncController implements O
     const targetLocation = this.locations.find(location => location.id === this.selectedLocationId);
     if (!await this.uiHelper.confirm(
       await this.pluralTranslate(
-        'Are you you want to move products to location?',
+        'Are you sure you want to move products to location?',
         this.productEntries.length,
         { location: targetLocation.name }
       )

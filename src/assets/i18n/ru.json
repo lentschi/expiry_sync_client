@@ -158,7 +158,7 @@
   "move products": "переместить продукты",
   "move products to another location": "переместить продукты в другое место",
   "move": "переместить",
-  "Are you you want to move products to location?": {
+  "Are you sure you want to move products to location?": {
     "_plurals": {
       "1": "Вы хотите переместить этот продукт в «{{location}}»?",
       "2": "Вы хотите переместить {{n}} продукта в «{{location}}»?",
