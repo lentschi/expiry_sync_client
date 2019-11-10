@@ -547,7 +547,7 @@ export class ExpirySync extends ExpirySyncController {
         led: 'FFFFFF',
         data: { startupLocationId }
       };
-      Setting.set('notificationTappedLocationId', startupLocationId || '');
+      Setting.set('notificationTappedLocationId', startupLocationId || 'all');
       console.log('Displaying notification: ' + JSON.stringify(notificationConf));
       this.localNotifications.schedule(notificationConf);
 
@@ -595,10 +595,11 @@ export class ExpirySync extends ExpirySyncController {
           await this.changeLocationForTappedNotification(notification.data.startupLocationId, true);
         });
 
+        console.log('Plugin.notification', _.get(cordova, 'plugins.notification'));
         if (_.get(cordova, 'plugins.notification.local.launchDetails.action') === 'click') {
           const locationId = Setting.cached('notificationTappedLocationId');
           if (locationId) {
-            await this.changeLocationForTappedNotification(locationId);
+            await this.changeLocationForTappedNotification(locationId === 'all' ? null : locationId);
           }
         }
       }
