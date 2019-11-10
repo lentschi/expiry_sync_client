@@ -516,6 +516,7 @@ export class ExpirySync extends ExpirySyncController {
       .all()
       .order('expirationDate', true)
       .prefetch('article')
+      .prefetch('location')
       .list();
 
     productEntries = productEntries.filter((productEntry: ProductEntry) => {
@@ -529,9 +530,9 @@ export class ExpirySync extends ExpirySyncController {
         text += ' ' + await this.pluralTranslate('and other articles', productEntries.length - 1);
       }
 
-      let startupLocationId = productEntries[0].locationId;
+      let startupLocationId = productEntries[0].location.id;
       for (const entry of productEntries) {
-        if (entry.locationId !== startupLocationId) {
+        if (entry.location.id !== startupLocationId) {
           startupLocationId = null;
           break;
         }
