@@ -79,7 +79,7 @@ export class Setting extends AppModel {
         { key: 'ru', label: 'Русский' }
       ]
     },
-    useSystemLocaleForDates: { default: '0', inlineEditableBoolean: true},
+    useSystemLocaleForDates: { default: '1', inlineEditableBoolean: true},
     daysBeforeBad: { default: '-3', editComponent: SettingEditIntegerElement },
     daysBeforeMedium: { default: '-1', editComponent: SettingEditIntegerElement },
     offlineMode: { default: '0', inlineEditableBoolean: true },
