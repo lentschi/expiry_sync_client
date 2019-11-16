@@ -154,5 +154,6 @@
         "1": "Sind Sie sicher, dass Sie dieses Produkt nach \"{{location}}\" verschieben wollen?",
         "other": "Sind Sie sicher, dass Sie {{n}} Produkte nach \"{{location}}\" verschieben wollen?"
       }
-    }
+    },
+    "many thanks for translations into Russian": "vielen Dank für die Übersetzung ins Russische"
 }

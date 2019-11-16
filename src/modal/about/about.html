@@ -34,6 +34,20 @@
           <span class="label" translate>utilized app framework</span>
           <span class="value"><a target="_blank" href="https://ionicframework.com/">Ionic</a></span>
         </div>
+        <div class="info">
+          <span class="label" translate>many thanks for translations into Russian</span>
+          <span class="value">
+            <ul *ngIf="currentLanguage !== 'ru'; else russianNames">
+              <li>Ivan Korunkov - <a target="_blank" href="https://github.com/korun">https://github.com/korun</a></li>
+              <li>Liza Khruslova</li>
+            </ul>
+
+            <ng-template #russianNames>
+              <li>Ивану Корункову - <a target="_blank" href="https://github.com/korun">https://github.com/korun</a></li>
+              <li>Лизе Хрусловой</li>
+            </ng-template>
+          </span>
+        </div>
       </div>
     </ion-item>
     <ion-item class="api-server">

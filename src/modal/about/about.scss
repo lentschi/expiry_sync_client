@@ -17,6 +17,10 @@
       font-weight: bold;
       margin: 20px 0px 5px 0px;
       white-space: normal;
+
+      &::first-letter {
+        text-transform: uppercase;
+      }
     }
 
     > .value {

@@ -31,6 +31,10 @@ export class AboutModal extends ExpirySyncController {
     return lastSync === '' ? null : lastSync;
   }
 
+  get currentLanguage(): string {
+    return Setting.cached('localeId');
+  }
+
   dismiss() {
     this.modalCtrl.dismiss();
   }
