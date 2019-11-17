@@ -123,6 +123,9 @@ ion-content#product-entries {
         display:block;
         float:left;
         padding: 10px 2px 10px 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .product-entry-selection .checkbox-icon {
@@ -138,11 +141,11 @@ ion-content#product-entries {
         color: var(--ion-color-primary);
       }
 
-      .active::after {
+      .active::before {
         content: "↑";
         speak:none;
         font-family: "Ionicons";
-        padding-left: 2px;
+        padding-right: 2px;
       }
 
       .product-entry-selection {
@@ -192,7 +195,7 @@ ion-content#product-entries {
       }
     }
 
-    #list-sorters.sort-ascending .active::after {
+    #list-sorters.sort-ascending .active::before {
       content: "↓";
     }
   }
