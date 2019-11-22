@@ -50,7 +50,11 @@
       <ion-datetime
         displayFormat="{{dateFormat}}"
         max="{{maxExpirationDate}}"
-        pickerFormat="MMM DD YYYY"
+        [pickerFormat]="pickerFormat"
+        [monthShortNames]="monthsShort"
+        [monthNames]="monthsLong"
+        [dayShortNames]="daysShort"
+        [dayNames]="daysLong"
         [cancelText]="'cancel' | translate"
         [doneText]="'done' | translate"
         [(ngModel)]="productEntry.expirationDateIsoStr"

@@ -27,7 +27,12 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   productEntry: ProductEntry;
   dateFormat: string;
+  pickerFormat: string;
   displayLocation = false;
+  readonly monthsShort = moment.monthsShort();
+  readonly monthsLong = moment.months();
+  readonly daysShort = moment.weekdaysShort();
+  readonly daysLong = moment.weekdays();
   private app: ExpirySync;
 
   maxExpirationDate: string;
@@ -54,7 +59,12 @@ export class ProductEntryFormModal extends ExpirySyncController {
   ) {
     super(translate);
     this.app = ExpirySync.getInstance();
-    this.dateFormat = moment.localeData(moment.locale()).longDateFormat('l');
+    this.dateFormat = moment.localeData(moment.locale()).longDateFormat('L');
+    this.pickerFormat = moment.localeData(moment.locale()).longDateFormat('ll')
+      .replace(/[.,\/\-]/g, ' ')
+      .replace(/[^MDYmdy ]/g, '')
+      .replace(/ddd/g, 'DDD')
+      .replace(/ +/, ' ');
     this.maxExpirationDate = moment().locale('en').add(ProductEntryFormModal.MAX_DAYS_UNTIL_EXPIRATION_DATE, 'days').format('YYYY-MM-DD');
 
     if (params.get('id')) {
