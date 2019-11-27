@@ -29,19 +29,8 @@ html, body {
       font-style: italic;
       padding-right: 3px;
     }
-
-    // TODO: Upgrade: Check what this did:
-    // &.select-md {
-    //   max-width: none;
-    //   padding-left:0;
-    // }
   }
 }
-
-// TODO: Upgrade: Check if this is still required:
-// .platform-android .product-entries-header {
-//   height:58px; //<- required for AOT-compilation for some inexplicable reason
-// }
 
 #product-entries-header {
     .product-entries-header {
@@ -166,11 +155,11 @@ ion-content#product-entries {
       }
 
       .name {
-        width: 20%;
+        width: 30%;
       }
 
       .expiration {
-        width: 50%;
+        width: 47%;
         text-align:right;
       }
 
@@ -180,8 +169,8 @@ ion-content#product-entries {
           width: 10%;
         }
 
-        .filtered-by-location {
-          .creation, .location {
+        &.filtered-by-location {
+          .creation {
             width: 20%;
           }
         }
@@ -387,7 +376,7 @@ ion-content#product-entries {
         .expiration {
           float:right;
           padding-right: 5%;
-          width: 30%;
+          width: 31%;
           text-align:right;
           .label {
             display: none;

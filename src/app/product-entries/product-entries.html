@@ -49,7 +49,11 @@
 <ion-content (window:resize)="enableDisableMenuPoints()" id="product-entries" scroll="false">
   <div id="wrapper">
     <div id="product-entries-list-header">
-      <div id="list-sorters" [class.sort-ascending]="productEntries.sortAscending" *ngIf="productEntries.length > 0">
+      <div
+          *ngIf="productEntries.length > 0"
+          id="list-sorters"
+          [class.sort-ascending]="productEntries.sortAscending"
+          [class.filtered-by-location]="selectedLocation">
         <span class="product-entry-selection">
           <ion-checkbox [(ngModel)]="productEntries.allSelected"></ion-checkbox>
         </span>
@@ -62,10 +66,11 @@
     </div>
     <div id="list-wrapper">
       <div id="list-sub-wrapper">
-        <ion-list [class.filtered-by-location]="selectedLocation" #productEntriesList>
+        <ion-list #productEntriesList>
           <ion-item-sliding *ngFor="let productEntry of productEntries" #slidingItem>
             <ion-item
                 *ngIf="loadingAfterLocationSwitchDone"
+                [class.filtered-by-location]="selectedLocation"
                 [class.activated]="productEntry.selected"
                 [class.gone-bad]="productEntry.goneBad"
                 [class.gone-medium]="!productEntry.goneBad && productEntry.goneMedium"
