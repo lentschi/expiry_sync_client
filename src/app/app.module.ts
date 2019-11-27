@@ -28,7 +28,7 @@ import { SettingSelectElement } from 'src/modal/settings/edit/types/select/setti
 import { GreaterThanValidator, LessThanValidator, UrlValidator, IntegerValidator } from 'src/utils/custom-validators';
 import { EllipsisPipe } from 'src/utils/custom-pipes';
 import { IonicTranslateDirective } from 'src/utils/ionic-translate.directive';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { DbManager } from 'src/utils/db-manager';
 import { ApiServer } from 'src/utils/api-server';
@@ -46,6 +46,7 @@ import { SynchronizationHandler } from './services/synchronization-handler.servi
 import { AppHttpParamsInterceptor } from './app.http-params-interceptor';
 import { SettingWeekdaysElement } from 'src/modal/settings/edit/types/weekdays/setting-weekdays';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
+import { DatePickerComponent } from 'src/utils/components/date-picker/date-picker.component';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -80,7 +81,8 @@ export function createTranslateLoader(http: HttpClient) {
     UrlValidator,
     IntegerValidator,
     EllipsisPipe,
-    IonicTranslateDirective
+    IonicTranslateDirective,
+    DatePickerComponent
   ],
   entryComponents: [
     ExpirySync,
@@ -113,6 +115,7 @@ export function createTranslateLoader(http: HttpClient) {
     HttpClientModule,
     EllipsisModule,
     BrowserAnimationsModule,
+    ReactiveFormsModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

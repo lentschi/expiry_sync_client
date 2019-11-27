@@ -1,0 +1,28 @@
+<ng-container *ngIf="partSequence">
+    <ng-container *ngFor="let part of partSequence">
+        <ng-container [ngSwitch]="part">
+            <input
+                *ngSwitchCase="'day'"
+                #dayInput
+                [formControl]="dayControl"
+                (blur)="onBlur()"
+                (input)="onInput(part, $event.target)"
+                type="text" />
+            <input
+                *ngSwitchCase="'month'"
+                #monthInput
+                [formControl]="monthControl"
+                (blur)="onBlur()"
+                (input)="onInput(part, $event.target)"
+                type="text" />
+            <input
+                *ngSwitchCase="'year'"
+                #yearInput
+                [formControl]="yearControl"
+                (blur)="onBlur()"
+                (input)="onInput(part, $event.target)"
+                type="text"  />
+            <span *ngSwitchDefault>{{part}}</span>
+        </ng-container>
+    </ng-container>
+</ng-container>
