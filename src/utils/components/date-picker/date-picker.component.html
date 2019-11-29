@@ -1,46 +1,58 @@
-<div *ngIf="partSequence" [style.display]="keyboardMode ? 'block' : 'none'">
-    <ng-container *ngFor="let part of partSequence">
-        <ng-container [ngSwitch]="part">
-            <input
-                *ngSwitchCase="'day'"
-                #dayInput
-                (blur)="onBlur()"
-                (click)="onInputClicked($event)"
-                (input)="onInput(part, $event.target)"
-                type="text"
-                pattern="\d*" />
-            <input
-                *ngSwitchCase="'month'"
-                #monthInput
-                (blur)="onBlur()"
-                (click)="onInputClicked($event)"
-                (input)="onInput(part, $event.target)"
-                type="text"
-                pattern="\d*" />
-            <input
-                *ngSwitchCase="'year'"
-                #yearInput
-                (blur)="onBlur()"
-                (click)="onInputClicked($event)"
-                (input)="onInput(part, $event.target)"
-                type="text"
-                pattern="\d*"  />
-            <span *ngSwitchDefault>{{part}}</span>
-        </ng-container>
-    </ng-container>
-</div>
+<div class="label">{{label}}</div>
 
-<ion-datetime
-    [style.display]="keyboardMode ? 'none' : 'block'"
-    [displayFormat]="dateFormat"
-    [max]="maxExpirationDate"
-    [pickerFormat]="pickerFormat"
-    [monthShortNames]="monthsShort"
-    [monthNames]="monthsLong"
-    [dayShortNames]="daysShort"
-    [dayNames]="daysLong"
-    [cancelText]="cancelText"
-    [doneText]="doneText"
-    [formControl]="ionPickerControl"
-    required></ion-datetime>
-<button (click)="switch($event)">Switch</button>
+<div class="date-picker">
+  <div *ngIf="partSequence" [style.display]="keyboardMode ? 'block' : 'none'" class="keyboard-date-input-wrapper">
+      <ng-container *ngFor="let part of partSequence; let i = index">
+          <ng-container [ngSwitch]="part">
+              <input
+                  *ngSwitchCase="'day'"
+                  #dayInput
+                  (blur)="onBlur()"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  type="text"
+                  pattern="\d*" />
+              <input
+                  *ngSwitchCase="'month'"
+                  #monthInput
+                  (blur)="onBlur()"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  type="text"
+                  pattern="\d*" />
+              <input
+                  *ngSwitchCase="'year'"
+                  #yearInput
+                  class="year-input"
+                  (blur)="onBlur()"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  type="text"
+                  pattern="\d*"  />
+              <span *ngSwitchDefault (click)="separatorClicked(i)">{{part}}</span>
+          </ng-container>
+      </ng-container>
+  </div>
+
+  <ion-datetime
+      #ionPicker
+      [style.display]="keyboardMode ? 'none' : 'block'"
+      [displayFormat]="dateFormat"
+      [max]="max"
+      [pickerFormat]="pickerFormat"
+      [monthShortNames]="monthsShort"
+      [monthNames]="monthsLong"
+      [dayShortNames]="daysShort"
+      [dayNames]="daysLong"
+      [cancelText]="cancelText"
+      [doneText]="doneText"
+      [formControl]="ionPickerControl"
+      required></ion-datetime>
+
+  <ion-button color="light" type="button" class="switch" size="small" (click)="enableKeyboardMode($event)">
+    <ion-icon slot="icon-only" name="keypad"></ion-icon>
+  </ion-button>
+  <ion-button  color="light" type="button" class="switch" size="small" (click)="enableKeyboardMode($event, false)">
+    <ion-icon slot="icon-only" name="open"></ion-icon>
+  </ion-button>
+</div>

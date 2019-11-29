@@ -45,10 +45,8 @@
            class="validation-error">
           <div [hidden]="!name.errors.required" translate>Name is required</div>
     </div>
-    <ion-item>
-      <ion-label position="floating" translate>expiration date</ion-label>
-    </ion-item>
     <date-picker
+      [label]="'expiration date' | translate"
       [dateFormat]="dateFormat"
       [max]="maxExpirationDate"
       [pickerFormat]="pickerFormat"
@@ -60,9 +58,8 @@
       [doneText]="'done' | translate"
       [(ngModel)]="productEntry.expirationDateIsoStr"
       name="expirationDate"
-      required
-    ></date-picker>
-    Val: {{productEntry.expirationDateIsoStr | json}}
+      required></date-picker>
+      <!-- <div>Val: {{productEntry.expirationDateIsoStr | json}}</div> -->
     <ion-item>
       <ion-label position="floating" translate>amount</ion-label>
       <ion-input
