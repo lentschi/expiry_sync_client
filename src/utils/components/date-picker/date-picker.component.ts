@@ -22,13 +22,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
     @ViewChild('monthInput', {static: false}) monthInput: ElementRef<HTMLInputElement>;
     @ViewChild('yearInput', {static: false}) yearInput: ElementRef<HTMLInputElement>;
 
-    dayControl = new FormControl();
-    monthControl = new FormControl();
-    yearControl = new FormControl();
-
     private changeCallback: (val: string) => void;
     private touchCallback: () => void;
     private lastValue: string;
+    private skipNextBlurRevert = false;
+    private lastActivatedInput: HTMLInputElement;
 
     ngOnInit() {
         const re = /[MDY]+/g;
@@ -46,6 +44,8 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
             }
             lastMatchIndex = match.index + match[0].length;
         }
+
+        this.value = this.value;
     }
 
     writeValue(val: string) {
@@ -53,14 +53,26 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
     }
 
     set value(val: string) {
+        if (!this.dayInput || !this.monthInput || !this.yearInput) {
+            return;
+        }
+
         const date = new Date(val);
-        this.dayControl.setValue(String(date.getDate()));
-        this.monthControl.setValue(String(date.getMonth() + 1));
-        this.yearControl.setValue(String(date.getFullYear()));
+        this.dayInput.nativeElement.value = String(date.getDate());
+        this.monthInput.nativeElement.value = String(date.getMonth() + 1);
+        this.yearInput.nativeElement.value = String(date.getFullYear());
     }
 
     get value(): string {
-        return this.getIsoValue(this.yearControl.value, this.monthControl.value, this.dayControl.value);
+        if (!this.dayInput || !this.monthInput || !this.yearInput) {
+            return this.lastValue;
+        }
+
+        return this.getIsoValue(
+            this.yearInput.nativeElement.value,
+            this.monthInput.nativeElement.value,
+            this.dayInput.nativeElement.value
+        );
     }
 
 
@@ -75,9 +87,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
     onBlur() {
         if (this.inputIsValid(this.value)) {
             this.onChange();
-        } else {
-            // this.value = this.lastValue;
+        } else if (!this.skipNextBlurRevert) {
+            const dateInputs: Element[] = [this.dayInput.nativeElement, this.monthInput.nativeElement, this.yearInput.nativeElement];
+            if (!dateInputs.includes(document.activeElement)) {
+                this.value = this.lastValue;
+            }
         }
+
+        this.skipNextBlurRevert = false;
     }
 
     private getIsoValue(year: string, month: string, day: string): string {
@@ -103,6 +120,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
         }
     }
 
+    onInputClicked(event: MouseEvent) {
+        const input = <HTMLInputElement> event.target;
+        if (this.lastActivatedInput !== input) {
+            input.select();
+        }
+
+        this.lastActivatedInput = <HTMLInputElement> document.activeElement;
+    }
+
     onInput(part: string, input: HTMLInputElement) {
         const nextInputPart = this.getNextInputPart(part);
         if (!nextInputPart) {
@@ -114,26 +140,50 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
             return;
         }
 
+        const elementsSeparatedByNonNumber = inputValue.split(/[^0-9]/g);
+        if (elementsSeparatedByNonNumber.length > 1) {
+            this.moveToInput(
+                input,
+                elementsSeparatedByNonNumber[0],
+                elementsSeparatedByNonNumber.slice(1).join('-'),
+                nextInputPart
+            );
+            return;
+        }
+
         const maxLength = (part === 'year') ? 4 : 2;
         if (inputValue.length < maxLength) {
             return;
         }
 
         const charactersToRemain = inputValue.substr(0, maxLength);
-        const currentYear = (part === 'year') ? charactersToRemain : this.yearControl.value;
-        const currentMonth = (part === 'month') ? charactersToRemain : this.monthControl.value;
-        const currentDay = (part === 'day') ? charactersToRemain : this.dayControl.value;
+        const currentYear = (part === 'year') ? charactersToRemain : this.yearInput.nativeElement.value;
+        const currentMonth = (part === 'month') ? charactersToRemain : this.monthInput.nativeElement.value;
+        const currentDay = (part === 'day') ? charactersToRemain : this.dayInput.nativeElement.value;
         const currentValue = this.getIsoValue(currentYear, currentMonth, currentDay);
         if (!this.inputIsValid(currentValue)) {
-            input.focus();
             input.select();
             return;
         }
 
+        this.moveToInput(
+            input,
+            charactersToRemain,
+            (inputValue.length > maxLength) ? inputValue.substr(maxLength) : null,
+            nextInputPart,
+        );
+    }
+
+    private moveToInput(input: HTMLInputElement, charactersToRemain: string, charactersToBeTransfered: string, nextInputPart: string) {
+        this.skipNextBlurRevert = true;
         input.value = charactersToRemain;
         const nextInput = this.getInputForPart(nextInputPart);
-        nextInput.value = inputValue.substr(maxLength);
-        nextInput.focus();
+        if (charactersToBeTransfered) {
+            nextInput.value = charactersToBeTransfered;
+            nextInput.focus();
+        } else {
+            nextInput.select();
+        }
         this.onInput(nextInputPart, nextInput);
     }
 
@@ -144,7 +194,6 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
 
         this.lastValue = this.value;
         if (this.changeCallback) {
-            console.log('change', this.lastValue);
             this.changeCallback(this.lastValue);
         }
     }

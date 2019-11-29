@@ -4,24 +4,27 @@
             <input
                 *ngSwitchCase="'day'"
                 #dayInput
-                [formControl]="dayControl"
                 (blur)="onBlur()"
+                (click)="onInputClicked($event)"
                 (input)="onInput(part, $event.target)"
-                type="text" />
+                type="text"
+                pattern="\d*" />
             <input
                 *ngSwitchCase="'month'"
                 #monthInput
-                [formControl]="monthControl"
                 (blur)="onBlur()"
+                (click)="onInputClicked($event)"
                 (input)="onInput(part, $event.target)"
-                type="text" />
+                type="text"
+                pattern="\d*" />
             <input
                 *ngSwitchCase="'year'"
                 #yearInput
-                [formControl]="yearControl"
                 (blur)="onBlur()"
+                (click)="onInputClicked($event)"
                 (input)="onInput(part, $event.target)"
-                type="text"  />
+                type="text"
+                pattern="\d*"  />
             <span *ngSwitchDefault>{{part}}</span>
         </ng-container>
     </ng-container>
