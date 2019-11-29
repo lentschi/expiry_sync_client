@@ -11,7 +11,7 @@
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   type="text"
-                  pattern="\d*" />
+                  inputmode="numeric" />
               <input
                   *ngSwitchCase="'month'"
                   #monthInput
@@ -19,7 +19,7 @@
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   type="text"
-                  pattern="\d*" />
+                  inputmode="numeric" />
               <input
                   *ngSwitchCase="'year'"
                   #yearInput
@@ -28,7 +28,7 @@
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   type="text"
-                  pattern="\d*"  />
+                  inputmode="numeric" />
               <span *ngSwitchDefault (click)="separatorClicked(i)">{{part}}</span>
           </ng-container>
       </ng-container>
