@@ -1,6 +1,7 @@
 import { Component, Input, forwardRef, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl } from '@angular/forms';
 import * as moment from 'moment';
+import { Setting } from 'src/app/models';
 
 @Component({
     selector: 'date-picker',
@@ -17,14 +18,24 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
     partSequence: string[];
 
     @Input() dateFormat: string;
+    @Input() max: string;
+    @Input() pickerFormat: string;
+    @Input() monthsShort: string[];
+    @Input() monthsLong: string[];
+    @Input() daysShort: string[];
+    @Input() daysLong: string[];
+    @Input() cancelText: string;
+    @Input() doneText: string;
 
     @ViewChild('dayInput', {static: false}) dayInput: ElementRef<HTMLInputElement>;
     @ViewChild('monthInput', {static: false}) monthInput: ElementRef<HTMLInputElement>;
     @ViewChild('yearInput', {static: false}) yearInput: ElementRef<HTMLInputElement>;
 
+
+    ionPickerControl = new FormControl();
+
     private changeCallback: (val: string) => void;
     private touchCallback: () => void;
-    private lastValue: string;
     private skipNextBlurRevert = false;
     private lastActivatedInput: HTMLInputElement;
 
@@ -46,13 +57,25 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
         }
 
         this.value = this.value;
+        this.ionPickerControl.valueChanges.subscribe(val => {
+            this.onChange();
+        });
     }
 
     writeValue(val: string) {
-        this.lastValue = this.value = val;
+        this.value = val;
+    }
+
+    get keyboardMode(): boolean {
+        return Setting.cached('keyboardDatepickerMode') === '1';
+    }
+
+    set keyboardMode(active: boolean) {
+        Setting.set('keyboardDatepickerMode', active ? '1' : '0');
     }
 
     set value(val: string) {
+        this.ionPickerControl.setValue(val);
         if (!this.dayInput || !this.monthInput || !this.yearInput) {
             return;
         }
@@ -65,7 +88,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
 
     get value(): string {
         if (!this.dayInput || !this.monthInput || !this.yearInput) {
-            return this.lastValue;
+            return this.ionPickerControl.value;
         }
 
         return this.getIsoValue(
@@ -90,7 +113,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
         } else if (!this.skipNextBlurRevert) {
             const dateInputs: Element[] = [this.dayInput.nativeElement, this.monthInput.nativeElement, this.yearInput.nativeElement];
             if (!dateInputs.includes(document.activeElement)) {
-                this.value = this.lastValue;
+                this.value = this.ionPickerControl.value;
             }
         }
 
@@ -174,6 +197,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
         );
     }
 
+    switch(event: Event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.keyboardMode = !this.keyboardMode;
+    }
+
     private moveToInput(input: HTMLInputElement, charactersToRemain: string, charactersToBeTransfered: string, nextInputPart: string) {
         this.skipNextBlurRevert = true;
         input.value = charactersToRemain;
@@ -192,9 +221,8 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit {
             this.touchCallback();
         }
 
-        this.lastValue = this.value;
         if (this.changeCallback) {
-            this.changeCallback(this.lastValue);
+            this.changeCallback(this.ionPickerControl.value);
         }
     }
 }

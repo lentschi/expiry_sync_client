@@ -1,4 +1,4 @@
-<ng-container *ngIf="partSequence">
+<div *ngIf="partSequence" [style.display]="keyboardMode ? 'block' : 'none'">
     <ng-container *ngFor="let part of partSequence">
         <ng-container [ngSwitch]="part">
             <input
@@ -28,4 +28,19 @@
             <span *ngSwitchDefault>{{part}}</span>
         </ng-container>
     </ng-container>
-</ng-container>
+</div>
+
+<ion-datetime
+    [style.display]="keyboardMode ? 'none' : 'block'"
+    [displayFormat]="dateFormat"
+    [max]="maxExpirationDate"
+    [pickerFormat]="pickerFormat"
+    [monthShortNames]="monthsShort"
+    [monthNames]="monthsLong"
+    [dayShortNames]="daysShort"
+    [dayNames]="daysLong"
+    [cancelText]="cancelText"
+    [doneText]="doneText"
+    [formControl]="ionPickerControl"
+    required></ion-datetime>
+<button (click)="switch($event)">Switch</button>

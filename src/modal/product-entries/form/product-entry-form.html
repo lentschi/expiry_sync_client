@@ -47,23 +47,17 @@
     </div>
     <ion-item>
       <ion-label position="floating" translate>expiration date</ion-label>
-      <ion-datetime
-        [displayFormat]="dateFormat"
-        [max]="maxExpirationDate"
-        [pickerFormat]="pickerFormat"
-        [monthShortNames]="monthsShort"
-        [monthNames]="monthsLong"
-        [dayShortNames]="daysShort"
-        [dayNames]="daysLong"
-        [cancelText]="'cancel' | translate"
-        [doneText]="'done' | translate"
-        [(ngModel)]="productEntry.expirationDateIsoStr"
-        required
-        name="expirationDate"
-        #expirationDate="ngModel"></ion-datetime>
     </ion-item>
     <date-picker
       [dateFormat]="dateFormat"
+      [max]="maxExpirationDate"
+      [pickerFormat]="pickerFormat"
+      [monthsShort]="monthsShort"
+      [monthsLong]="monthsLong"
+      [daysShort]="daysShort"
+      [daysLong]="daysLong"
+      [cancelText]="'cancel' | translate"
+      [doneText]="'done' | translate"
       [(ngModel)]="productEntry.expirationDateIsoStr"
       name="expirationDate"
       required
