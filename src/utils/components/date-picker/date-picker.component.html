@@ -1,7 +1,7 @@
 <div class="label">{{label}}</div>
 
-<div class="date-picker">
-  <div *ngIf="partSequence" [style.display]="keyboardMode ? 'block' : 'none'" class="keyboard-date-input-wrapper">
+<div class="date-picker" (click)="wrapperClicked($event)">
+  <div *ngIf="partSequence" class="keyboard-date-input-wrapper">
       <ng-container *ngFor="let part of partSequence; let i = index">
           <ng-container [ngSwitch]="part">
               <input
@@ -10,6 +10,7 @@
                   (blur)="onBlur()"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
                   type="text"
                   inputmode="numeric" />
               <input
@@ -18,6 +19,7 @@
                   (blur)="onBlur()"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
                   type="text"
                   inputmode="numeric" />
               <input
@@ -27,6 +29,7 @@
                   (blur)="onBlur()"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
                   type="text"
                   inputmode="numeric" />
               <span *ngSwitchDefault (click)="separatorClicked(i)">{{part}}</span>
@@ -36,7 +39,6 @@
 
   <ion-datetime
       #ionPicker
-      [style.display]="keyboardMode ? 'none' : 'block'"
       [displayFormat]="dateFormat"
       [max]="max"
       [pickerFormat]="pickerFormat"
@@ -49,10 +51,8 @@
       [formControl]="ionPickerControl"
       required></ion-datetime>
 
-  <ion-button color="light" type="button" class="switch" size="small" (click)="enableKeyboardMode($event)">
-    <ion-icon slot="icon-only" name="keypad"></ion-icon>
-  </ion-button>
-  <ion-button  color="light" type="button" class="switch" size="small" (click)="enableKeyboardMode($event, false)">
-    <ion-icon slot="icon-only" name="open"></ion-icon>
-  </ion-button>
+  <ion-icon (click)="openMatPicker($event)" size="large" name="calendar" class="switch"></ion-icon>
+  <ion-icon (click)="openIonPicker($event)" size="large" name="open" class="switch"></ion-icon>
+  <input matInput [matDatepicker]="matPicker" [formControl]="matPickerControl">
+  <mat-datepicker #matPicker></mat-datepicker>
 </div>

@@ -1,8 +1,9 @@
-import { Component, Input, forwardRef, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, Input, forwardRef, OnInit, ViewChild, ElementRef, AfterViewChecked, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl } from '@angular/forms';
 import * as moment from 'moment';
 import { Setting } from 'src/app/models';
 import { IonDatetime } from '@ionic/angular';
+import { MatDatepicker } from '@angular/material';
 
 @Component({
   selector: 'date-picker',
@@ -30,13 +31,19 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   @Input() doneText: string;
   @Input() label: string;
 
+  @Output() matPickerOpened = new EventEmitter<void>();
+  @Output() matPickerChange = new EventEmitter<void>();
+
   @ViewChild('dayInput', { static: false }) dayInput: ElementRef<HTMLInputElement>;
   @ViewChild('monthInput', { static: false }) monthInput: ElementRef<HTMLInputElement>;
   @ViewChild('yearInput', { static: false }) yearInput: ElementRef<HTMLInputElement>;
   @ViewChild('ionPicker', { static: false }) ionPicker: IonDatetime;
+  @ViewChild('matPicker', { static: false }) matPicker: MatDatepicker<Date>;
 
 
   ionPickerControl = new FormControl();
+  matPickerControl = new FormControl();
+  matPickerOpen: boolean;
 
   private changeCallback: (val: string) => void;
   private touchCallback: () => void;
@@ -65,17 +72,18 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     this.ionPickerControl.valueChanges.subscribe(val => {
       this.onChange();
     });
+
+    this.matPickerControl.valueChanges.subscribe((val: moment.Moment) => {
+        this.value = val.toISOString();
+        this.matPickerChange.emit();
+    });
   }
 
   ngAfterViewChecked() {
     if (this.selectFirstInputAfterViewChecked) {
       this.selectFirstInputAfterViewChecked = false;
 
-      const firstPart = this.partSequence.find(currentPart =>
-        ['day', 'month', 'year'].includes(currentPart)
-      );
-      const firstInput = this.getInputForPart(firstPart);
-      firstInput.select();
+      this.selectFirstInput();
     }
   }
 
@@ -84,16 +92,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     this.value = val;
   }
 
-  get keyboardMode(): boolean {
-    return Setting.cached('keyboardDatepickerMode') === '1';
-  }
 
-  set keyboardMode(active: boolean) {
-    Setting.set('keyboardDatepickerMode', active ? '1' : '0');
-  }
 
   set value(val: string) {
     this.ionPickerControl.setValue(val);
+    this.matPickerControl.setValue(moment(val), {emitEvent: false});
     if (!this.dayInput || !this.monthInput || !this.yearInput) {
       return;
     }
@@ -125,14 +128,22 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     this.touchCallback = fn;
   }
 
+  private get anyDateInputActive(): boolean {
+    const dateInputs: Element[] = [this.dayInput.nativeElement, this.monthInput.nativeElement, this.yearInput.nativeElement];
+    return dateInputs.includes(document.activeElement);
+  }
+
   onBlur() {
+    this.dayInput.nativeElement.value = this.dayInput.nativeElement.value.padStart(2, '0');
+    this.monthInput.nativeElement.value = this.monthInput.nativeElement.value.padStart(2, '0');
+    this.yearInput.nativeElement.value = this.yearInput.nativeElement.value.padStart(4, '0');
     if (this.inputIsValid(this.value)) {
       this.ionPickerControl.setValue(this.value);
       this.onChange();
     } else if (!this.skipNextBlurRevert) {
-      const dateInputs: Element[] = [this.dayInput.nativeElement, this.monthInput.nativeElement, this.yearInput.nativeElement];
-      if (!dateInputs.includes(document.activeElement)) {
+      if (!this.anyDateInputActive) {
         this.value = this.ionPickerControl.value;
+        this.lastActivatedInput = null;
       }
     }
 
@@ -150,6 +161,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     }
   }
 
+  private selectFirstInput() {
+    const firstPart = this.partSequence.find(currentPart =>
+        ['day', 'month', 'year'].includes(currentPart)
+    );
+    const firstInput = this.getInputForPart(firstPart);
+    firstInput.select();
+    this.lastActivatedInput = firstInput;
+  }
+
   private getIsoValue(year: string, month: string, day: string): string {
     return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00.000Z`;
   }
@@ -165,6 +185,13 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     );
   }
 
+  private getPreviousInputPart(part: string): string {
+    const partIndex = this.partSequence.indexOf(part);
+    return this.partSequence.slice(0, partIndex).reverse().find(currentPart =>
+      ['day', 'month', 'year'].includes(currentPart)
+    );
+  }
+
   private getInputForPart(part: string): HTMLInputElement {
     switch (part) {
       case 'day': return this.dayInput ? this.dayInput.nativeElement : null;
@@ -174,12 +201,38 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   }
 
   onInputClicked(event: MouseEvent) {
+    if (!this.lastActivatedInput) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.selectFirstInput();
+        return;
+    }
+
     const input = <HTMLInputElement>event.target;
     if (this.lastActivatedInput !== input) {
       input.select();
     }
 
     this.lastActivatedInput = <HTMLInputElement>document.activeElement;
+  }
+
+  wrapperClicked(event: MouseEvent) {
+    if (!this.anyDateInputActive) {
+        this.selectFirstInput();
+    }
+  }
+
+  backspacePressed(part: string, input: HTMLInputElement) {
+    if (input.value !== '') {
+        return;
+    }
+
+    const previousInputPart = this.getPreviousInputPart(part);
+    if (!previousInputPart) {
+      return;
+    }
+
+    this.getInputForPart(previousInputPart).select();
   }
 
   onInput(part: string, input: HTMLInputElement) {
@@ -191,6 +244,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     const inputValue = input.value;
     if (input.selectionStart < inputValue.length - 1) {
       return;
+    }
+
+    if (inputValue.match(/^[^0-9]$/)) {
+        input.value = '';
+        return;
     }
 
     const elementsSeparatedByNonNumber = inputValue.split(/[^0-9]/g);
@@ -227,17 +285,20 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     );
   }
 
-  enableKeyboardMode(event: Event, enable = true) {
+  openIonPicker(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.keyboardMode = enable;
-
-    if (!enable) {
-      this.ionPicker.open();
-    } else {
-      this.selectFirstInputAfterViewChecked = true;
-    }
+    this.ionPicker.open();
   }
+
+  openMatPicker(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.matPicker.open();
+    this.matPickerOpen = true;
+    this.matPickerOpened.emit();
+  }
+
 
   private moveToInput(input: HTMLInputElement, charactersToRemain: string, charactersToBeTransfered: string, nextInputPart: string) {
     this.skipNextBlurRevert = true;
@@ -249,6 +310,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     } else {
       nextInput.select();
     }
+    this.lastActivatedInput = nextInput;
     this.onInput(nextInputPart, nextInput);
   }
 

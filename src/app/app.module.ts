@@ -47,6 +47,8 @@ import { AppHttpParamsInterceptor } from './app.http-params-interceptor';
 import { SettingWeekdaysElement } from 'src/modal/settings/edit/types/weekdays/setting-weekdays';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { DatePickerComponent } from 'src/utils/components/date-picker/date-picker.component';
+import { MatDatepickerModule } from '@angular/material';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -116,6 +118,8 @@ export function createTranslateLoader(http: HttpClient) {
     EllipsisModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
+    MatDatepickerModule,
+    MatMomentDateModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

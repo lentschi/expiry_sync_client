@@ -10,6 +10,7 @@
 
   .date-picker {
     display: flex;
+    align-items: center;
     width: 100%;
     margin-top: 6px;
 
@@ -30,14 +31,28 @@
     }
 
     ion-datetime {
+      position: absolute;
+      visibility: hidden;
       --padding-start: 0px;
       --padding-end: 0px;
       --padding-top: 0px;
       --padding-bottom: 0px;
     }
 
-    ion-button.switch {
-      margin: 5px;
+    ion-icon.switch {
+      padding: 3px 10px;
+      margin-top: -15px;
+      color: var(--ion-color-medium-shade);
+    }
+
+    input[matInput] {
+      visibility: hidden;
+      width: 1px;
+      height: 1px;
+    }
+
+    .md-datepicker-input-container {
+      width: 100%;
     }
   }
 }

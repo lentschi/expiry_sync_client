@@ -23,6 +23,7 @@ import { AlternateServersChoiceModal } from 'src/modal/alternate-servers/choice/
 import { SynchronizationHandler } from './services/synchronization-handler.service';
 import * as _ from 'lodash';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
+import { DateAdapter } from '@angular/material';
 
 declare var window: any;
 declare var cordova: any;
@@ -184,7 +185,8 @@ export class ExpirySync extends ExpirySyncController {
     private localNotifications: LocalNotifications,
     private uiHelper: UiHelper,
     public device: Device,
-    private backgroundMode: BackgroundMode
+    private backgroundMode: BackgroundMode,
+    private dateAdapter: DateAdapter<any>
   ) {
     super(translate);
     ExpirySync.appInstance = this;
@@ -858,6 +860,7 @@ export class ExpirySync extends ExpirySyncController {
   private async switchLanguage(localeId: string, dateFormatLocaleId: string) {
     this.translateSvc.use(localeId);
     moment.locale(dateFormatLocaleId);
+    this.dateAdapter.setLocale(dateFormatLocaleId);
     this.events.publish('app:timeLocaleAdjusted');
     Setting.setLanguageDependentLabels();
   }

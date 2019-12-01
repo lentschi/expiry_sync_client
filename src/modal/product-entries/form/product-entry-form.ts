@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NavParams, ModalController, Platform, ToastController, IonInput } from '@ionic/angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
@@ -29,6 +29,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
   dateFormat: string;
   pickerFormat: string;
   displayLocation = false;
+  preventNextBarcodeBlur = false;
   readonly monthsShort = moment.monthsShort();
   readonly monthsLong = moment.months();
   readonly daysShort = moment.weekdaysShort();
@@ -45,6 +46,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
    * getNativeElement().querySelector('input')
    */
   @ViewChild('barcodeItem', { static: false }) barcodeItem: any;
+  @ViewChild('barcode', { static: false }) barcode: IonInput;
   @ViewChild('articleNameItem', { static: false }) articleNameItem: IonInput;
 
   constructor(
@@ -107,8 +109,18 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   }
 
+  async matPickerFix() {
+    this.preventNextBarcodeBlur = true;
+    const input = await this.barcode.getInputElement();
+    input.blur();
+  }
 
   async loadArticleByBarcode() {
+    if (this.preventNextBarcodeBlur) {
+      this.preventNextBarcodeBlur = false;
+      return;
+    }
+
     if (!this.productEntry.article.barcode || this.productEntry.article.barcode.length === 0) {
       return;
     }
