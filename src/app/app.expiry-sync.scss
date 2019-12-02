@@ -105,6 +105,6 @@
     margin-right: 0.5rem;
   }
 
-  .cdk-overlay-backdrop {
-    background-color: rgba(20,20,20,0.5);
+  .mat-calendar-body-selected {
+    background-color: var(--ion-color-primary);
   }

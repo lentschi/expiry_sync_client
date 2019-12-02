@@ -7,7 +7,7 @@
               <input
                   *ngSwitchCase="'day'"
                   #dayInput
-                  (blur)="onBlur()"
+                  (blur)="onBlur($event.target)"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   (keydown.backspace)="backspacePressed(part, $event.target)"
@@ -16,7 +16,7 @@
               <input
                   *ngSwitchCase="'month'"
                   #monthInput
-                  (blur)="onBlur()"
+                  (blur)="onBlur($event.target)"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   (keydown.backspace)="backspacePressed(part, $event.target)"
@@ -26,7 +26,7 @@
                   *ngSwitchCase="'year'"
                   #yearInput
                   class="year-input"
-                  (blur)="onBlur()"
+                  (blur)="onBlur($event.target)"
                   (click)="onInputClicked($event)"
                   (input)="onInput(part, $event.target)"
                   (keydown.backspace)="backspacePressed(part, $event.target)"
@@ -49,10 +49,12 @@
       [cancelText]="cancelText"
       [doneText]="doneText"
       [formControl]="ionPickerControl"
+      (ionCancel)="ionPickerOpen = false"
+      (ionChange)="onChange()"
       required></ion-datetime>
 
-  <ion-icon (click)="openMatPicker($event)" size="large" name="calendar" class="switch"></ion-icon>
-  <ion-icon (click)="openIonPicker($event)" size="large" name="open" class="switch"></ion-icon>
+  <ion-icon (click)="openMatPicker($event)" [class.active]="matPickerOpen" size="large" name="calendar" class="switch"></ion-icon>
+  <ion-icon (click)="openIonPicker($event)" [class.active]="ionPickerOpen" size="large" name="open" class="switch"></ion-icon>
   <input matInput [matDatepicker]="matPicker" [formControl]="matPickerControl">
-  <mat-datepicker #matPicker></mat-datepicker>
+  <mat-datepicker #matPicker touchUi (closed)="matPickerOpen = false"></mat-datepicker>
 </div>
