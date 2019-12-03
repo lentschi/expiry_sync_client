@@ -32,7 +32,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   @Input() label: string;
 
   @Output() matPickerOpened = new EventEmitter<void>();
-  @Output() matPickerChange = new EventEmitter<void>();
+  @Output() matPickerClosed = new EventEmitter<void>();
 
   @ViewChild('dayInput', { static: false }) dayInput: ElementRef<HTMLInputElement>;
   @ViewChild('monthInput', { static: false }) monthInput: ElementRef<HTMLInputElement>;
@@ -72,7 +72,6 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     this.value = this.value;
     this.matPickerControl.valueChanges.subscribe((val: moment.Moment) => {
       this.value = val.toISOString();
-      this.matPickerChange.emit();
     });
   }
 
@@ -301,6 +300,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
     this.matPicker.open();
     this.matPickerOpen = true;
     this.matPickerOpened.emit();
+  }
+
+  onMatPickerClose() {
+    this.matPickerOpen = false;
+    this.matPickerClosed.emit();
   }
 
 

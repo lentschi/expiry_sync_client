@@ -29,7 +29,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
   dateFormat: string;
   pickerFormat: string;
   displayLocation = false;
-  preventNextBarcodeBlur = false;
+  preventLoadingArticleOnBarcodeBlur = false;
   readonly monthsShort = moment.monthsShort();
   readonly monthsLong = moment.months();
   readonly daysShort = moment.weekdaysShort();
@@ -109,15 +109,25 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   }
 
-  async matPickerFix() {
-    this.preventNextBarcodeBlur = true;
-    const input = await this.barcode.getInputElement();
-    input.blur();
+  async focusedBarcode() {
+    if (this.preventLoadingArticleOnBarcodeBlur) {
+      const input = await this.barcode.getInputElement();
+      input.blur();
+    }
+  }
+
+  matPickerOpened() {
+    this.preventLoadingArticleOnBarcodeBlur = true;
+  }
+
+  matPickerClosed() {
+    this.preventLoadingArticleOnBarcodeBlur = false;
   }
 
   async loadArticleByBarcode() {
-    if (this.preventNextBarcodeBlur) {
-      this.preventNextBarcodeBlur = false;
+    if (this.preventLoadingArticleOnBarcodeBlur) {
+      const input = await this.barcode.getInputElement();
+      input.blur();
       return;
     }
 

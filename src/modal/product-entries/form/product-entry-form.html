@@ -30,6 +30,7 @@
       <ion-item #barcodeItem>
         <ion-input
           [(ngModel)]="productEntry.article.barcode"
+          (ionFocus)="focusedBarcode()"
           (ionBlur)="loadArticleByBarcode()"
           name="barcode"
           maxlength="255"
@@ -57,8 +58,8 @@
       [cancelText]="'cancel' | translate"
       [doneText]="'done' | translate"
       [(ngModel)]="productEntry.expirationDateIsoStr"
-      (matPickerOpened)="matPickerFix()"
-      (matPickerChange)="matPickerFix()"
+      (matPickerOpened)="matPickerOpened()"
+      (matPickerClosed)="matPickerClosed()"
       name="expirationDate"
       required></date-picker>
       <!-- <div>Val: {{productEntry.expirationDateIsoStr | json}}</div> -->
