@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import { Setting } from 'src/app/models';
 import { IonDatetime } from '@ionic/angular';
 import { MatDatepicker } from '@angular/material';
+import { ExpirySync } from 'src/app/app.expiry-sync';
 
 @Component({
   selector: 'date-picker',
@@ -51,6 +52,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   private skipNextBlurRevert = false;
   private lastActivatedInput: HTMLInputElement;
   private selectFirstInputAfterViewChecked: boolean;
+  private app = ExpirySync.getInstance();
 
   ngOnInit() {
     const re = /[MDY]+/g;
@@ -295,6 +297,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   }
 
   openMatPicker(event: Event) {
+    this.app.backButtonOverrideCallback = () => {
+      this.matPicker.close();
+    };
+
     event.preventDefault();
     event.stopPropagation();
     this.matPicker.open();
@@ -303,6 +309,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, AfterV
   }
 
   onMatPickerClose() {
+    this.app.backButtonOverrideCallback = null;
     this.matPickerOpen = false;
     this.matPickerClosed.emit();
   }

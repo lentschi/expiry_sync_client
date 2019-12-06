@@ -232,6 +232,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
           this.focusBarcodeInput();
         } else {
           this.onBarcodeScanned(barcodeData.text);
+          this.app.preventNextBackButton = false;
         }
       }).catch(async (e) => {
         console.log('barcodeScanner did not return a barcode', e);

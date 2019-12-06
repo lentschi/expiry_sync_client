@@ -143,6 +143,8 @@ export class ExpirySync extends ExpirySyncController {
    */
   loaderBackButtonCallback: Function;
 
+  backButtonOverrideCallback: Function;
+
   /**
    * If true, the app will exit right after showing the reminder
    */
@@ -357,6 +359,11 @@ export class ExpirySync extends ExpirySyncController {
     this.platform.backButton.subscribeWithPriority(9999, async () => {
       if (this.preventNextBackButton) {
         this.preventNextBackButton = false;
+        return;
+      }
+
+      if (this.backButtonOverrideCallback) {
+        this.backButtonOverrideCallback();
         return;
       }
 
