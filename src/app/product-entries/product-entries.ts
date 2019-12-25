@@ -187,7 +187,7 @@ export class ProductEntriesPage extends ExpirySyncController {
           if (this.productEntries.filterValue !== '') {
             this.productEntries.filterValue += ' ';
           }
-          this.productEntries.filterValue += 'by:' + this.app.currentUser.userName;
+          this.productEntries.filterValue += `by:"${this.app.currentUser.userName.replace(/"/g, '\\"')}" `;
           this.showFilter = true;
           this.showListAndFilters();
         };

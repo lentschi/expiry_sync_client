@@ -37,7 +37,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
       <ion-item>
-        <ion-input [(ngModel)]="productEntries.filterValue" (keyup)="showListAndFilters()" maxlength="255" #filterField></ion-input>
+        <ion-input [(ngModel)]="productEntries.filterValue" (ngModelChange)="showListAndFilters()" maxlength="255" #filterField></ion-input>
       </ion-item>
       <ion-button class="clear-btn" *ngIf="productEntries.filterValue != ''" (click)="clearFilterValue()">
         <ion-icon name="close"></ion-icon>
