@@ -523,7 +523,6 @@ export class ExpirySync extends ExpirySyncController {
 
     let productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
-      .order('expirationDate', true)
       .prefetch('article')
       .prefetch('location')
       .list();

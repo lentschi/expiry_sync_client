@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Device } from '@ionic-native/device/ngx';
 import * as migrations from '../config/migrations';
 import { Setting } from 'src/app/models';
+import { AppModel } from './orm';
+import { IndexedMigration } from 'src/config/indexed-migrations/indexed-migration';
 
 // https://x-team.com/blog/include-javascript-libraries-in-an-ionic-2-typescript-project/
 // https://ionicframework.com/docs/v2/resources/app-scripts/
@@ -14,13 +16,15 @@ declare var openDatabase: any;
 export class DbManager {
   private rawDb;
 
-  constructor(private device: Device) { }
+  constructor(private device: Device, @Inject(IndexedMigration) private indexedMigrations: IndexedMigration[]) { }
 
   public async initialize(preventSqlite: boolean): Promise<any> {
     this.configure(preventSqlite);
     await this.migrateFromV0_7();
     this.loadMigrations();
     await this.runMigrations();
+
+    await AppModel.migrateIndexedDb(this.indexedMigrations);
   }
 
   async executeSql(sql: string, params?: Array<any>): Promise<any> {

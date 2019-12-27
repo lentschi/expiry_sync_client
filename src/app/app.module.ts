@@ -49,6 +49,7 @@ import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { DatePickerComponent } from 'src/utils/components/date-picker/date-picker.component';
 import { MatDatepickerModule } from '@angular/material';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { IndexedMigrationsModule } from 'src/config/indexed-migrations/indexed-migrations.module';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -126,7 +127,8 @@ export function createTranslateLoader(http: HttpClient) {
         useFactory: (createTranslateLoader),
         deps: [HttpClient]
       }
-    })
+    }),
+    IndexedMigrationsModule
   ],
   providers: [
     DbManager,

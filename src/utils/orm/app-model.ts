@@ -4,6 +4,17 @@ import { QueryCollection } from './query-collection';
 import { RecordNotFoundError } from './errors/record-not-found-error';
 import 'reflect-metadata';
 import {v1 as uuid} from 'uuid';
+import { IndexedMigration } from 'src/config/indexed-migrations/indexed-migration';
+
+export function Indexed() {
+  return function (object: any, propertyName: string) {
+    const modelClass: typeof AppModel = object.constructor;
+    if (!modelClass.indexedProperties) {
+      modelClass.indexedProperties = [];
+    }
+    modelClass.indexedProperties.push(propertyName);
+  };
+}
 
 export function Column(colType?: string) {
   return function (object: any, propertyName: string) {
@@ -82,8 +93,12 @@ export class AppModel {
   }
   private static internalEntity;
   private static typeMap;
-  private static hasOneRelations;
+  static hasOneRelations: {[propertyName: string]: string};
   private static modelRegistry = [];
+
+  // indexed db:
+  private static db: IDBDatabase;
+  static indexedProperties: string[];
 
   /**
    * the db table name
@@ -97,6 +112,32 @@ export class AppModel {
   private internalInstance;
 
   private deleted = false;
+
+  static async migrateIndexedDb(migrations: IndexedMigration[]) {
+    let upgradeNeeded = false;
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open('ExpirySync', migrations.length);
+      request.onerror = error => reject(error);
+      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        upgradeNeeded = true;
+        const db: IDBDatabase = (<IDBRequest> event.target).result;
+        this.db = db;
+        for (const migration of migrations) {
+          const transaction = migration.migrate(db);
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = e => reject(e);
+        }
+      };
+
+      request.onsuccess = (event) => {
+        if (!upgradeNeeded) {
+          const db: IDBDatabase = (<IDBRequest> event.target).result;
+          this.db = db;
+          resolve();
+        }
+      };
+    });
+  }
 
   static loadDefinitions() {
     this.internalEntity = persistence.define(this.tableName, this.typeMap);
@@ -115,7 +156,7 @@ export class AppModel {
     this.modelRegistry[modelName] = modelClass;
   }
 
-  static getModelClass(modelName: string) {
+  static getModelClass(modelName: string): typeof AppModel {
     return this.modelRegistry[modelName];
   }
 
@@ -150,9 +191,9 @@ export class AppModel {
    * @return {QueryCollection} the model's query collection
    */
   static all(): QueryCollection {
-    this.resetEntityRelations();
-    const persistenceQueryCollection = this.internalEntity.all();
-    return new QueryCollection(persistenceQueryCollection, this, this.internalEntity);
+    // this.resetEntityRelations();
+    // const persistenceQueryCollection = this.internalEntity.all();
+    return new QueryCollection(this.db, this);
   }
 
   /**
@@ -162,21 +203,10 @@ export class AppModel {
    * @return {Promise<AppModel>}              an AppModel instance for the record retrieved from the db
    */
   static findBy(propertyName: string, value: any): Promise<AppModel> {
-    return new Promise((resolve, reject) => {
-      if (propertyName === 'id') {
-        value = this.realIdToPersistenceId(value);
-      }
-      this.resetEntityRelations();
-      this.internalEntity.findBy(propertyName, value, (instance) => {
-        if (instance === null) {
-          reject(new RecordNotFoundError());
-          return;
-        }
-
-        const modelInstance: AppModel = this.createFromPersistenceInstance(instance);
-        resolve(modelInstance);
-      });
-    });
+    return this
+      .all()
+      .filter(propertyName, '=', value)
+      .one();
   }
 
   /**
@@ -196,7 +226,7 @@ export class AppModel {
     });
   }
 
-  private static flushPersistence(): Promise<void> {
+  static flushPersistence(): Promise<void> {
     return new Promise<void>((resolve) => {
       persistence.flush(() => {
         resolve();
@@ -204,46 +234,30 @@ export class AppModel {
     });
   }
 
-  static createFromPersistenceInstance(instance): AppModel {
-    if (instance === null) {
+  static async createFromIndexedDbResult(data: any, relationsToLoad: string[]): Promise<AppModel> {
+    if (data === null) {
       throw new Error('Cannot create instance with no data');
     }
     const modelInstance: AppModel = new this();
     for (const propertyName of Object.keys(this.typeMap)) {
-      try {
-        modelInstance[propertyName] = propertyName === 'id' ? this.persistenceIdToRealId(instance[propertyName]) : instance[propertyName];
-      } catch (e) {
-        // Ignore errors of fields that should have been preloaded but weren't
-        // console.error("persistencejs field getter error", e);
-        modelInstance[propertyName] = instance._data[propertyName];
-      }
+      modelInstance[propertyName] = data[propertyName];
     }
-    modelInstance.internalInstance = instance;
 
-    // load has one relations if they have been prefetched:
-    if (!this.hasOneRelations) {
-      this.hasOneRelations = {};
-    }
-    for (const propertyName of Object.keys(this.hasOneRelations)) {
-      const relationName: string = this.hasOneRelations[propertyName];
-      const relatedModelClass = AppModel.getModelClass(relationName);
-      // persistencejs instance stores the submodel under the foreign key name:
-      const foreignKeyName: string = AppModel.buildForeignKeyName(propertyName);
-      let subInstance;
-      try {
-        subInstance = instance[foreignKeyName];
-      } catch (e) {
-        // Ignore errors of fields that should have been preloaded but weren't
-        // console.error("persistencejs hasOne field getter error", e);
-      }
-      if (subInstance && typeof subInstance !== 'string') {
-        modelInstance[propertyName] = relatedModelClass.createFromPersistenceInstance(subInstance);
-        modelInstance[foreignKeyName] = relatedModelClass.persistenceIdToRealId(modelInstance[propertyName].id);
+    if (this.hasOneRelations) {
+      for (const propertyName of Object.keys(this.hasOneRelations)) {
+        if (!relationsToLoad.includes(propertyName)) {
+          continue;
+        }
+
+        const relationName: string = this.hasOneRelations[propertyName];
+        const relatedModelClass = AppModel.getModelClass(relationName);
+        modelInstance[propertyName] = await relatedModelClass.findBy('id', modelInstance[propertyName + 'Id']);
       }
     }
 
     return modelInstance;
   }
+
 
   private static persistenceIdToRealId(id: string): string {
     if (this.allowImplicitCreation && id && id.startsWith(`${this.tableName}-`)) {
@@ -297,50 +311,74 @@ export class AppModel {
       throw new Error('Cannot save deleted model instance');
     }
 
-    const modelClass: any = this.constructor;
-    let newInstance = false;
+    const modelClass = <typeof AppModel> this.constructor;
+    // let newInstance = false;
 
-    if (this.updateId) {
-      try {
-        await this.setUpdateId(this.updateId);
-        this.updateId = null;
-      } catch (e) {
-        if (e instanceof RecordNotFoundError && modelClass.allowImplicitCreation) {
-          newInstance = true;
-        } else {
-          throw e;
-        }
+    // if (this.updateId) {
+    //   try {
+    //     await this.setUpdateId(this.updateId);
+    //     this.updateId = null;
+    //   } catch (e) {
+    //     if (e instanceof RecordNotFoundError && modelClass.allowImplicitCreation) {
+    //       newInstance = true;
+    //     } else {
+    //       throw e;
+    //     }
+    //   }
+    // }
+
+    // if (!newInstance && this.internalInstance) {
+    //   await this.reloadInternalInstance();
+    // } else {
+    //   newInstance = true;
+    //   this.internalInstance = new modelClass.internalEntity();
+    //   this.internalInstance.id = this.updateId || uuid();
+    // }
+
+    // for (const propertyName of Object.keys(modelClass.typeMap)) {
+    //   try {
+    //     const propertyType = modelClass.typeMap[propertyName];
+    //     let propertyValue = this[propertyName];
+    //     if (propertyType === 'BOOL' && typeof propertyValue === 'undefined') {
+    //       // persistencejs would handle undefined as NULL, but for booleans
+    //       // we want false here:
+    //       propertyValue = false;
+    //     }
+
+    //     propertyValue = modelClass.convertAnyIdToPersistence(propertyName, propertyValue);
+    //     this.internalInstance[propertyName] = propertyValue;
+    //   } catch (e) {
+    //     console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance, e);
+    //   }
+    // }
+
+    // if (newInstance) {
+    //   persistence.add(this.internalInstance);
+    // }
+
+    // indexedDB:
+    await new Promise(async(resolve, reject) => {
+      const data: any = {};
+      for (const propertyName of Object.keys(modelClass.typeMap)) {
+        const propertyValue = this[propertyName];
+        data[propertyName] = propertyValue;
       }
-    }
 
-    if (!newInstance && this.internalInstance) {
-      await this.reloadInternalInstance();
-    } else {
-      newInstance = true;
-      this.internalInstance = new modelClass.internalEntity();
-      this.internalInstance.id = this.updateId || uuid();
-    }
+      const exists = await this.exists();
+      const transaction = modelClass.db
+        .transaction([modelClass.tableName], 'readwrite');
+      const store = transaction.objectStore(modelClass.tableName);
 
-    for (const propertyName of Object.keys(modelClass.typeMap)) {
-      try {
-        const propertyType = modelClass.typeMap[propertyName];
-        let propertyValue = this[propertyName];
-        if (propertyType === 'BOOL' && typeof propertyValue === 'undefined') {
-          // persistencejs would handle undefined as NULL, but for booleans
-          // we want false here:
-          propertyValue = false;
-        }
-
-        propertyValue = modelClass.convertAnyIdToPersistence(propertyName, propertyValue);
-        this.internalInstance[propertyName] = propertyValue;
-      } catch (e) {
-        console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance, e);
+      if (exists) {
+        store.put(data, this.id);
+      } else {
+        this.id = this.id || uuid();
+        store.add(data, this.id);
       }
-    }
 
-    if (newInstance) {
-      persistence.add(this.internalInstance);
-    }
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = e => reject(e);
+    });
 
     return await AppModel.flushPersistence();
   }
@@ -350,13 +388,24 @@ export class AppModel {
    * @return {Promise<void>} resolved as soon as the record has been removed
    */
   async delete(): Promise<void> {
-    if (!this.internalInstance) {
-      await this.reloadInternalInstance();
-    }
-    persistence.remove(this.internalInstance);
-    this.deleted = true;
+    // if (!this.internalInstance) {
+    //   await this.reloadInternalInstance();
+    // }
+    // persistence.remove(this.internalInstance);
+    // this.deleted = true;
 
-    return AppModel.flushPersistence();
+    // await AppModel.flushPersistence();
+
+    // indexedDb:
+    await new Promise((resolve, reject) => {
+      const modelClass = (<typeof AppModel> this.constructor);
+      const request = modelClass.db
+        .transaction([modelClass.tableName], 'readwrite')
+        .objectStore(modelClass.tableName)
+        .delete(this.id);
+      request.onsuccess = () => resolve();
+      request.onerror = e => reject(e);
+    });
   }
 
   /**
@@ -364,12 +413,20 @@ export class AppModel {
    * @return {Promise<boolean>} [description]
    */
   async exists(): Promise<boolean> {
-    const found: AppModel = await (<any>this.constructor).findBy('id', this.id);
-    if (found) {
-      return true;
-    } else {
+    if (!this.id) {
       return false;
     }
+
+    const modelClass = <typeof AppModel> this.constructor;
+    const transaction = modelClass.db
+        .transaction([modelClass.tableName], 'readwrite');
+
+    const store = transaction.objectStore(modelClass.tableName);
+    return await new Promise<boolean>(resolveGet => {
+      const request = store.get(this.id);
+      request.onsuccess = () => resolveGet(true);
+      request.onerror = () => resolveGet(false);
+    });
   }
 
   clone(): AppModel {
