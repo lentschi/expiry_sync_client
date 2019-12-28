@@ -51,10 +51,18 @@ export class IDBIterator implements AsyncIterableIterator<any> {
             if (!this.cursorRequest) {
                 // Initial request -> Open the cursor and listen for subsequent success events:
                 this.cursorRequest = this.objectStore.openCursor(this.keyRange);
-                this.cursorRequest.onsuccess = (e) => {
+
+                this.cursorRequest.onerror = e => {
+                    throw e;
+                };
+
+                this.cursorRequest.onsuccess = e => {
                     this.cursor = <IDBCursorWithValue>(<any>e.target).result;
                     if (this.cursor) {
-                        this.curResolver({ value: this.cursor.value, done: false });
+                        this.curResolver({ value: {
+                            id: this.cursor.primaryKey,
+                            ...this.cursor.value
+                        }, done: false });
                     } else {
                         // We have reached the end:
                         this.curResolver({ value: null, done: true });

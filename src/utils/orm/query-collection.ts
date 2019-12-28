@@ -43,14 +43,15 @@ export class QueryCollection {
         throw e;
       }
 
+      const onlyValue: any = applicableFilters.length === 1
+        ? this.modelClass.convertToIndexedDbValue(applicableFilters[0].value)
+        : applicableFilters.map(filter => this.modelClass.convertToIndexedDbValue(filter.value));
       try {
         key = IDBKeyRange.only(
-          applicableFilters.length === 1
-            ? applicableFilters[0].value
-            : applicableFilters.map(filter => filter.value)
+          onlyValue
         );
       } catch (e) {
-        console.error('Could not create index key ', this.modelClass.tableName, indexName, applicableFilters);
+        console.error('Could not create index key ', onlyValue, this.modelClass.tableName, indexName, applicableFilters, e);
         throw e;
       }
     }
@@ -65,10 +66,12 @@ export class QueryCollection {
         if (!['=', '!=', '<>'].includes(filter.operator)) {
           throw new Error('Operator not implemented');
         }
+
+        const convertedValue = this.modelClass.convertToIndexedDbValue(filter.value);
         if ((filter.operator === '<>' || filter.operator === '!=')
-            && item[filter.property] === filter.value) {
+            && item[filter.property] === convertedValue) {
           continue;
-        } else if (filter.operator === '=' && item[filter.property] !== filter.value) {
+        } else if (filter.operator === '=' && item[filter.property] !== convertedValue) {
           continue;
         }
       }
@@ -98,17 +101,20 @@ export class QueryCollection {
     return await this.modelClass.createFromIndexedDbResult(list[0], this.relationsToLoad);
   }
 
-  delete(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      const transaction = this.db
-        .transaction([this.modelClass.tableName], 'readwrite');
-      for (const item of await this.getList()) {
-          transaction.objectStore(this.modelClass.tableName)
-            .delete(item.id);
-      }
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = e => reject(e);
-    });
+  async delete(): Promise<void> {
+    const list = await this.getList();
+    if (list.length > 0) {
+      await new Promise(async (resolve, reject) => {
+        const transaction = this.db
+          .transaction([this.modelClass.tableName], 'readwrite');
+        for (const item of list) {
+            transaction.objectStore(this.modelClass.tableName)
+              .delete(item.id);
+        }
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = e => reject(e);
+      });
+    }
   }
 
   async count(): Promise<number> {
@@ -130,7 +136,8 @@ export class QueryCollection {
       for (const item of items) {
         const store = transaction.objectStore(this.modelClass.tableName);
         for (const value of values) {
-          item[value.propertyName] = value.value;
+          const propertyType = this.modelClass.typeMap[value.propertyName];
+          item[value.propertyName] = this.modelClass.convertToIndexedDbValue(value.value, propertyType);
         }
         store.put(item, item.id);
       }

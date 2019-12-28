@@ -84,15 +84,8 @@ export class AppModel {
     return this.internalInstance.id;
   }
 
-  get id(): string {
-    return (<any> this.constructor).persistenceIdToRealId(this.persistenceId);
-  }
-
-  set id(id: string) {
-    this.updateId = (<any> this.constructor).realIdToPersistenceId(id);
-  }
   private static internalEntity;
-  private static typeMap;
+  static typeMap;
   static hasOneRelations: {[propertyName: string]: string};
   private static modelRegistry = [];
 
@@ -111,6 +104,7 @@ export class AppModel {
 
   private internalInstance;
 
+  id: string;
   private deleted = false;
 
   static async migrateIndexedDb(migrations: IndexedMigration[]) {
@@ -239,8 +233,14 @@ export class AppModel {
       throw new Error('Cannot create instance with no data');
     }
     const modelInstance: AppModel = new this();
+    modelInstance.id = data.id;
     for (const propertyName of Object.keys(this.typeMap)) {
-      modelInstance[propertyName] = data[propertyName];
+      const propertyType = this.typeMap[propertyName];
+      if (propertyType !== 'BOOL') {
+        modelInstance[propertyName] = data[propertyName];
+      } else {
+        modelInstance[propertyName] = (data[propertyName] === 1);
+      }
     }
 
     if (this.hasOneRelations) {
@@ -256,6 +256,14 @@ export class AppModel {
     }
 
     return modelInstance;
+  }
+
+  static convertToIndexedDbValue(value: any, propertyType?: string) {
+    if (typeof value === 'boolean' || propertyType === 'BOOL') {
+      return value ? 1 : 0;
+    }
+
+    return value;
   }
 
 
@@ -361,7 +369,8 @@ export class AppModel {
       const data: any = {};
       for (const propertyName of Object.keys(modelClass.typeMap)) {
         const propertyValue = this[propertyName];
-        data[propertyName] = propertyValue;
+        const propertyType = modelClass.typeMap[propertyName];
+        data[propertyName] = modelClass.convertToIndexedDbValue(propertyValue, propertyType);
       }
 
       const exists = await this.exists();
@@ -399,12 +408,13 @@ export class AppModel {
     // indexedDb:
     await new Promise((resolve, reject) => {
       const modelClass = (<typeof AppModel> this.constructor);
-      const request = modelClass.db
-        .transaction([modelClass.tableName], 'readwrite')
+      const transaction = modelClass.db
+        .transaction([modelClass.tableName], 'readwrite');
+      transaction
         .objectStore(modelClass.tableName)
         .delete(this.id);
-      request.onsuccess = () => resolve();
-      request.onerror = e => reject(e);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = e => reject(e);
     });
   }
 
@@ -417,15 +427,15 @@ export class AppModel {
       return false;
     }
 
-    const modelClass = <typeof AppModel> this.constructor;
-    const transaction = modelClass.db
-        .transaction([modelClass.tableName], 'readwrite');
-
-    const store = transaction.objectStore(modelClass.tableName);
     return await new Promise<boolean>(resolveGet => {
-      const request = store.get(this.id);
-      request.onsuccess = () => resolveGet(true);
-      request.onerror = () => resolveGet(false);
+      const modelClass = <typeof AppModel> this.constructor;
+      const transaction = modelClass.db
+          .transaction([modelClass.tableName], 'readonly');
+
+      const store = transaction.objectStore(modelClass.tableName);
+      store.get(this.id);
+      transaction.oncomplete = () => resolveGet(true);
+      transaction.onerror = () => resolveGet(false);
     });
   }
 
