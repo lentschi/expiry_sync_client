@@ -19,7 +19,26 @@ export class QueryCollection {
     return this;
   }
 
+  private getSingle(id: string): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      const transaction = this.db
+        .transaction([this.modelClass.tableName], 'readonly');
+      const store = transaction.objectStore(this.modelClass.tableName);
+      const request = store.get(id);
+      transaction.oncomplete = () => resolve(request.result);
+      transaction.onerror = e => reject(e);
+    });
+  }
+
   private async getList(): Promise<Array<any>> {
+    const idFilter = this.filters.find(filter => filter.property === 'id' && filter.operator === '=');
+    if (idFilter) {
+      if (this.filters.length > 1) {
+        throw new Error('Searching for an ID and something else is currently not supported');
+      }
+      return [await this.getSingle(idFilter.value)];
+    }
+
     const transaction = this.db
       .transaction([this.modelClass.tableName], 'readonly');
     const store = transaction.objectStore(this.modelClass.tableName);
@@ -28,7 +47,7 @@ export class QueryCollection {
     let index: IDBIndex;
     let key: IDBKeyRange = null;
     const applicableFilters = this.filters
-      .filter(filter => filter.operator === '=' && filter.value !== null);
+      .filter(filter => filter.operator === '=' && typeof filter.value !== 'undefined' && filter.value !== null);
 
     let indexName: string;
     if (applicableFilters.length > 0) {
@@ -62,22 +81,44 @@ export class QueryCollection {
     const remainingFilters = this.filters
         .filter(filter => !applicableFilters.includes(filter));
     for await (const item of iterator) {
-      for (const filter of remainingFilters) {
-        if (!['=', '!=', '<>'].includes(filter.operator)) {
-          throw new Error('Operator not implemented');
-        }
-
-        const convertedValue = this.modelClass.convertToIndexedDbValue(filter.value);
-        if ((filter.operator === '<>' || filter.operator === '!=')
-            && item[filter.property] === convertedValue) {
-          continue;
-        } else if (filter.operator === '=' && item[filter.property] !== convertedValue) {
-          continue;
-        }
+      if (this.filtersMatch(remainingFilters, item)) {
+        ret.push(item);
       }
-      ret.push(item);
     }
+    console.log(
+      `DB${this.modelClass.tableName}: FETCH`,
+      this.filters.map(filter => filter.property + filter.operator + filter.value).join(' && '),
+      ret
+    );
     return ret;
+  }
+
+  private filtersMatch(filters: {property: string, operator: string, value: any}[], item: any): boolean {
+    for (const filter of filters) {
+      if (!['=', '!=', '<>'].includes(filter.operator)) {
+        throw new Error('Operator not implemented');
+      }
+
+      const convertedValue = this.modelClass.convertToIndexedDbValue(filter.value);
+
+      if ((filter.operator === '<>' || filter.operator === '!=')
+          && (
+            item[filter.property] === convertedValue
+            || (convertedValue === null && typeof item[filter.property] === 'undefined')
+          )
+      ) {
+        return false;
+      }
+
+      if (filter.operator === '=' && (
+          item[filter.property] !== convertedValue
+          && (convertedValue !== null || typeof item[filter.property] !== 'undefined')
+      )) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   async list(): Promise<Array<AppModel>> {

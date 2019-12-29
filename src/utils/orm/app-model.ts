@@ -379,9 +379,12 @@ export class AppModel {
       const store = transaction.objectStore(modelClass.tableName);
 
       if (exists) {
+        console.log(`DB${modelClass.tableName}: PUT`, this.id, data);
         store.put(data, this.id);
       } else {
+        const idBefore = this.id;
         this.id = this.id || uuid();
+        console.log(`DB${modelClass.tableName}: ADD`, idBefore, this.id, data);
         store.add(data, this.id);
       }
 
@@ -408,6 +411,7 @@ export class AppModel {
     // indexedDb:
     await new Promise((resolve, reject) => {
       const modelClass = (<typeof AppModel> this.constructor);
+      console.log(`DB ${modelClass.tableName} DELETE`, this.id, this);
       const transaction = modelClass.db
         .transaction([modelClass.tableName], 'readwrite');
       transaction
