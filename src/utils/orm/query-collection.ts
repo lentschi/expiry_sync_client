@@ -2,8 +2,6 @@ import { AppModel } from './app-model';
 import { RecordNotFoundError } from './errors/record-not-found-error';
 import { IDBIterator } from '../idb-iterator';
 
-declare var persistence: any;
-
 export class QueryCollection {
   private relationsToLoad: string[] = [];
   private filters: {property: string, operator: string, value: any}[] = [];
@@ -14,7 +12,6 @@ export class QueryCollection {
   constructor(private db: IDBDatabase, private modelClass: typeof AppModel) { }
 
   filter(property: string, operator: string, value: any): QueryCollection {
-    value = this.modelClass.convertAnyIdToPersistence(property, value);
     this.filters.push({property, operator, value});
     return this;
   }
@@ -36,7 +33,8 @@ export class QueryCollection {
       if (this.filters.length > 1) {
         throw new Error('Searching for an ID and something else is currently not supported');
       }
-      return [await this.getSingle(idFilter.value)];
+      const result = await this.getSingle(idFilter.value);
+      return result ? [{...result, id: idFilter.value}] : [];
     }
 
     const transaction = this.db
@@ -86,7 +84,7 @@ export class QueryCollection {
       }
     }
     console.log(
-      `DB${this.modelClass.tableName}: FETCH`,
+      `DB:${this.modelClass.tableName}:FETCH`,
       this.filters.map(filter => filter.property + filter.operator + filter.value).join(' && '),
       ret
     );
@@ -136,6 +134,7 @@ export class QueryCollection {
   async one(): Promise<AppModel> {
     const list = await this.getList();
     if (list.length === 0) {
+      console.log(`DB:${this.modelClass.tableName}:NOTFOUND`, this.filters);
       throw new RecordNotFoundError();
     }
 
@@ -148,9 +147,11 @@ export class QueryCollection {
       await new Promise(async (resolve, reject) => {
         const transaction = this.db
           .transaction([this.modelClass.tableName], 'readwrite');
+
+        console.log(`DB:${this.modelClass.tableName}:DELETE_MULTI`, this.filters, list.map(item => item.id));
         for (const item of list) {
-            transaction.objectStore(this.modelClass.tableName)
-              .delete(item.id);
+          transaction.objectStore(this.modelClass.tableName)
+            .delete(item.id);
         }
         transaction.oncomplete = () => resolve();
         transaction.onerror = e => reject(e);
@@ -174,6 +175,7 @@ export class QueryCollection {
       const transaction = this.db
         .transaction([this.modelClass.tableName], 'readwrite');
 
+      console.log(`DB:${this.modelClass.tableName}:PUT_MULTI`, this.filters, items.map(item => item.id));
       for (const item of items) {
         const store = transaction.objectStore(this.modelClass.tableName);
         for (const value of values) {
