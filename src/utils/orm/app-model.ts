@@ -1,9 +1,7 @@
-declare var persistence: any;
-
 import { QueryCollection } from './query-collection';
-import { RecordNotFoundError } from './errors/record-not-found-error';
 import 'reflect-metadata';
 import {v1 as uuid} from 'uuid';
+import { RecordNotFoundError } from './errors/record-not-found-error';
 
 export function Column(colType?: string) {
   return function (object: any, propertyName: string) {
@@ -30,30 +28,30 @@ export function Column(colType?: string) {
 }
 
 export function HasOne(typeName?: string) {
-  return function (object: any, propertyName: string) {
-    if (!object.constructor.hasOneRelations) {
-      object.constructor.hasOneRelations = [];
-    }
-
+  return function (object: AppModel, propertyName: string) {
     if (!typeName) {
       const meta = Reflect.getMetadata('design:type', object, propertyName);
       typeName = meta.name;
     }
 
-    object.constructor.hasOneRelations[propertyName] = typeName;
+    const modelClass = <typeof AppModel> object.constructor;
+
+    if (!modelClass.hasOneRelations) {
+      modelClass.hasOneRelations = {};
+    }
+    modelClass.hasOneRelations[propertyName] = typeName;
   };
 }
 
 
-export function PersistenceModel(constructor: any) {
+export function PersistenceModel(constructor: typeof AppModel) {
   if (!constructor.tableName) {
     throw new Error('table name must be specified - constructor.name: ' + constructor.name);
   }
 
-  if (!constructor.loadDefinitions) {
-    throw new Error(('Class \'' + constructor.tableName + '\' must be derived from AppModel to act as a PersistenceModel'));
+  if (!constructor.hasOneRelations) {
+    constructor.hasOneRelations = {};
   }
-  constructor.loadDefinitions();
 
 
   AppModel.register(constructor.tableName, constructor);
@@ -64,26 +62,11 @@ export function PersistenceModel(constructor: any) {
  * ORM representation of a db table
  */
 export class AppModel {
-
-  get persistenceId(): string {
-    if (!this.internalInstance) {
-      return this.updateId;
-    }
-
-    return this.internalInstance.id;
-  }
-
-  get id(): string {
-    return (<any> this.constructor).persistenceIdToRealId(this.persistenceId);
-  }
-
-  set id(id: string) {
-    this.updateId = (<any> this.constructor).realIdToPersistenceId(id);
-  }
-  private static internalEntity;
-  private static typeMap;
-  private static hasOneRelations;
-  private static modelRegistry = [];
+  static typeMap: {[propertyName: string]: string};
+  static hasOneRelations: {[propertyName: string]: string};
+  static modelRegistry: {[propertyName: string]: typeof AppModel} = {};
+  static db: IDBDatabase;
+  static indexedProperties: string[];
 
   /**
    * the db table name
@@ -92,57 +75,15 @@ export class AppModel {
 
   static allowImplicitCreation: boolean;
 
-  private updateId: string;
-
-  private internalInstance;
-
+  id: string;
   private deleted = false;
 
-  static loadDefinitions() {
-    this.internalEntity = persistence.define(this.tableName, this.typeMap);
-  }
-
-  static buildForeignKeyName(relationName: string) {
-    return relationName.charAt(0).toLowerCase() + relationName.slice(1) + 'Id';
-  }
-
-  static modelNameFromForeignKeyName(foreignKeyName: string) {
-    return (foreignKeyName.charAt(0).toUpperCase() + foreignKeyName.slice(1))
-      .substr(0, foreignKeyName.length - 2);
-  }
-
-  static register(modelName: string, modelClass) {
+  static register(modelName: string, modelClass: typeof AppModel) {
     this.modelRegistry[modelName] = modelClass;
   }
 
-  static getModelClass(modelName: string) {
+  static getModelClass(modelName: string): typeof AppModel {
     return this.modelRegistry[modelName];
-  }
-
-  static convertAnyIdToPersistence(property: string, value: any) {
-    if (property === 'id') {
-      return this.realIdToPersistenceId(value);
-    }
-
-    if (property.endsWith('Id')) {
-      const foreignKeyModelClass = this.getModelClass(this.modelNameFromForeignKeyName(property));
-      if (foreignKeyModelClass) {
-        return foreignKeyModelClass.realIdToPersistenceId(value);
-      }
-    }
-
-    return value;
-  }
-
-  /**
-   * Reset any relations that have been defined on the persistence
-   * entity (currently only hasOne)
-   */
-  private static resetEntityRelations() {
-    // let meta:any = persistence.getEntityMeta();
-    // meta[this.tableName].hasOne = {};
-    persistence.clean();
-    this.loadDefinitions();
   }
 
   /**
@@ -150,9 +91,7 @@ export class AppModel {
    * @return {QueryCollection} the model's query collection
    */
   static all(): QueryCollection {
-    this.resetEntityRelations();
-    const persistenceQueryCollection = this.internalEntity.all();
-    return new QueryCollection(persistenceQueryCollection, this, this.internalEntity);
+    return new QueryCollection(this.db, this);
   }
 
   /**
@@ -162,21 +101,10 @@ export class AppModel {
    * @return {Promise<AppModel>}              an AppModel instance for the record retrieved from the db
    */
   static findBy(propertyName: string, value: any): Promise<AppModel> {
-    return new Promise((resolve, reject) => {
-      if (propertyName === 'id') {
-        value = this.realIdToPersistenceId(value);
-      }
-      this.resetEntityRelations();
-      this.internalEntity.findBy(propertyName, value, (instance) => {
-        if (instance === null) {
-          reject(new RecordNotFoundError());
-          return;
-        }
-
-        const modelInstance: AppModel = this.createFromPersistenceInstance(instance);
-        resolve(modelInstance);
-      });
-    });
+    return this
+      .all()
+      .filter(propertyName, '=', value)
+      .one();
   }
 
   /**
@@ -196,179 +124,89 @@ export class AppModel {
     });
   }
 
-  private static flushPersistence(): Promise<void> {
-    return new Promise<void>((resolve) => {
-      persistence.flush(() => {
-        resolve();
-      });
-    });
-  }
-
-  static createFromPersistenceInstance(instance): AppModel {
-    if (instance === null) {
+  static async createFromIndexedDbResult(data: any, relationsToLoad: string[]): Promise<AppModel> {
+    if (!data) {
       throw new Error('Cannot create instance with no data');
     }
     const modelInstance: AppModel = new this();
+    modelInstance.id = data.id;
     for (const propertyName of Object.keys(this.typeMap)) {
-      try {
-        modelInstance[propertyName] = propertyName === 'id' ? this.persistenceIdToRealId(instance[propertyName]) : instance[propertyName];
-      } catch (e) {
-        // Ignore errors of fields that should have been preloaded but weren't
-        // console.error("persistencejs field getter error", e);
-        modelInstance[propertyName] = instance._data[propertyName];
+      const propertyType = this.typeMap[propertyName];
+      if (propertyType !== 'BOOL') {
+        modelInstance[propertyName] = data[propertyName];
+      } else {
+        modelInstance[propertyName] = (data[propertyName] === 1);
       }
     }
-    modelInstance.internalInstance = instance;
 
-    // load has one relations if they have been prefetched:
-    if (!this.hasOneRelations) {
-      this.hasOneRelations = {};
-    }
     for (const propertyName of Object.keys(this.hasOneRelations)) {
+      if (!relationsToLoad.includes(propertyName)) {
+        continue;
+      }
+
       const relationName: string = this.hasOneRelations[propertyName];
       const relatedModelClass = AppModel.getModelClass(relationName);
-      // persistencejs instance stores the submodel under the foreign key name:
-      const foreignKeyName: string = AppModel.buildForeignKeyName(propertyName);
-      let subInstance;
-      try {
-        subInstance = instance[foreignKeyName];
-      } catch (e) {
-        // Ignore errors of fields that should have been preloaded but weren't
-        // console.error("persistencejs hasOne field getter error", e);
-      }
-      if (subInstance && typeof subInstance !== 'string') {
-        modelInstance[propertyName] = relatedModelClass.createFromPersistenceInstance(subInstance);
-        modelInstance[foreignKeyName] = relatedModelClass.persistenceIdToRealId(modelInstance[propertyName].id);
-      }
+      modelInstance[propertyName] = await relatedModelClass.findBy('id', modelInstance[propertyName + 'Id']);
     }
 
     return modelInstance;
   }
 
-  private static persistenceIdToRealId(id: string): string {
-    if (this.allowImplicitCreation && id && id.startsWith(`${this.tableName}-`)) {
-      return id.substr(this.tableName.length + 1);
+  static convertToIndexedDbValue(value: any, propertyType?: string) {
+    if (typeof value === 'boolean' || propertyType === 'BOOL') {
+      return value ? 1 : 0;
     }
-    return id;
-  }
 
-  private static realIdToPersistenceId(id: string): string {
-    if (this.allowImplicitCreation && id && id.match(/^[0-9]+$/)) {
-      return `${this.tableName}-${id}`;
-    }
-    return id;
-  }
-
-  private async setUpdateId(id: string): Promise<{}> {
-    return new Promise((resolve, reject) => {
-      (<any>this.constructor).internalEntity.findBy('id', id, instance => {
-        if (instance === null) {
-          reject(new RecordNotFoundError());
-          return;
-        }
-
-        this.internalInstance = instance;
-        resolve();
-      });
-    });
-  }
-
-  private reloadInternalInstance(): Promise<{}> {
-    return new Promise(async (resolve, reject) => {
-      const modelClass: any = this.constructor;
-      modelClass.internalEntity.findBy('id', this.persistenceId, (instance) => {
-        if (instance === null) {
-          reject(new RecordNotFoundError());
-          return;
-        }
-
-        this.internalInstance = instance;
-        resolve();
-      });
-    });
+    return value;
   }
 
   /**
    * Creates/updates record in the db matching the instance's data
    * @return {Promise<void>} resolved as soon as the record has been updated/created
    */
-  async save(): Promise<void> {
+  save(): Promise<void> {
     if (this.deleted) {
       throw new Error('Cannot save deleted model instance');
     }
 
-    const modelClass: any = this.constructor;
-    let newInstance = false;
+    const modelClass = <typeof AppModel> this.constructor;
 
-    if (this.updateId) {
-      try {
-        await this.setUpdateId(this.updateId);
-        this.updateId = null;
-      } catch (e) {
-        if (e instanceof RecordNotFoundError && modelClass.allowImplicitCreation) {
-          newInstance = true;
-        } else {
-          throw e;
-        }
-      }
-    }
-
-    if (!newInstance && this.internalInstance) {
-      await this.reloadInternalInstance();
-    } else {
-      newInstance = true;
-      this.internalInstance = new modelClass.internalEntity();
-      this.internalInstance.id = this.updateId || uuid();
-    }
-
-    for (const propertyName of Object.keys(modelClass.typeMap)) {
-      try {
+    // indexedDB:
+    return new Promise(async(resolve, reject) => {
+      const data: any = {};
+      for (const propertyName of Object.keys(modelClass.typeMap)) {
+        const propertyValue = this[propertyName];
         const propertyType = modelClass.typeMap[propertyName];
-        let propertyValue = this[propertyName];
-        if (propertyType === 'BOOL' && typeof propertyValue === 'undefined') {
-          // persistencejs would handle undefined as NULL, but for booleans
-          // we want false here:
-          propertyValue = false;
-        }
-
-        propertyValue = modelClass.convertAnyIdToPersistence(propertyName, propertyValue);
-        this.internalInstance[propertyName] = propertyValue;
-      } catch (e) {
-        console.error('Error setting property', modelClass.tableName, propertyName, this.internalInstance, e);
+        data[propertyName] = modelClass.convertToIndexedDbValue(propertyValue, propertyType);
       }
-    }
 
-    if (newInstance) {
-      persistence.add(this.internalInstance);
-    }
+      const transaction = modelClass.db
+        .transaction([modelClass.tableName], 'readwrite');
+      const store = transaction.objectStore(modelClass.tableName);
 
-    return await AppModel.flushPersistence();
+      const idBefore = this.id;
+      this.id = this.id || uuid();
+      console.log(`DB:${modelClass.tableName}:PUT`, idBefore, this.id, data);
+      store.put(data, this.id);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = e => reject(e);
+    });
   }
 
   /**
    * Remove the db record referenced by the instance
-   * @return {Promise<void>} resolved as soon as the record has been removed
    */
-  async delete(): Promise<void> {
-    if (!this.internalInstance) {
-      await this.reloadInternalInstance();
-    }
-    persistence.remove(this.internalInstance);
+  async delete() {
     this.deleted = true;
+    const modelClass = (<typeof AppModel> this.constructor);
+    const affectedItems = await modelClass
+      .all()
+      .filter('id', '=', this.id)
+      .delete();
 
-    return AppModel.flushPersistence();
-  }
-
-  /**
-   * Check if a record matching this model instance exists
-   * @return {Promise<boolean>} [description]
-   */
-  async exists(): Promise<boolean> {
-    const found: AppModel = await (<any>this.constructor).findBy('id', this.id);
-    if (found) {
-      return true;
-    } else {
-      return false;
+    if (affectedItems !== 1) {
+      throw new RecordNotFoundError();
     }
   }
 
@@ -383,10 +221,7 @@ export class AppModel {
 
     // copy relations:
     for (const propertyName of Object.keys(modelClass.hasOneRelations)) {
-      // persistencejs instance stores the submodel under the foreign key name:
-      const foreignKeyName: string = AppModel.buildForeignKeyName(propertyName);
       copy[propertyName] = this[propertyName];
-      copy[foreignKeyName] = this[foreignKeyName];
     }
 
     return copy;

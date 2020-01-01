@@ -57,14 +57,14 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
 
   get creatorFilter(): CreatorFilter {
     const filterValue = this.filterValue.toLowerCase();
-    const re = /by:([^\s]+)/;
+    const re = /(?:^|\s)by:"([^"\\]*(?:\\.[^"\\]*)*)"/;
     const md = filterValue.match(re);
     if (!md || !md[1]) {
       return null;
     }
 
     return {
-      creator: md[1].toLowerCase(),
+      creator: md[1].replace(/\\"/g, '"').toLowerCase(),
       remainingFilter: filterValue.replace(re, '').trim()
     };
   }
@@ -76,6 +76,8 @@ export class ProductEntriesListAdapter extends Array<ProductEntry> {
     if (creatorFilter) {
       filterValue = creatorFilter.remainingFilter;
     }
+
+    filterValue = filterValue.trim();
 
     let filteredEntries: Array<ProductEntry> = this.filter(productEntry =>
       filterValue === ''

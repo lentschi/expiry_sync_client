@@ -1,4 +1,4 @@
-import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 import { ModalController, Events, IonInput } from '@ionic/angular';
@@ -32,7 +32,8 @@ import { SynchronizationHandler } from '../services/synchronization-handler.serv
       transition('normal <=> green', animate('200ms linear')),
       transition('normal <=> red', animate('200ms linear'))
     ])
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductEntriesPage extends ExpirySyncController {
 
@@ -45,7 +46,6 @@ export class ProductEntriesPage extends ExpirySyncController {
     translate: TranslateService
   ) {
     super(translate);
-    console.log('Constr');
     this.productEntries = new ProductEntriesListAdapter();
     this.app = ExpirySync.getInstance();
     this.app.entriesList = this;
@@ -167,6 +167,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     }
 
     this.loadingAfterLocationSwitchDone = true;
+    this.cd.markForCheck();
   }
 
   async showListAndFilters() {
@@ -186,7 +187,7 @@ export class ProductEntriesPage extends ExpirySyncController {
           if (this.productEntries.filterValue !== '') {
             this.productEntries.filterValue += ' ';
           }
-          this.productEntries.filterValue += 'by:' + this.app.currentUser.userName;
+          this.productEntries.filterValue += `by:"${this.app.currentUser.userName.replace(/"/g, '\\"')}" `;
           this.showFilter = true;
           this.showListAndFilters();
         };
