@@ -195,7 +195,7 @@ export class Location extends AppModel {
   }
 
   private async deleteAllShares(): Promise<void> {
-    return LocationShare
+    await LocationShare
       .all()
       .filter('locationId', '=', this.id)
       .prefetch('location')
