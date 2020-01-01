@@ -1,0 +1,62 @@
+:host {
+  padding: 10px 16px 10px 16px ;
+  display: block;
+  border-bottom: 1px solid #dedede;
+
+  .label {
+    color: var(--ion-color-medium-shade);
+    font-size: 12.5px;
+  }
+
+  .date-picker {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 6px;
+
+    .keyboard-date-input-wrapper, ion-datetime {
+      flex: 1;
+    }
+
+    .keyboard-date-input-wrapper {
+      input[type="text"] {
+        width: 19px;
+        border: 0;
+        text-align: right;
+
+        &.year-input {
+          width: 40px;
+        }
+      }
+    }
+
+    ion-datetime {
+      position: absolute;
+      visibility: hidden;
+      --padding-start: 0px;
+      --padding-end: 0px;
+      --padding-top: 0px;
+      --padding-bottom: 0px;
+    }
+
+    ion-icon.switch {
+      padding: 3px 10px;
+      margin-top: -15px;
+      color: var(--ion-color-medium-shade);
+
+      &.active {
+        color: var(--ion-color-primary);
+      }
+    }
+
+    input[matInput] {
+      visibility: hidden;
+      width: 1px;
+      height: 1px;
+    }
+
+    .md-datepicker-input-container {
+      width: 100%;
+    }
+  }
+}

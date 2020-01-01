@@ -30,11 +30,12 @@
       <ion-item #barcodeItem>
         <ion-input
           [(ngModel)]="productEntry.article.barcode"
+          (ionFocus)="focusedBarcode()"
           (ionBlur)="loadArticleByBarcode()"
           name="barcode"
           maxlength="255"
           [placeholder]="'Barcode' | translate"
-          #barcode="ngModel"></ion-input>
+          #barcode></ion-input>
       </ion-item>
     </div>
     <ion-item>
@@ -45,23 +46,23 @@
            class="validation-error">
           <div [hidden]="!name.errors.required" translate>Name is required</div>
     </div>
-    <ion-item>
-      <ion-label position="floating" translate>expiration date</ion-label>
-      <ion-datetime
-        displayFormat="{{dateFormat}}"
-        max="{{maxExpirationDate}}"
-        [pickerFormat]="pickerFormat"
-        [monthShortNames]="monthsShort"
-        [monthNames]="monthsLong"
-        [dayShortNames]="daysShort"
-        [dayNames]="daysLong"
-        [cancelText]="'cancel' | translate"
-        [doneText]="'done' | translate"
-        [(ngModel)]="productEntry.expirationDateIsoStr"
-        required
-        name="expirationDate"
-        #expirationDate="ngModel"></ion-datetime>
-    </ion-item>
+    <date-picker
+      [label]="'expiration date' | translate"
+      [dateFormat]="dateFormat"
+      [max]="maxExpirationDate"
+      [pickerFormat]="pickerFormat"
+      [monthsShort]="monthsShort"
+      [monthsLong]="monthsLong"
+      [daysShort]="daysShort"
+      [daysLong]="daysLong"
+      [cancelText]="'cancel' | translate"
+      [doneText]="'done' | translate"
+      [(ngModel)]="productEntry.expirationDateIsoStr"
+      (matPickerOpened)="matPickerOpened()"
+      (matPickerClosed)="matPickerClosed()"
+      name="expirationDate"
+      required></date-picker>
+      <!-- <div>Val: {{productEntry.expirationDateIsoStr | json}}</div> -->
     <ion-item>
       <ion-label position="floating" translate>amount</ion-label>
       <ion-input

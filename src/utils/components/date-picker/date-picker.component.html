@@ -1,0 +1,60 @@
+<div class="label">{{label}}</div>
+
+<div class="date-picker" (click)="wrapperClicked($event)">
+  <div *ngIf="partSequence" class="keyboard-date-input-wrapper">
+      <ng-container *ngFor="let part of partSequence; let i = index">
+          <ng-container [ngSwitch]="part">
+              <input
+                  *ngSwitchCase="'day'"
+                  #dayInput
+                  (blur)="onBlur($event.target)"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
+                  type="text"
+                  inputmode="numeric" />
+              <input
+                  *ngSwitchCase="'month'"
+                  #monthInput
+                  (blur)="onBlur($event.target)"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
+                  type="text"
+                  inputmode="numeric" />
+              <input
+                  *ngSwitchCase="'year'"
+                  #yearInput
+                  class="year-input"
+                  (blur)="onBlur($event.target)"
+                  (click)="onInputClicked($event)"
+                  (input)="onInput(part, $event.target)"
+                  (keydown.backspace)="backspacePressed(part, $event.target)"
+                  type="text"
+                  inputmode="numeric" />
+              <span *ngSwitchDefault (click)="separatorClicked(i)">{{part}}</span>
+          </ng-container>
+      </ng-container>
+  </div>
+
+  <ion-datetime
+      #ionPicker
+      [displayFormat]="dateFormat"
+      [max]="max"
+      [pickerFormat]="pickerFormat"
+      [monthShortNames]="monthsShort"
+      [monthNames]="monthsLong"
+      [dayShortNames]="daysShort"
+      [dayNames]="daysLong"
+      [cancelText]="cancelText"
+      [doneText]="doneText"
+      [formControl]="ionPickerControl"
+      (ionCancel)="ionPickerOpen = false"
+      (ionChange)="onChange()"
+      required></ion-datetime>
+
+  <ion-icon (click)="openMatPicker($event)" [class.active]="matPickerOpen" size="large" name="calendar" class="switch"></ion-icon>
+  <ion-icon (click)="openIonPicker($event)" [class.active]="ionPickerOpen" size="large" name="open" class="switch"></ion-icon>
+  <input matInput [matDatepicker]="matPicker" [formControl]="matPickerControl">
+  <mat-datepicker #matPicker touchUi (closed)="onMatPickerClose()"></mat-datepicker>
+</div>

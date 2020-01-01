@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NavParams, ModalController, Platform, ToastController, IonInput } from '@ionic/angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
@@ -29,6 +29,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
   dateFormat: string;
   pickerFormat: string;
   displayLocation = false;
+  preventLoadingArticleOnBarcodeBlur = false;
   readonly monthsShort = moment.monthsShort();
   readonly monthsLong = moment.months();
   readonly daysShort = moment.weekdaysShort();
@@ -45,6 +46,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
    * getNativeElement().querySelector('input')
    */
   @ViewChild('barcodeItem', { static: false }) barcodeItem: any;
+  @ViewChild('barcode', { static: false }) barcode: IonInput;
   @ViewChild('articleNameItem', { static: false }) articleNameItem: IonInput;
 
   constructor(
@@ -107,8 +109,28 @@ export class ProductEntryFormModal extends ExpirySyncController {
 
   }
 
+  async focusedBarcode() {
+    if (this.preventLoadingArticleOnBarcodeBlur) {
+      const input = await this.barcode.getInputElement();
+      input.blur();
+    }
+  }
+
+  matPickerOpened() {
+    this.preventLoadingArticleOnBarcodeBlur = true;
+  }
+
+  matPickerClosed() {
+    this.preventLoadingArticleOnBarcodeBlur = false;
+  }
 
   async loadArticleByBarcode() {
+    if (this.preventLoadingArticleOnBarcodeBlur) {
+      const input = await this.barcode.getInputElement();
+      input.blur();
+      return;
+    }
+
     if (!this.productEntry.article.barcode || this.productEntry.article.barcode.length === 0) {
       return;
     }
@@ -210,6 +232,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
           this.focusBarcodeInput();
         } else {
           this.onBarcodeScanned(barcodeData.text);
+          this.app.preventNextBackButton = false;
         }
       }).catch(async (e) => {
         console.log('barcodeScanner did not return a barcode', e);
