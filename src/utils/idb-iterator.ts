@@ -35,7 +35,11 @@ export class IDBIterator implements AsyncIterableIterator<any> {
     private cursor: IDBCursorWithValue;
     private curResolver: (result: IteratorResult<any>) => void;
 
-    constructor(private objectStore: IDBObjectStore | IDBIndex, private keyRange: IDBKeyRange = null) { }
+    constructor(
+        private objectStore: IDBObjectStore | IDBIndex,
+        private keyRange: IDBKeyRange = null,
+        private direction: IDBCursorDirection = 'next'
+    ) { }
 
     [Symbol.asyncIterator](): AsyncIterableIterator<any> {
         return this;
@@ -50,7 +54,7 @@ export class IDBIterator implements AsyncIterableIterator<any> {
 
             if (!this.cursorRequest) {
                 // Initial request -> Open the cursor and listen for subsequent success events:
-                this.cursorRequest = this.objectStore.openCursor(this.keyRange);
+                this.cursorRequest = this.objectStore.openCursor(this.keyRange, this.direction);
 
                 this.cursorRequest.onerror = e => {
                     throw e;

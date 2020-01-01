@@ -5,11 +5,22 @@ import { IDBIterator } from '../idb-iterator';
 export class QueryCollection {
   private relationsToLoad: string[] = [];
   private filters: {property: string, operator: string, value: any}[] = [];
+  private sortBy: {property: string, descending: boolean};
 
   /**
    * @param  {any} persistenceCollection the persistencejs-version of QueryCollection
    */
   constructor(private db: IDBDatabase, private modelClass: typeof AppModel) { }
+
+  order(property: string, descending = false): QueryCollection {
+    if (this.sortBy) {
+      throw new Error('Cannot sort by multiple fields');
+    }
+
+    this.sortBy = {property, descending};
+
+    return this;
+  }
 
   filter(property: string, operator: string, value: any): QueryCollection {
     this.filters.push({property, operator, value});
@@ -45,7 +56,12 @@ export class QueryCollection {
     let index: IDBIndex;
     let key: IDBKeyRange = null;
     const applicableFilters = this.filters
-      .filter(filter => filter.operator === '=' && typeof filter.value !== 'undefined' && filter.value !== null);
+      .filter(filter =>
+        filter.operator === '='
+          && typeof filter.value !== 'undefined'
+          && filter.value !== null
+          && (!this.sortBy || this.sortBy.property === filter.property)
+      );
 
     let indexName: string;
     if (applicableFilters.length > 0) {
@@ -71,10 +87,17 @@ export class QueryCollection {
         console.error('Could not create index key ', onlyValue, this.modelClass.tableName, indexName, applicableFilters, e);
         throw e;
       }
+    } else if (this.sortBy) {
+      try {
+        index = store.index(this.sortBy.property);
+      } catch (e) {
+        console.error('Could not index for sorting', this.modelClass.tableName, this.sortBy);
+        throw e;
+      }
     }
 
     // Fetch:
-    const iterator = new IDBIterator(index || store, key);
+    const iterator = new IDBIterator(index || store, key, (this.sortBy && this.sortBy.descending) ? 'prev' : 'next');
     const ret: Array<any> = [];
     const remainingFilters = this.filters
         .filter(filter => !applicableFilters.includes(filter));
@@ -141,14 +164,14 @@ export class QueryCollection {
     return await this.modelClass.createFromIndexedDbResult(list[0], this.relationsToLoad);
   }
 
-  async delete(): Promise<void> {
+  async delete(): Promise<number> {
     const list = await this.getList();
     if (list.length > 0) {
       await new Promise(async (resolve, reject) => {
         const transaction = this.db
           .transaction([this.modelClass.tableName], 'readwrite');
 
-        console.log(`DB:${this.modelClass.tableName}:DELETE_MULTI`, this.filters, list.map(item => item.id));
+        console.log(`DB:${this.modelClass.tableName}:DELETE`, this.filters, list.map(item => item.id));
         for (const item of list) {
           transaction.objectStore(this.modelClass.tableName)
             .delete(item.id);
@@ -157,6 +180,8 @@ export class QueryCollection {
         transaction.onerror = e => reject(e);
       });
     }
+
+    return list.length;
   }
 
   async count(): Promise<number> {
@@ -164,14 +189,14 @@ export class QueryCollection {
     return items.length;
   }
 
-  updateField(propertyName: string, value: any): Promise<void> {
+  updateField(propertyName: string, value: any): Promise<number> {
     return this.update([{ propertyName, value }]);
   }
 
-  async update(values: Array<{ propertyName: string, value: any }>): Promise<void> {
+  async update(values: Array<{ propertyName: string, value: any }>): Promise<number> {
     const items = await this.getList();
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const transaction = this.db
         .transaction([this.modelClass.tableName], 'readwrite');
 
@@ -188,6 +213,8 @@ export class QueryCollection {
       transaction.oncomplete = () => resolve();
       transaction.onerror = e => reject(e);
     });
+
+    return items.length;
   }
 
   prefetch(propertyName: string): QueryCollection {

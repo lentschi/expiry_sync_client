@@ -14,7 +14,7 @@ declare var openDatabase: any;
 
 @Injectable()
 export class DbManager {
-  private rawDb: Database;
+  private rawDb: any;
 
   constructor(private device: Device, @Inject(IndexedMigration) private indexedMigrations: IndexedMigration[]) { }
 
@@ -103,8 +103,8 @@ export class DbManager {
   }
 
 
-  async executeSql(sql: string, params?: Array<any>): Promise<SQLResultSet> {
-    return new Promise<SQLResultSet>((resolve, reject) => {
+  async executeSql(sql: string, params?: Array<any>): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
       this.getRawDb().transaction(function (tx) {
         tx.executeSql(sql, params, function (_currentTx, rs) {
           resolve(rs);

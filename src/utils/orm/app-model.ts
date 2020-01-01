@@ -1,9 +1,7 @@
-declare var persistence: any;
-
 import { QueryCollection } from './query-collection';
 import 'reflect-metadata';
 import {v1 as uuid} from 'uuid';
-import { IndexedMigration } from 'src/config/indexed-migrations/indexed-migration';
+import { RecordNotFoundError } from './errors/record-not-found-error';
 
 export function Column(colType?: string) {
   return function (object: any, propertyName: string) {
@@ -64,20 +62,9 @@ export function PersistenceModel(constructor: typeof AppModel) {
  * ORM representation of a db table
  */
 export class AppModel {
-
-  get persistenceId(): string {
-    if (!this.internalInstance) {
-      return this.updateId;
-    }
-
-    return this.internalInstance.id;
-  }
-
   static typeMap: {[propertyName: string]: string};
   static hasOneRelations: {[propertyName: string]: string};
   static modelRegistry: {[propertyName: string]: typeof AppModel} = {};
-
-  // indexed db:
   static db: IDBDatabase;
   static indexedProperties: string[];
 
@@ -89,9 +76,6 @@ export class AppModel {
   static allowImplicitCreation: boolean;
 
   id: string;
-
-  private updateId: string;
-  private internalInstance;
   private deleted = false;
 
   static register(modelName: string, modelClass: typeof AppModel) {
@@ -101,7 +85,6 @@ export class AppModel {
   static getModelClass(modelName: string): typeof AppModel {
     return this.modelRegistry[modelName];
   }
-
 
   /**
    * Retrieve query collection for the model
@@ -213,20 +196,18 @@ export class AppModel {
 
   /**
    * Remove the db record referenced by the instance
-   * @return {Promise<void>} resolved as soon as the record has been removed
    */
-  async delete(): Promise<void> {
-    await new Promise((resolve, reject) => {
-      const modelClass = (<typeof AppModel> this.constructor);
-      console.log(`DB:${modelClass.tableName}:DELETE`, this.id, this);
-      const transaction = modelClass.db
-        .transaction([modelClass.tableName], 'readwrite');
-      transaction
-        .objectStore(modelClass.tableName)
-        .delete(this.id);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = e => reject(e);
-    });
+  async delete() {
+    this.deleted = true;
+    const modelClass = (<typeof AppModel> this.constructor);
+    const affectedItems = await modelClass
+      .all()
+      .filter('id', '=', this.id)
+      .delete();
+
+    if (affectedItems !== 1) {
+      throw new RecordNotFoundError();
+    }
   }
 
   clone(): AppModel {

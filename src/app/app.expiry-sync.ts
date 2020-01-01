@@ -523,6 +523,8 @@ export class ExpirySync extends ExpirySyncController {
 
     let productEntries: Array<ProductEntry> = <Array<ProductEntry>>await ProductEntry
       .all()
+      .order('expirationDate')
+      .filter('deletedAt', '=', null)
       .prefetch('article')
       .prefetch('location')
       .list();
