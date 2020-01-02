@@ -69,7 +69,7 @@ export class DbManager {
     for (const modelClass of Object.values(AppModel.modelRegistry)) {
       const result = await this.executeSql(`SELECT * FROM ${modelClass.tableName}`);
       for (let i = 0; i < result.rows.length; i++) {
-        const row = result.rows[i];
+        const row = result.rows[i] || result.rows.item(i);
         const model = new modelClass();
         for (const propertyName of Object.keys(row)) {
           let value = row[propertyName];
@@ -104,6 +104,7 @@ export class DbManager {
 
 
   async executeSql(sql: string, params?: Array<any>): Promise<any> {
+    console.log('Executing migration SQL: ' + sql);
     return new Promise<any>((resolve, reject) => {
       this.getRawDb().transaction(function (tx) {
         tx.executeSql(sql, params, function (_currentTx, rs) {
