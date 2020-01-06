@@ -233,7 +233,7 @@ Then(/^I should (no longer |still )?see (the|that|both)( updated| deleted)? (pro
 
             if (entryOrArticleParam.includes('product')) {
                 xpath += `/../span[contains(.,"${entry.amount}")]`
-                    + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`;
+                    + `/../span[contains(.,"${moment(entry.expirationDate).format('MM/DD/YYYY')}")]`;
             }
         } else {
             xpath = `//span[contains(.,"${entry.article.name}")]`;
@@ -258,7 +258,7 @@ When(/^I open the edit product screen for that product entry$/, async() => {
 
     await click(by.xpath(`//span[contains(.,"${entry.amount}")]`
         + `/../span[contains(.,"${entry.article.name}")]`
-        + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`));
+        + `/../span[contains(.,"${moment(entry.expirationDate).format('MM/DD/YYYY')}")]`));
 });
 
 Then (/^I should see that product entry's data in the form fields$/, async() => {
@@ -387,7 +387,7 @@ Then(/^the product entry should no longer be in the list$/, async() => {
 
     await ensureDisappearance(by.xpath(`//span[contains(.,"${entry.amount}")]`
         + `/../span[contains(.,"${entry.article.name}")]`
-        + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`), 'Entry is still there', false, 5000);
+        + `/../span[contains(.,"${moment(entry.expirationDate).format('MM/DD/YYYY')}")]`), 'Entry is still there', false, 5000);
 });
 
 When(/^I check a subset of these product entries$/, async() => {
@@ -404,7 +404,7 @@ When(/^I check a subset of these product entries$/, async() => {
         const entry = Object.values(addedEntries)[key];
         await click(by.xpath(`//span[contains(.,"${entry.amount}")]`
             + `/../span[contains(.,"${entry.article.name}")]`
-            + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`
+            + `/../span[contains(.,"${moment(entry.expirationDate).format('MM/DD/YYYY')}")]`
             + `/..//input[@type="checkbox"]`));
 
         entriesToDelete[key] = entry;
@@ -432,7 +432,7 @@ Then(/^the selected product entries should no longer be in the list$/, async() =
     for (const entry of selectedEntries) {
         await ensureDisappearance(by.xpath(`//span[contains(.,"${entry.amount}")]`
             + `/../span[contains(.,"${entry.article.name}")]`
-            + `/../span[contains(.,"${moment(entry.expirationDate).format('M/D/YYYY')}")]`), 'Entry is still there', false, 5000);
+            + `/../span[contains(.,"${moment(entry.expirationDate).format('MM/DD/YYYY')}")]`), 'Entry is still there', false, 5000);
     }
 });
 

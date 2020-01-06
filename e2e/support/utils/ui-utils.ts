@@ -191,79 +191,40 @@ export async function getFormField(
 
 
 export async function fillField(label: string, value: string): Promise<ElementFinder> {
-    return await getFormField(label, `Could not find or access form field ${label}`, true, async (input) => {
-        try {
-            await input.clear();
-            // Sometimes input.clear doesn't work -> use backspace repeatedly instead:
-            while (await input.getAttribute('value') !== '') {
-                await input.sendKeys(Key.BACK_SPACE);
-            }
-            await input.sendKeys(value);
-            return (await input.getAttribute('value')) === value;
-        } catch (e) {
-            return false;
+    return await getFormField(label, `Could not find or access form field ${label}`, true, input =>
+        fillFieldElement(input, value)
+    );
+}
+
+export async function fillFieldElement(input: ElementFinder, value: string): Promise<boolean> {
+    try {
+        await input.clear();
+        // Sometimes input.clear doesn't work -> use backspace repeatedly instead:
+        while (await input.getAttribute('value') !== '') {
+            await input.sendKeys(Key.BACK_SPACE);
         }
-    });
+        await input.sendKeys(value);
+        return (await input.getAttribute('value')) === value;
+    } catch (e) {
+        return false;
+    }
 }
 
 export async function fillDateField(label: string, value: Date) {
-    const dateButton = await getSingularElement(
-        element(by.xpath(`//ion-label[contains(.,"${label}")]/../ion-datetime`))
-        .element(by.css_sr('::sr button'))
+    const dayInput = await getSingularElement(
+        element(by.xpath(`//div${xpathClassPredicate('label')}[contains(.,"${label}")]/..//input[@inputmode="numeric"][2]`))
     );
-    await dateButton.click();
-    const doneButton = await getElement(by.xpath('//button[contains(.,"done")]'), 'Datepicker could not be opened');
+    await fillFieldElement(dayInput, String(value.getDate()));
 
-    const date = moment(value);
+    const monthInput = await getSingularElement(
+        element(by.xpath(`//div${xpathClassPredicate('label')}[contains(.,"${label}")]/..//input[@inputmode="numeric"][1]`))
+    );
+    await fillFieldElement(monthInput, String(value.getMonth() + 1));
 
-    let currentDay: string, currentMonth: string, currentYear: string;
-    const selectedButtons = element.all(by.xpath('//button[contains(@class, "picker-opt-selected")]'));
-    for (let i = 0; i < await selectedButtons.count(); i++) {
-        const currentButton = selectedButtons.get(i);
-        switch (i) {
-            case 1: currentDay = await currentButton.getText();     break;
-            case 0: currentMonth = await currentButton.getText();   break;
-            case 2: currentYear = await currentButton.getText();    break;
-        }
-    }
-
-
-    const currentDate = moment(`${currentMonth}/${currentDay}/${currentYear}`, 'MMM/DD/YYYY');
-
-    while (currentDate.year() !== date.year()) {
-        const add = currentDate.year() < date.year() ? 1 : -1;
-        await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'year').format('YYYY')}")]`),
-            'Date could not be clicked',
-            null,
-            5000,
-            0
-        );
-    }
-
-    while (currentDate.month() !== date.month()) {
-        const add = currentDate.month() < date.month() ? 1 : -1;
-        await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'month').format('MMM')}")]`),
-            'Date could not be clicked',
-            null,
-            5000,
-            0
-        );
-    }
-
-    while (currentDate.date() !== date.date()) {
-        const add = currentDate.date() < date.date() ? 1 : -1;
-        await click(
-            by.xpath(`//button[contains(@class, "picker-opt")][contains(text(), "${currentDate.add(add, 'day').format('DD')}")]`),
-            'Date could not be clicked',
-            null,
-            5000,
-            0
-        );
-    }
-
-    await doneButton.click();
+    const yearInput = await getSingularElement(
+        element(by.xpath(`//div${xpathClassPredicate('label')}[contains(.,"${label}")]/..//input[@inputmode="numeric"][3]`))
+    );
+    await fillFieldElement(yearInput, String(value.getFullYear()));
 }
 
 export async function fillFields(fields: { [label: string]: string }) {
@@ -360,3 +321,6 @@ export async function inputWithValue(currentInput) {
     return value !== '';
 }
 
+export function xpathClassPredicate(className: string): string {
+    return `[contains(concat(' ', normalize-space(@class), ' '), ' ${className} ')]`;
+}
