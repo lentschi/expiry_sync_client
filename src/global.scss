@@ -9,3 +9,20 @@
 @import '~@ionic/angular/css/text-alignment.css';
 @import '~@ionic/angular/css/text-transformation.css';
 @import '~@ionic/angular/css/flex-utils.css';
+
+
+
+ion-icon {
+  &[name*="custom-"] {
+    mask-size: contain;
+    mask-position: 50% 50%;
+    mask-repeat: no-repeat;
+    background: currentColor;
+    width: 24px;
+    height: 24px;
+  }
+
+  &[name*="custom-swipe-up-down"] {
+    mask-image: url(assets/icon/swipe-up-down.svg);
+  }
+}

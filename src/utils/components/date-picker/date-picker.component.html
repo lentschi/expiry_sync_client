@@ -54,7 +54,7 @@
       required></ion-datetime>
 
   <ion-icon (click)="openMatPicker($event)" [class.active]="matPickerOpen" size="large" name="calendar" class="switch"></ion-icon>
-  <ion-icon (click)="openIonPicker($event)" [class.active]="ionPickerOpen" size="large" name="open" class="switch"></ion-icon>
+  <ion-icon (click)="openIonPicker($event)" [class.active]="ionPickerOpen" size="large" name="custom-swipe-up-down" class="switch"></ion-icon>
   <input matInput [matDatepicker]="matPicker" [formControl]="matPickerControl">
   <mat-datepicker #matPicker touchUi (closed)="onMatPickerClose()"></mat-datepicker>
 </div>
