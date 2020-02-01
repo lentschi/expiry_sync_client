@@ -155,5 +155,25 @@
             "other": "Êtes-vous sûr de vouloir déplacer les {{n}} produits vers \"{{location}}\"?"
         }
     },
-    "many thanks for translations into Russian": "merci beaucoup pour les traductions en russe"
+    "many thanks for translations into Russian": "merci beaucoup pour les traductions en russe",
+    "export / import data": "exporter / importer des données",
+    "export spreadsheet": "exporter sous forme de données tabulaires",
+    "Export local app data as a spreadsheet. Can NOT be reimported.": "Exportez les données de l'application locale sous forme de feuille de calcul. Ne peut PAS être réimporté.",
+    "export backup": "exporter une sauvegarde",
+    "import backup": "importer une sauvegarde",
+    "Export local app data to your device.": "Exportez les données ExpirySync locales sur votre appareil.",
+    "Choose any backup file you previously exported by by the above function.": "Choisissez un fichier de sauvegarde que vous avez précédemment exporté par la fonction ci-dessus.",
+    "This does not seem to be a valid backup file.": "Cela ne semble pas être un fichier de sauvegarde valide.",
+    "Tap to choose a file to restore from": "Appuyez pour choisir un fichier à restaurer",
+    "warning": "avertissement",
+    "Importing a backup will erase all local data that has not been backuped!": "L'importation d'une sauvegarde effacera toutes les données locales qui n'ont pas été sauvegardées!",
+    "Backup successfully created": "Sauvegarde créée avec succès",
+    "Backup saved to": "Sauvegarde enregistrée dans",
+    "Failed to export backup": "Échec de l'exportation de la sauvegarde",
+    "Spreadsheet successfully created": "Feuille de calcul créée avec succès",
+    "Spreadsheet saved to": "Feuille de calcul enregistrée dans",
+    "Failed to export spreadsheet": "Échec de l'exportation de la feuille de calcul",
+    "Backup successfully imported": "Sauvegarde importée avec succès",
+    "An unexpected error occurred when trying to import the backup.": "Une erreur inattendue s'est produite lors de la tentative d'importation de la sauvegarde.",
+    "entry created": "entrée créée"
 }

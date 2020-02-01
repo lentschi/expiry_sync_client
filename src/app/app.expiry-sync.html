@@ -17,11 +17,11 @@
                     <ion-icon slot="start" name="home"></ion-icon>
                     <ion-label translate>locations</ion-label>
                   </ng-container>
-                  
+
                   <ng-container *ngSwitchCase="menuPointIds.settings">
                     <ion-icon slot="start" name="settings"></ion-icon>
                     <ion-label translate>settings</ion-label>
-                  </ng-container>        
+                  </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.selectAll">
                     <ion-icon slot="start" name="done-all"></ion-icon>
                     <ion-label translate>select all products</ion-label>
@@ -61,6 +61,10 @@
                   <ng-container *ngSwitchCase="menuPointIds.logout">
                     <ion-icon slot="start" name="log-out"></ion-icon>
                     <ion-label class="no-first-upper">{{'Logout' | translate:currentUser}}</ion-label>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="menuPointIds.importExport">
+                    <ion-icon slot="start" name="save"></ion-icon>
+                    <ion-label translate>export / import data</ion-label>
                   </ng-container>
                   <ng-container *ngSwitchCase="menuPointIds.about">
                     <ion-icon slot="start" name="information-circle"></ion-icon>

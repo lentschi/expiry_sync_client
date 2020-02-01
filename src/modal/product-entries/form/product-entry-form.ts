@@ -1,6 +1,6 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavParams, ModalController, Platform, ToastController, IonInput } from '@ionic/angular';
+import { NavParams, ModalController, IonInput } from '@ionic/angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import { ProductEntry, Article, ArticleImage, Location, Setting } from 'src/app/models';
 import { Camera } from '@ionic-native/camera/ngx';
@@ -16,7 +16,6 @@ import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
 import { ApiServer } from 'src/utils/api-server';
 
 declare var cloudSky;
-declare var navigator;
 
 @Component({
   templateUrl: 'product-entry-form.html',
@@ -57,7 +56,6 @@ export class ProductEntryFormModal extends ExpirySyncController {
     private camera: Camera,
     translate: TranslateService,
     private modalCtrl: ModalController,
-    private platform: Platform
   ) {
     super(translate);
     this.app = ExpirySync.getInstance();
@@ -264,7 +262,7 @@ export class ProductEntryFormModal extends ExpirySyncController {
       }
     };
 
-    if (this.app.runningInBrowser) {
+    if (this.uiHelper.runningInBrowser) {
       const modal = await this.modalCtrl.create({
         component: BrowserCamModal
       });

@@ -76,6 +76,7 @@ html, body {
 ion-content#product-entries {
   ion-item {
     --padding-start: 0;
+    cursor: pointer;
   }
 
   #wrapper {

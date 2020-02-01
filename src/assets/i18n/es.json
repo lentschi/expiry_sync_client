@@ -155,5 +155,25 @@
             "other": "¿Seguro que quieres mover {{n}} productos a \"{{location}}\"?"
         }
     },
-    "many thanks for translations into Russian": "muchas gracias por las traducciones al ruso"
+    "many thanks for translations into Russian": "muchas gracias por las traducciones al ruso",
+    "export / import data": "exportar / importar datos",
+    "export spreadsheet": "exportar como datos tabulares",
+    "Export local app data as a spreadsheet. Can NOT be reimported.": "Exportar datos de aplicaciones locales como una hoja de cálculo. NO se puede volver a importar.",
+    "export backup": "Exportar copia de seguridad",
+    "import backup": "Importar copia de seguridad",
+    "Export local app data to your device.": "Exporte datos locales de ExpirySync a su dispositivo.",
+    "Choose any backup file you previously exported by by the above function.": "Elija un archivo de respaldo que haya exportado previamente mediante la función anterior.",
+    "This does not seem to be a valid backup file.": "Esto no parece ser un archivo de copia de seguridad válido.",
+    "Tap to choose a file to restore from": "Elija un archivo de respaldo para importar",
+    "warning": "advertencia",
+    "Importing a backup will erase all local data that has not been backuped!": "¡Importar una copia de seguridad significa que se eliminarán todos los datos que aún no se hayan copiado!",
+    "Backup successfully created": "Copia de seguridad creada sucesivamente",
+    "Backup saved to": "Copia de seguridad guardada en",
+    "Failed to export backup": "Error al exportar copia de seguridad",
+    "Spreadsheet successfully created": "Hoja de cálculo creada con éxito",
+    "Spreadsheet saved to": "Hoja de cálculo guardada en",
+    "Failed to export spreadsheet": "Error al exportar hoja de cálculo",
+    "Backup successfully imported": "Copia de seguridad importada con éxito",
+    "An unexpected error occurred when trying to import the backup.": "Se produjo un error inesperado al intentar importar la copia de seguridad.",
+    "entry created": "entrada creada"
 }

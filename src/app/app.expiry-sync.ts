@@ -24,6 +24,7 @@ import { SynchronizationHandler } from './services/synchronization-handler.servi
 import * as _ from 'lodash';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { DateAdapter } from '@angular/material';
+import { ImportExportModal } from 'src/modal/import-export/import-export';
 
 declare var window: any;
 declare var cordova: any;
@@ -44,6 +45,7 @@ enum MenuPointId {
   recipeSearch,
   login,
   logout,
+  importExport,
   about
 }
 
@@ -51,7 +53,15 @@ enum MenuPointId {
  * Menu point configuration
  * @interface
  */
-interface MenuPointConfig { id: number; component?: any; method?: Function; modal?: boolean; onDidDismiss?: Function; disabled?: boolean; }
+interface MenuPointConfig {
+  id: number;
+  component?: any;
+  method?: Function;
+  modal?: boolean;
+  onDidDismiss?: Function;
+  disabled?: boolean;
+  skipAcquiringLocalSyncMutex?: boolean;
+ }
 
 /**
  * The app's 'main class'
@@ -66,7 +76,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Fallback version to display if determining the real version fails
    */
-  static readonly FALLBACK_APP_VERSION = '1.9 web';
+  static readonly FALLBACK_APP_VERSION = '2.0 web';
   static readonly API_VERSION = 3;
 
   /**
@@ -77,7 +87,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * Resolved when the app has been initialized
    */
-  private static readyPromise: Promise<{}>;
+  static readyPromise: Promise<void>;
 
   /**
    * The main menu's menu points
@@ -160,7 +170,7 @@ export class ExpirySync extends ExpirySyncController {
   /**
    * @return {Promise}   resolved when the app has been initialized
    */
-  static ready(): Promise<{}> {
+  static ready(): Promise<void> {
     return this.readyPromise;
   }
 
@@ -188,7 +198,7 @@ export class ExpirySync extends ExpirySyncController {
     private uiHelper: UiHelper,
     public device: Device,
     private backgroundMode: BackgroundMode,
-    private dateAdapter: DateAdapter<any>
+    private dateAdapter: DateAdapter<any>,
   ) {
     super(translate);
     ExpirySync.appInstance = this;
@@ -205,18 +215,16 @@ export class ExpirySync extends ExpirySyncController {
       { id: this.menuPointIds.deselectAll, disabled: true },
       { id: this.menuPointIds.synchronize, method: this.synchronizeTapped, disabled: true },
       {
-        id: this.menuPointIds.registration, component: UserRegistrationModal, modal: true, onDidDismiss: (openLoginInstead?: boolean) => {
-          this.authDone(openLoginInstead);
-        }
+        id: this.menuPointIds.registration, component: UserRegistrationModal, modal: true, onDidDismiss: (openLoginInstead?: boolean) =>
+          this.authDone(openLoginInstead)
       },
       {
-        id: this.menuPointIds.login, component: UserLoginModal, modal: true, onDidDismiss: () => {
-          this.authDone(false);
-        }
+        id: this.menuPointIds.login, component: UserLoginModal, modal: true, onDidDismiss: () => this.authDone(false)
       },
       { id: this.menuPointIds.recipeSearch, disabled: true },
       { id: this.menuPointIds.moveEntriesToAnotherLocation, disabled: true },
       { id: this.menuPointIds.logout, method: this.logout, disabled: true },
+      { id: this.menuPointIds.importExport, component: ImportExportModal, modal: true, skipAcquiringLocalSyncMutex: true },
       { id: this.menuPointIds.about, component: AboutModal, modal: true }
     ];
   }
@@ -310,6 +318,10 @@ export class ExpirySync extends ExpirySyncController {
         return menuPoint.id === ExpirySync.MenuPointId.login;
       }));
     }
+  }
+
+  get runningInBrowser(): boolean {
+    return this.uiHelper.runningInBrowser;
   }
 
   /**
@@ -427,8 +439,8 @@ export class ExpirySync extends ExpirySyncController {
       window.plugins.intentShim.onIntent(async intent => {
         console.log('New intent received during runtime: ' + JSON.stringify(intent));
         if (typeof (intent.extras) !== 'undefined'
-            && typeof ((<any> intent.extras).wakeup) !== 'undefined'
-            && (<any> intent.extras).wakeup) {
+          && typeof ((<any>intent.extras).wakeup) !== 'undefined'
+          && (<any>intent.extras).wakeup) {
           console.log('Intent looks like a wakeup -> show reminder (if required) and moving to background');
           // the app has been running and a wakeup occurred
           // -> show the reminder:
@@ -575,7 +587,7 @@ export class ExpirySync extends ExpirySyncController {
   private initializeApp() {
     window.skipLocalNotificationReady = true;
 
-    ExpirySync.readyPromise = new Promise<{}>(async resolve => {
+    ExpirySync.readyPromise = new Promise<void>(async resolve => {
       await this.platform.ready();
       if (this.platform.is('cordova')) {
         this.localNotifications.fireQueuedEvents();
@@ -586,100 +598,114 @@ export class ExpirySync extends ExpirySyncController {
       this.setupBackgroundMode();
       this.handleBackButton();
 
-      let task: Symbol = this.loadingStarted('Initializing app');
 
       // initialize db:
+      let task: Symbol;
       try {
-        await this.dbManager.initialize(this.runningInBrowser);
+        task = this.loadingStarted('Initializing database');
+        await this.dbManager.initialize(this.uiHelper.runningInBrowser);
       } catch (e) {
         console.error('DB ini failed with error: ', e);
-        alert('Database initialization failed - Ensure that your platform supports WebSQL or SQLite!');
+        alert('Unexpected error: Database initialization failed - If the problem persists, '
+          + 'please try to clear your site data and reload the page!');
         return;
+      } finally {
+        this.loadingDone(task);
       }
       this.adeptPlatformDependingSettings();
-      await Setting.addDefaultsForMissingKeys();
-
-      // switch location if required by notification tap:
-      if (this.platform.is('cordova')) {
-        this.localNotifications.on('click').subscribe(async (notification) => {
-          await this.changeLocationForTappedNotification(notification.data.startupLocationId, true);
-        });
-
-        console.log('Plugin.notification', _.get(cordova, 'plugins.notification'));
-        if (_.get(cordova, 'plugins.notification.local.launchDetails.action') === 'click') {
-          const locationId = Setting.cached('notificationTappedLocationId');
-          if (locationId) {
-            await this.changeLocationForTappedNotification(locationId === 'all' ? null : locationId);
-          }
-        }
-      }
-
-      // find/create current user in the db:
-      try {
-        this.currentUser = <User>await User.findBy('usedForLogin', true);
-      } catch (e) {
-        const lastUserId = Setting.cached('lastUserId');
-        if (lastUserId !== '') {
-          this.currentUser = <User>await User.findBy('id', lastUserId);
-        } else {
-          // create dummy user:
-          this.currentUser = new User();
-          this.currentUser.usedForLogin = true;
-          await this.currentUser.save();
-          // in case we're migrating from v0.7:
-          await this.currentUser.assignMissingUserIds();
-        }
-      }
-
-      // i18n:
-      await this.setupI18n();
-
-      // show server choice dialog if this hasn't happened before:
-      let justChoseAServer = false;
-      if (Setting.cached('serverChosen') !== '1') {
-        this.loadingDone(task);
-        justChoseAServer = await this.showServerChoice();
-        task = this.loadingStarted('Initializing app');
-      }
-
-      // when the host setting is changed, the db has to be cleaned:
-      Setting.onChange('host', async () => {
-        await this.closeAnyOverlay();
-        await this.synchronizationHandler.syncMutex.acquire();
-        await User.clearUserRelatedData();
-        await this.logout(false);
-        await Setting.set('offlineMode', '0');
-        this.synchronizationHandler.syncMutex.release();
-        // Trigger list refresh:
-        this.events.publish('app:syncDone');
-      });
-
-      // when offline mode is changed, login/logout has to be performed:
-      Setting.onChange('offlineMode', async (setting: Setting) => {
-        await this.closeAnyOverlay();
-        if (setting.value !== '1') {
-          await this.autoLogin();
-          console.log('Logged in after offline mode has been deactivated');
-        } else if (this.currentUser.loggedIn) {
-          this.clearSyncTimeout();
-          await this.logout(true, false);
-          console.log('Logged out as offline mode has been activated');
-        }
-      });
-
-      // configure the daily reminder about expired/expiring products
-      this.setupReminder();
-
-      // allow access even before user login has completed (changes should sync later):
-      resolve();
-      this.loadingDone(task);
-
-      await this.autoLogin(justChoseAServer);
+      await this.initializeFromDb(resolve);
     });
   }
 
+  async initializeFromDb(resolve: () => void) {
+    let task: Symbol = this.loadingStarted('Initializing app');
+    await Setting.addDefaultsForMissingKeys();
+
+    // switch location if required by notification tap:
+    if (this.platform.is('cordova')) {
+      this.localNotifications.on('click').subscribe(async (notification) => {
+        await this.changeLocationForTappedNotification(notification.data.startupLocationId, true);
+      });
+
+      console.log('Plugin.notification', _.get(cordova, 'plugins.notification'));
+      if (_.get(cordova, 'plugins.notification.local.launchDetails.action') === 'click') {
+        const locationId = Setting.cached('notificationTappedLocationId');
+        if (locationId) {
+          await this.changeLocationForTappedNotification(locationId === 'all' ? null : locationId);
+        }
+      }
+    }
+
+    // find/create current user in the db:
+    try {
+      this.currentUser = <User>await User.findBy('usedForLogin', true);
+    } catch (e) {
+      const lastUserId = Setting.cached('lastUserId');
+      if (lastUserId !== '') {
+        this.currentUser = <User>await User.findBy('id', lastUserId);
+      } else {
+        // create dummy user:
+        this.currentUser = new User();
+        this.currentUser.usedForLogin = true;
+        await this.currentUser.save();
+        // in case we're migrating from v0.7:
+        await this.currentUser.assignMissingUserIds();
+      }
+    }
+
+    // i18n:
+    await this.setupI18n();
+
+    // now show the loader in the correct languange:
+    this.loadingDone(task);
+    await new Promise(myResolve => setTimeout(() => myResolve(), 1));
+    task = this.loadingStarted('Initializing app');
+
+    // show server choice dialog if this hasn't happened before:
+    let justChoseAServer = false;
+    if (Setting.cached('serverChosen') !== '1') {
+      this.loadingDone(task);
+      justChoseAServer = await this.showServerChoice();
+      task = this.loadingStarted('Initializing app');
+    }
+
+    // when the host setting is changed, the db has to be cleaned:
+    Setting.onChange('host', async () => {
+      await this.closeAnyOverlay();
+      await this.synchronizationHandler.syncMutex.acquire();
+      await User.clearUserRelatedData();
+      await this.logout(false);
+      await Setting.set('offlineMode', '0');
+      this.synchronizationHandler.syncMutex.release();
+      // Trigger list refresh:
+      this.events.publish('app:syncDone');
+    });
+
+    // when offline mode is changed, login/logout has to be performed:
+    Setting.onChange('offlineMode', async (setting: Setting) => {
+      await this.closeAnyOverlay();
+      if (setting.value !== '1') {
+        await this.autoLogin();
+        console.log('Logged in after offline mode has been deactivated');
+      } else if (this.currentUser.loggedIn) {
+        this.clearSyncTimeout();
+        await this.logout(true, false);
+        console.log('Logged out as offline mode has been activated');
+      }
+    });
+
+    // configure the daily reminder about expired/expiring products
+    this.setupReminder();
+
+    // allow access even before user login has completed (changes should sync later):
+    resolve();
+    this.loadingDone(task);
+
+    await this.autoLogin(justChoseAServer);
+  }
+
   private adeptPlatformDependingSettings() {
-    if (this.runningInBrowser) {
+    if (this.uiHelper.runningInBrowser) {
       // -> choose quaggaJs as default barcode engine and hide the selection from settings:
       Setting.settingConfig.barcodeEngine = { default: 'quaggaJs' };
     }
@@ -953,11 +979,15 @@ export class ExpirySync extends ExpirySyncController {
     // opening any menu point might ensue local changes
     // -> set the promise, which 'mutexedSynchronize' will have to wait for:
     // menu point configured to call a method:
-    await this.synchronizationHandler.acquireLocalChangesMutex();
+    if (!menuPoint.skipAcquiringLocalSyncMutex) {
+      await this.synchronizationHandler.acquireLocalChangesMutex();
+    }
 
     if (menuPoint.method) {
       menuPoint.method.apply(this);
-      this.synchronizationHandler.localChangesMutex.release();
+      if (!menuPoint.skipAcquiringLocalSyncMutex) {
+        this.synchronizationHandler.localChangesMutex.release();
+      }
       return;
     }
 
@@ -973,7 +1003,9 @@ export class ExpirySync extends ExpirySyncController {
             }
             menuPoint.onDidDismiss.apply(this, args);
           }
-          this.synchronizationHandler.localChangesMutex.release();
+          if (!menuPoint.skipAcquiringLocalSyncMutex) {
+            this.synchronizationHandler.localChangesMutex.release();
+          }
         });
         modal.present();
         return;
@@ -987,12 +1019,8 @@ export class ExpirySync extends ExpirySyncController {
     this.synchronizationHandler.localChangesMutex.release();
   }
 
-  get runningInBrowser(): boolean {
-    return (!this.device.platform || this.device.platform.toLowerCase() === 'browser');
-  }
-
   async detectVersion() {
-    if (!this.runningInBrowser) {
+    if (!this.uiHelper.runningInBrowser) {
       console.log('Retrieving version');
       this.version = await cordova.getAppVersion.getVersionNumber();
       this.version += ' (Build: ' + await cordova.getAppVersion.getVersionCode() + ')';

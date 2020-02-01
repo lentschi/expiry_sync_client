@@ -1,9 +1,11 @@
 import { Injectable, Inject } from '@angular/core';
 import { Device } from '@ionic-native/device/ngx';
-import * as migrations from '../config/migrations';
+import * as oldPersistenceMigrations from '../config/migrations';
 import { Setting } from 'src/app/models';
 import { AppModel } from './orm';
 import { IndexedMigration } from 'src/config/indexed-migrations/indexed-migration';
+import { ExportData, implementsExportData, ExportDataRow } from 'src/app/non-persisted-models/export-data';
+import { ExpirySync } from 'src/app/app.expiry-sync';
 
 // https://x-team.com/blog/include-javascript-libraries-in-an-ionic-2-typescript-project/
 // https://ionicframework.com/docs/v2/resources/app-scripts/
@@ -14,58 +16,44 @@ declare var openDatabase: any;
 
 @Injectable()
 export class DbManager {
+  readonly DATABASE_NAME = 'ExpirySync';
+
   private rawDb: any;
 
   constructor(private device: Device, @Inject(IndexedMigration) private indexedMigrations: IndexedMigration[]) { }
 
-  public async initialize(preventSqlite: boolean): Promise<any> {
-    const migratedFrom = await this.migrateIndexedDb();
-
-    if (migratedFrom === 0 && (window.sqlitePlugin || openDatabase)) {
-      this.configure(preventSqlite);
+  public async initialize(preventSqlite: boolean): Promise<void> {
+    if (window.sqlitePlugin || typeof openDatabase !== 'undefined') {
+      this.configureOldSqlDb(preventSqlite);
       if (await this.sqlSucceeds('SELECT * FROM article')) {
         // We still found some WebSQL data
         // -> run all remaining WebSQL migrations and then move the
         // data to indexedDb:
+
+        // Run first indexeddb migration (compatible with last sql schema):
+        await this.migrateIndexedDb(0, 1);
+
         await this.migrateFromV0_7();
-        this.loadMigrations();
-        await this.runMigrations();
+        this.loadOldPersistenceMigrations();
+        await this.runOldPersistenceMigrations();
         await this.moveWebsqlToIndexedDb();
+
+        // Run the rest of the indexeddb migrations:
+        await this.migrateIndexedDb(1);
+        return;
       }
     }
+
+    await this.migrateIndexedDb();
   }
 
-  /**
-   * Run indexedDb migrations
-   * @returns version that we migrated from or null if no migration was required
-   */
-  migrateIndexedDb(): Promise<number> {
-    let upgradeNeeded = false;
-    return new Promise<number>((resolve, reject) => {
-      const request = indexedDB.open('ExpirySync', this.indexedMigrations.length);
-      request.onerror = error => reject(error);
-      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        upgradeNeeded = true;
-        const db: IDBDatabase = (<IDBRequest> event.target).result;
-        AppModel.db = db;
-        for (const migration of this.indexedMigrations) {
-          const transaction = migration.migrate(db);
-          transaction.oncomplete = () => resolve(event.oldVersion);
-          transaction.onerror = e => reject(e);
-        }
-      };
-
-      request.onsuccess = (event) => {
-        if (!upgradeNeeded) {
-          const db: IDBDatabase = (<IDBRequest> event.target).result;
-          AppModel.db = db;
-          resolve(null);
-        }
-      };
-    });
+  private get targetSchemaVersion(): number {
+    return this.indexedMigrations.length;
   }
 
   async moveWebsqlToIndexedDb() {
+    // TODO: Fix the tables that must be moved to object stores -
+    // otherwise models that are later added will cause trouble:
     for (const modelClass of Object.values(AppModel.modelRegistry)) {
       const result = await this.executeSql(`SELECT * FROM ${modelClass.tableName}`);
       for (let i = 0; i < result.rows.length; i++) {
@@ -128,6 +116,53 @@ export class DbManager {
     }
   }
 
+  /**
+   * Run indexedDb migrations
+   * @returns version that we migrated from or null if no migration was required
+   */
+  async migrateIndexedDb(fromVersion?: number, toVersion = this.targetSchemaVersion): Promise<number> {
+    let upgradeNeeded = false;
+    let db: IDBDatabase;
+
+    if (AppModel.db) {
+      AppModel.db.close();
+      AppModel.db = null;
+    }
+
+    const upgradedFrom = await new Promise<number>((resolve, reject) => {
+      const request = indexedDB.open(this.DATABASE_NAME, toVersion);
+      request.onerror = error => reject(error);
+      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        fromVersion = typeof fromVersion === 'undefined' ? event.oldVersion : fromVersion;
+        upgradeNeeded = true;
+        db = (<IDBOpenDBRequest> event.target).result;
+        let transaction: IDBTransaction;
+        console.log(`DB: Migration from version ${fromVersion} to ${toVersion} required`);
+        for (const migration of this.indexedMigrations.slice(fromVersion, toVersion)) {
+          transaction = migration.migrate(<IDBOpenDBRequest> event.target);
+        }
+
+        transaction.oncomplete = () => resolve(fromVersion);
+        transaction.onerror = e => reject(e);
+      };
+
+
+      request.onsuccess = (event) => {
+        if (!upgradeNeeded) {
+          console.log('DB: No migration needed');
+          db = (<IDBRequest> event.target).result;
+          resolve(null);
+        }
+      };
+
+    });
+
+    console.log('DB: Done migrating', upgradedFrom);
+    AppModel.db = db;
+
+    return upgradedFrom;
+  }
+
   private async migrateFromV0_7() {
     if (this.device.platform !== 'Android') {
       return; // v0.7 only existed for Android
@@ -160,7 +195,7 @@ export class DbManager {
     return this.rawDb;
   }
 
-  private configure(preventSqlite: boolean) {
+  private configureOldSqlDb(preventSqlite: boolean) {
     if (preventSqlite && 'sqlitePlugin' in window) {
       delete window.sqlitePlugin;
     }
@@ -177,20 +212,20 @@ export class DbManager {
     );
   }
 
-  private loadMigrations() {
-    for (const key of Object.keys(migrations)) {
+  private loadOldPersistenceMigrations() {
+    for (const key of Object.keys(oldPersistenceMigrations)) {
       // tslint:disable-next-line:no-unused-expression
-      new migrations[key]();
+      new oldPersistenceMigrations[key]();
     }
   }
 
-  private runMigrations(): Promise<any> {
+  private runOldPersistenceMigrations(): Promise<any> {
     return new Promise((resolve, reject) => {
       persistence.migrations.init(() => {
-        console.log('Migrations initialized');
+        console.log('OLDDB: Migrations initialized');
         try {
           persistence.migrate(function () {
-            console.log('Migrations done');
+            console.log('OLDDB: Migrations done');
             resolve(persistence);
           });
         } catch (e) {

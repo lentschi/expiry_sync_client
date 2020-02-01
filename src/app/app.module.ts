@@ -50,6 +50,11 @@ import { DatePickerComponent } from 'src/utils/components/date-picker/date-picke
 import { MatDatepickerModule } from '@angular/material';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { IndexedMigrationsModule } from 'src/config/indexed-migrations/indexed-migrations.module';
+import { FileTransfer } from '@ionic-native/file-transfer/ngx';
+import { File } from '@ionic-native/file/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { ImportExportModal } from 'src/modal/import-export/import-export';
+import { BackupManager } from 'src/utils/backup-manager/backup-manager';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -60,6 +65,7 @@ export function createTranslateLoader(http: HttpClient) {
     ExpirySync,
     ProductEntriesPage,
     AboutModal,
+    ImportExportModal,
     SettingsModal,
     LocationsModal,
     SettingEditModal,
@@ -91,6 +97,7 @@ export function createTranslateLoader(http: HttpClient) {
     ExpirySync,
     ProductEntriesPage,
     AboutModal,
+    ImportExportModal,
     SettingsModal,
     AlternateServersChoiceModal,
     LocationsModal,
@@ -128,10 +135,11 @@ export function createTranslateLoader(http: HttpClient) {
         deps: [HttpClient]
       }
     }),
-    IndexedMigrationsModule
+    IndexedMigrationsModule,
   ],
   providers: [
     DbManager,
+    BackupManager,
     ApiServer,
     SynchronizationHandler,
     UiHelper,
@@ -140,6 +148,9 @@ export function createTranslateLoader(http: HttpClient) {
     HttpClientModule,
     Device,
     Camera,
+    File,
+    FileTransfer,
+    AndroidPermissions,
     BackgroundMode,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     {

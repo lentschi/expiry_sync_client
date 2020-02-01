@@ -172,5 +172,25 @@
       "other": "Вы хотите переместить {{n}} продуктов в «{{location}}»?"
     }
   },
-  "many thanks for translations into Russian": "Большое спасибо за переводы на русский язык"
+  "many thanks for translations into Russian": "Большое спасибо за переводы на русский язык",
+  "export / import data": "экспорт / импорт данных",
+  "export spreadsheet": "экспортировать в виде табличных данных",
+  "Export local app data as a spreadsheet. Can NOT be reimported.": "Экспорт данных локального приложения в виде электронной таблицы. НЕ может быть повторно импортирован.",
+  "export backup": "экспорт резервной копии",
+  "import backup": "импортировать резервную копию",
+  "Export local app data to your device.": "Экспортируйте локальные данные ExpirySync на ваше устройство.",
+  "Choose any backup file you previously exported by by the above function.": "Выберите любой файл резервной копии, ранее экспортированный с помощью вышеуказанной функции.",
+  "This does not seem to be a valid backup file.": "Это не похоже на действительный файл резервной копии.",
+  "Tap to choose a file to restore from": "Выберите файл для восстановления из",
+  "warning": "предупреждение",
+  "Importing a backup will erase all local data that has not been backuped!": "Импортирование резервной копии приведет к удалению всех локальных данных, которые не были скопированы!",
+  "Backup successfully created": "Резервное копирование успешно создано",
+  "Backup saved to": "Резервная копия сохранена в",
+  "Failed to export backup": "Не удалось экспортировать резервную копию",
+  "Spreadsheet successfully created": "Таблица успешно создана",
+  "Spreadsheet saved to": "Электронная таблица сохранена в",
+  "Failed to export spreadsheet": "Не удалось экспортировать электронную таблицу",
+  "Backup successfully imported": "Резервное копирование успешно импортировано",
+  "An unexpected error occurred when trying to import the backup.": "Произошла непредвиденная ошибка при попытке импортировать резервную копию.",
+  "entry created": "запись создана"
 }

@@ -1,7 +1,9 @@
 import { IndexedMigration } from '../indexed-migration';
 
 export class InitialMigration extends IndexedMigration {
-    migrate(db: IDBDatabase) {
+    migrate(openDbRequest: IDBOpenDBRequest) {
+        const db = openDbRequest.result;
+
         let store: IDBObjectStore;
         store = db.createObjectStore('Article');
         store.createIndex('barcode', 'barcode');

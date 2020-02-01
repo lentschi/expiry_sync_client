@@ -34,7 +34,7 @@ export class UserLoginModal extends ExpirySyncController {
     if (params.get('error')) {
       if (this.app.currentUser) {
         this.user.login = this.app.currentUser.userName;
-        this.user.password = this.app.currentUser.password;
+        this.user.unObfuscatedPassword = this.app.currentUser.unObfuscatedPassword;
       }
       this.displayError(params.get('error'));
     }

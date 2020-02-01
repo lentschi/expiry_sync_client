@@ -3,12 +3,14 @@ import { AlertController, ToastController } from '@ionic/angular';
 import { ExpirySync } from 'src/app/app.expiry-sync';
 import { AlertButton } from '@ionic/core';
 import { environment } from 'src/environments/environment';
+import { Device } from '@ionic-native/device/ngx';
 
 @Injectable()
 export class UiHelper {
   constructor(
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private device: Device,
   ) { }
 
 
@@ -55,11 +57,11 @@ export class UiHelper {
     });
   }
 
-  async toast(message: string, cssClass?: string): Promise<HTMLIonToastElement> {
+  async toast(message: string, cssClass?: string, duration?: number): Promise<HTMLIonToastElement> {
     const toast = await this.toastCtrl.create({
       message: message,
-      duration: environment.toastDuration,
-      cssClass: cssClass
+      duration: duration || environment.toastDuration,
+      cssClass: cssClass || undefined
     });
 
     await toast.present();
@@ -68,5 +70,9 @@ export class UiHelper {
 
   errorToast(message: string): Promise<HTMLIonToastElement> {
     return this.toast(message, 'error');
+  }
+
+  get runningInBrowser(): boolean {
+    return (!this.device.platform || this.device.platform.toLowerCase() === 'browser');
   }
 }

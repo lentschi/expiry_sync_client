@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title translate>export / import data</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="modalCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content id="import-export">
+  <ion-item>
+    <h2 translate>export spreadsheet</h2>
+  </ion-item>
+  <ion-item translate>Export local app data as a spreadsheet. Can NOT be reimported.</ion-item>
+  <ion-button type="submit" expand="full" translate (click)="exportSpreadsheet()">export spreadsheet</ion-button>
+  <ion-item class="space-above">
+    <h2 translate>export backup</h2>
+  </ion-item>
+  <ion-item translate>Export local app data to your device.</ion-item>
+  <ion-button type="submit" expand="full" translate (click)="export()">export backup</ion-button>
+  <ion-item class="space-above">
+    <h2 translate>import backup</h2>
+  </ion-item>
+  <ion-item translate>
+    Choose any backup file you previously exported by by the above function.
+  </ion-item>
+  <div
+      class="dropzone"
+      [class.validFileDragover]="validFileToDrop === true"
+      [class.invalidFileDragover]="validFileToDrop === false"
+      [class.invalidContents]="invalidContents"
+      (click)="dropzoneTapped()"
+      (drop)="fileDropped($event)"
+      (dragover)="dragOver($event)"
+      (dragleave)="validFileToDrop = null">
+    <span *ngIf="file; else noFileChosen" class="fileName">
+      <ion-icon name="save" large></ion-icon>
+      <span>{{file.name}}</span>
+      <div *ngIf="invalidContents" class="file-error" translate>This does not seem to be a valid backup file.</div>
+    </span>
+    <ng-template #noFileChosen>
+      <span class="chooseText" translate>Tap to choose a file to restore from</span>
+    </ng-template>
+  </div>
+  <input class="hidden-file-input" #fileInput type="file" [accept]="uiHelper.runningInBrowser ? 'application/json' : '*'" (change)="fileChosen($event)">
+  <ng-container *ngIf="file">
+    <ion-item>
+      <ion-icon name="warning" color="warning" class="warning"></ion-icon>
+      <h3 translate>warning</h3>
+    </ion-item>
+    <ion-item translate>Importing a backup will erase all local data that has not been backuped!</ion-item>
+  </ng-container>
+  <ion-button #importBtn type="submit" expand="full" [disabled]="!file" translate (click)="import()">import backup</ion-button>
+</ion-content>

@@ -12,17 +12,17 @@
   <form #loginForm="ngForm" class="list" (ngSubmit)="loginTapped(loginForm.valid)" novalidate>
     <ion-item [class.server-validation-error]="serverValidationErrors.login">
       <ion-label position="floating" translate>login</ion-label>
-      <ion-input 
-        required 
-        autofocus 
-        [(ngModel)]="user.login" 
-        name="login" 
-        #login="ngModel" 
-        autocorrect="off" 
+      <ion-input
+        required
+        autofocus
+        [(ngModel)]="user.login"
+        name="login"
+        #login="ngModel"
+        autocorrect="off"
         autocapitalize="none"
         [placeholder]="'email OR user name' | translate"></ion-input>
     </ion-item>
-    
+
     <ng-container *ngIf="serverValidationErrors.login">
       <ng-container *ngFor="let serverValidationError of serverValidationErrors.login">
         <div class="validation-error">{{serverValidationError}}</div>
@@ -30,7 +30,7 @@
     </ng-container>
     <ion-item [class.server-validation-error]="serverValidationErrors.password">
       <ion-label position="floating" translate>password</ion-label>
-      <ion-input type="password" [(ngModel)]="user.password" name="password" #password="ngModel"></ion-input>
+      <ion-input type="password" [(ngModel)]="user.unObfuscatedPassword" name="password" #password="ngModel"></ion-input>
     </ion-item>
     <ng-container *ngIf="serverValidationErrors.password">
       <ng-container *ngFor="let serverValidationError of serverValidationErrors.password">

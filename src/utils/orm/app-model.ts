@@ -76,6 +76,7 @@ export class AppModel {
   static allowImplicitCreation: boolean;
 
   id: string;
+  rawData: any;
   private deleted = false;
 
   static register(modelName: string, modelClass: typeof AppModel) {
@@ -130,6 +131,7 @@ export class AppModel {
     }
     const modelInstance: AppModel = new this();
     modelInstance.id = data.id;
+    modelInstance.rawData = data;
     for (const propertyName of Object.keys(this.typeMap)) {
       const propertyType = this.typeMap[propertyName];
       if (propertyType !== 'BOOL') {

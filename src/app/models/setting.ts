@@ -272,7 +272,7 @@ export class Setting extends AppModel {
             } else {
               currentUser.userName = login;
             }
-            currentUser.password = password;
+            currentUser.unObfuscatedPassword = password;
             currentUser.usedForLogin = true;
             await currentUser.save();
             await currentUser.assignMissingUserIds();

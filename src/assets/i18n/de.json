@@ -155,5 +155,25 @@
         "other": "Sind Sie sicher, dass Sie {{n}} Produkte nach \"{{location}}\" verschieben wollen?"
       }
     },
-    "many thanks for translations into Russian": "vielen Dank für die Übersetzung ins Russische"
+    "many thanks for translations into Russian": "vielen Dank für die Übersetzung ins Russische",
+    "export / import data": "Daten exportieren/importieren",
+    "export spreadsheet": "als Tabellendaten exportieren",
+    "Export local app data as a spreadsheet. Can NOT be reimported.": "Lokale Daten als Tabellendaten exportieren. Kann NICHT als Backup importiert werden.",
+    "export backup": "Backup exportieren",
+    "import backup": "Backup importieren",
+    "Export local app data to your device.": "Lokale App-Daten auf Ihr Gerät exportieren.",
+    "Choose any backup file you previously exported by by the above function.": "Wählen Sie eine beliebige Backup-Datei, die Sie zuvor mit der obigen Funktion exportiert haben.",
+    "This does not seem to be a valid backup file.": "Das scheint keine gültige Backup-Datei zu sein.",
+    "Tap to choose a file to restore from": "Eine Backup-Datei für den Import wählen",
+    "warning": "Warnung",
+    "Importing a backup will erase all local data that has not been backuped!": "Ein Backup zu importieren bedeutet, dass alle noch nicht als Backup gesicherten Daten gelöscht werden!",
+    "Backup successfully created": "Backup erfolgreich erstellt",
+    "Backup saved to": "Backup gespeichert unter",
+    "Failed to export backup": "Fehler beim Exportieren des Backups",
+    "Spreadsheet successfully created": "Tabellendaten erfolgreich exportiert",
+    "Spreadsheet saved to": "Tabellendaten gespeichert unter",
+    "Failed to export spreadsheet": "Fehler beim Exportieren der Tabellendaten",
+    "Backup successfully imported": "Backup erfolgreich importiert",
+    "An unexpected error occurred when trying to import the backup.": "Beim Versuch das Backup zu importieren ist ein unerwarteter Fehler aufgetreten.",
+    "entry created": "Eintrag erstellt"
 }

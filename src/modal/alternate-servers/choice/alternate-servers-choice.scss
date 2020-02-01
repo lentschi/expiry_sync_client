@@ -17,6 +17,7 @@ ion-content#alternate-servers {
   }
 
   ion-item {
+    cursor: pointer;
     .name, .description {
       white-space: normal;
       margin: 5px;

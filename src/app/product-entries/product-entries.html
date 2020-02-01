@@ -71,7 +71,7 @@
             <ion-item
                 *ngIf="loadingAfterLocationSwitchDone"
                 [class.filtered-by-location]="selectedLocation"
-                [class.activated]="productEntry.selected"
+                [class.selected]="productEntry.selected"
                 [class.gone-bad]="productEntry.goneBad"
                 [class.gone-medium]="!productEntry.goneBad && productEntry.goneMedium"
                 (click)="openEntryForm(productEntry)">

@@ -1,0 +1,42 @@
+#import-export {
+  ion-icon.warning {
+    margin-right: 5px;
+  }
+
+  .space-above {
+    margin-top: 20px;
+  }
+
+  .hidden-file-input {
+    display: none;
+  }
+
+  .dropzone {
+    border: 2px dashed var(--ion-color-medium-shade);
+    padding: 50px;
+    text-align: center;
+    width: 95%;
+    margin: 5px 5px 5px 15px;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &.validFileDragover {
+      border-color: #080;
+      color: #080;
+    }
+
+    &.invalidFileDragover {
+      border-color: #800;
+      color: #800;
+    }
+
+    &.invalidContents {
+      color: #800;
+    }
+  }
+}
+
+

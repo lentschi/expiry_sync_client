@@ -1,3 +1,3 @@
 export abstract class IndexedMigration {
-    abstract migrate(db: IDBDatabase): IDBTransaction;
+    abstract migrate(openDbRequest: IDBOpenDBRequest): IDBTransaction;
 }

@@ -112,7 +112,7 @@ export class User extends AppModel {
 
     if (forgetPassword) {
       this.usedForLogin = false;
-      this.password = null;
+      this.unObfuscatedPassword = null;
     }
 
     await this.save();
@@ -141,6 +141,14 @@ export class User extends AppModel {
     await this.markAsLoggedIn();
   }
 
+  set unObfuscatedPassword(value: string) {
+    this.password = value ? btoa(value) : value;
+  }
+
+  get unObfuscatedPassword(): string {
+    return this.password ? atob(this.password) : this.password;
+  }
+
   private async clearPreviosUsersData() {
     const previousUserId = Setting.cached('lastUserId');
     if (previousUserId === '' || previousUserId === this.id) {
@@ -157,11 +165,11 @@ export class User extends AppModel {
 
     if (this.login) {
       userData.login = this.login;
-      userData.password = this.password;
+      userData.password = this.unObfuscatedPassword;
     } else {
       userData.username = this.userName;
       userData.email = this.email;
-      userData.password = this.password;
+      userData.password = this.unObfuscatedPassword;
     }
 
     return userData;

@@ -156,5 +156,25 @@
       "other": "Are you sure you want to move {{n}} products to \"{{location}}\"?"
     }
   },
-  "many thanks for translations into Russian": "many thanks for translations into Russian"
+  "many thanks for translations into Russian": "many thanks for translations into Russian",
+  "export / import data": "export / import data",
+  "export spreadsheet": "export spreadsheet",
+  "Export local app data as a spreadsheet. Can NOT be reimported.": "Export local app data as a spreadsheet. Can NOT be reimported.",
+  "export backup": "export backup",
+  "import backup": "import backup",
+  "Export local app data to your device.": "Export local app data to your device.",
+  "Choose any backup file you previously exported by by the above function.": "Choose any backup file you previously exported by by the above function.",
+  "This does not seem to be a valid backup file.": "This does not seem to be a valid backup file.",
+  "Tap to choose a file to restore from": "Tap to choose a file to restore from",
+  "warning": "warning",
+  "Importing a backup will erase all local data that has not been backuped!": "Importing a backup will erase all local data that has not been backuped!",
+  "Backup successfully created": "Backup successfully created",
+  "Backup saved to": "Backup saved to",
+  "Failed to export backup": "Failed to export backup",
+  "Spreadsheet successfully created": "Spreadsheet successfully created",
+  "Spreadsheet saved to": "Spreadsheet saved to",
+  "Failed to export spreadsheet": "Failed to export spreadsheet",
+  "Backup successfully imported": "Backup successfully imported",
+  "An unexpected error occurred when trying to import the backup.": "An unexpected error occurred when trying to import the backup.",
+  "entry created": "entry created"
 }

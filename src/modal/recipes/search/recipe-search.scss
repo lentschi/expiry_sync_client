@@ -13,6 +13,7 @@
         margin: 9px;
         color: #ce9b9b;
         display: inline-block;
+        cursor: pointer;
 
         &.active {
           color: #008800;
@@ -20,7 +21,7 @@
     }
 
   }
-  
+
   .select-helpers {
     text-align: center;
     margin-bottom: 2rem;
