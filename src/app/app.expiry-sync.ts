@@ -167,6 +167,8 @@ export class ExpirySync extends ExpirySyncController {
 
   preventNextBackButton = false;
 
+  private languageInitialized: boolean;
+
   /**
    * @return {Promise}   resolved when the app has been initialized
    */
@@ -658,7 +660,6 @@ export class ExpirySync extends ExpirySyncController {
 
     // now show the loader in the correct languange:
     this.loadingDone(task);
-    await new Promise(myResolve => setTimeout(() => myResolve(), 1));
     task = this.loadingStarted('Initializing app');
 
     // show server choice dialog if this hasn't happened before:
@@ -892,11 +893,12 @@ export class ExpirySync extends ExpirySyncController {
    * @param dateFormatLocaleId language code for the date format
    */
   private async switchLanguage(localeId: string, dateFormatLocaleId: string) {
-    this.translateSvc.use(localeId);
+    await this.translateSvc.use(localeId).toPromise();
     moment.locale(dateFormatLocaleId);
     this.dateAdapter.setLocale(dateFormatLocaleId);
     this.events.publish('app:timeLocaleAdjusted');
     Setting.setLanguageDependentLabels();
+    this.languageInitialized = true;
   }
 
   /**
@@ -915,7 +917,7 @@ export class ExpirySync extends ExpirySyncController {
     const options: LoadingOptions = {};
     if (content) {
       // options.content = content ;
-      options.message = this.translateSvc.instant('Please wait...');
+      options.message = this.languageInitialized ? this.translateSvc.instant('Please wait...') : '';
     }
 
     if (this.loader && forceReopening) {
