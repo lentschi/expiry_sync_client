@@ -17,6 +17,13 @@ html, body {
 
   ion-title {
     overflow: hidden;
+
+    &.title-ios {
+      ion-item {
+        --inner-border-width: 0px;
+        border-bottom: 1px solid transparent;
+      }
+    }
   }
 
   ion-select {

@@ -32,6 +32,12 @@
 
   ion-title {
     display: inline-block;
+
+    &.title-ios {
+      position: static;
+      padding-inline-start: 0px;
+      padding-inline-end: 0px;
+    }
   }
 
   .toolbar-title::first-letter, ion-label::first-letter, ion-label .label::first-letter, ion-title::first-letter {
