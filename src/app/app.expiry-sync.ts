@@ -25,6 +25,7 @@ import * as _ from 'lodash';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { DateAdapter } from '@angular/material';
 import { ImportExportModal } from 'src/modal/import-export/import-export';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 
 declare var window: any;
 declare var cordova: any;
@@ -204,6 +205,7 @@ export class ExpirySync extends ExpirySyncController {
     public device: Device,
     private backgroundMode: BackgroundMode,
     private dateAdapter: DateAdapter<any>,
+    private androidPermissions: AndroidPermissions
   ) {
     super(translate);
 
@@ -513,6 +515,9 @@ export class ExpirySync extends ExpirySyncController {
       return;
     }
 
+    console.log('REQPERM');
+    window.wakeuptimer.requestPermissions();
+
     const showReminderSetting = Setting.cached('showReminder');
     if (showReminderSetting !== '1') {
       return;
@@ -686,6 +691,12 @@ export class ExpirySync extends ExpirySyncController {
     // now show the loader in the correct languange:
     this.loadingDone(task);
     task = this.loadingStarted('Initializing app');
+    const permission = this.androidPermissions.PERMISSION.SYSTEM_ALERT_WINDOW;
+    console.log('+++ Checking perm', permission);
+    if (!(await this.androidPermissions.checkPermission(permission)).hasPermission) {
+      const ret = await this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.SYSTEM_ALERT_WINDOW);
+      console.log('++++ HasPerm', JSON.stringify(ret.hasPermission));
+    }
 
     // show server choice dialog if this hasn't happened before:
     let justChoseAServer = false;
