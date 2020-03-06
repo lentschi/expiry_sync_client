@@ -78,6 +78,7 @@ export class ExpirySync extends ExpirySyncController {
    */
   static readonly FALLBACK_APP_VERSION = '2.0 web';
   static readonly API_VERSION = 3;
+  static readonly MAX_LOG_CACHE_ENTRIES = 100;
 
   /**
    * Singleton instance
@@ -169,6 +170,8 @@ export class ExpirySync extends ExpirySyncController {
 
   private languageInitialized: boolean;
 
+  logCache: {level: 'log' | 'info' | 'warn' | 'error', data: any[]}[] = [];
+
   /**
    * @return {Promise}   resolved when the app has been initialized
    */
@@ -203,6 +206,28 @@ export class ExpirySync extends ExpirySyncController {
     private dateAdapter: DateAdapter<any>,
   ) {
     super(translate);
+
+    const originalConsole = window.console;
+    const newConsole: any = { };
+    for (const key of Object.keys(originalConsole)) {
+      const value = originalConsole[key];
+      if (['info', 'warn', 'error', 'log'].includes(key)) {
+        newConsole[key] = (...args) => {
+          originalConsole[key](args);
+          if (this.logCache.length > ExpirySync.MAX_LOG_CACHE_ENTRIES) {
+            this.logCache.splice(0, 1);
+          }
+          this.logCache.push({
+            level: <'log' | 'info' | 'warn' | 'error'> key,
+            data: args
+          });
+        };
+      } else {
+        newConsole[key] = value;
+      }
+    }
+    window.console = newConsole;
+
     ExpirySync.appInstance = this;
     this.initializeApp();
 

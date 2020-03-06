@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { ExpirySyncController } from 'src/app/app.expiry-sync-controller';
@@ -10,6 +10,10 @@ import { ExpirySync } from 'src/app/app.expiry-sync';
   styleUrls: ['about.scss']
 })
 export class AboutModal extends ExpirySyncController {
+  static readonly TAPS_REQUIRED_FOR_LOGS = 3;
+  tapCounter = 0;
+  logs: string;
+
   constructor(translate: TranslateService, private modalCtrl: ModalController) {
     super(translate);
   }
@@ -37,5 +41,25 @@ export class AboutModal extends ExpirySyncController {
 
   dismiss() {
     this.modalCtrl.dismiss();
+  }
+
+  appTitleClicked() {
+    this.tapCounter++;
+
+    if (this.tapCounter === AboutModal.TAPS_REQUIRED_FOR_LOGS) {
+      this.logs = '';
+      const entries = ExpirySync.getInstance().logCache;
+      for (const entry of entries) {
+        const logTexts: string[] = [];
+        for (const logPart of entry.data) {
+          try {
+            logTexts.push(JSON.stringify(logPart));
+          } catch (e) {
+            logTexts.push(`<stringify of ${typeof logPart} failed>`);
+          }
+        }
+        this.logs += `${entry.level}: ${logTexts.join(' | ')} \n\n`;
+      }
+    }
   }
 }

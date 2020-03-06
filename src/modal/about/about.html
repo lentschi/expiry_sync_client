@@ -10,10 +10,13 @@
 </ion-header>
 
 <ion-content id="about">
+  <div *ngIf="logs" class="logs">
+    <textarea [ngModel]="logs"></textarea>
+  </div>
   <ion-list>
     <ion-item class="app">
       <div>
-        <h2 translate>App</h2>
+        <h2 (click)="appTitleClicked()" translate>App</h2>
         <div class="info">
           <span class="label" translate>developed by</span>
           <span class="value">Florian Lentsch</span>
