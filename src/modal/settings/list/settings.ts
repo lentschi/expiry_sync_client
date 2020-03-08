@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation, OnDestroy } from '@angular/core';
 
-import { NavController, NavParams, ModalController } from '@ionic/angular';
+import { NavController, NavParams, ModalController, IonCheckbox } from '@ionic/angular';
 import { SettingEditModal } from '../edit/setting-edit';
 import { Setting } from 'src/app/models';
 import { SettingWeekdaysElement } from '../edit/types/weekdays/setting-weekdays';
@@ -33,6 +33,12 @@ export class SettingsModal implements OnDestroy {
 
     Setting.all().list().then((settings: Array<Setting>) => {
       this.settings = settings.sort((s1, s2) => s1.position > s2.position ? 1 : -1);
+      // Upgdate setting in the list, if changing one setting causes another to change:
+      for (const setting of this.settings) {
+        Setting.onChange(setting.key).pipe(takeUntil(this.destroyed)).subscribe(changedSetting => {
+          setting.value = changedSetting.value;
+        });
+      }
     });
 
     ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);
@@ -67,8 +73,8 @@ export class SettingsModal implements OnDestroy {
     modal.present();
   }
 
-  async booleanValueChanged(setting: Setting) {
-    setting.value = (setting.value === '1') ? '0' : '1';
+  async booleanValueChanged(setting: Setting, value: CustomEvent) {
+    setting.value = ((<IonCheckbox> <unknown> value.target).checked === false) ? '0' : '1';
     await Setting.set(setting.key, setting.value);
   }
 

@@ -11,7 +11,7 @@ import { Type } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import * as moment from 'moment';
 import 'moment/min/locales';
-import { Subscribable, Subject, Observable } from 'rxjs';
+import { Subject } from 'rxjs';
 
 declare var SharedPreferences: any;
 declare var cordova: any;
@@ -181,7 +181,7 @@ export class Setting extends AppModel {
       setting.key = key;
     }
 
-    return new Promise<Setting>(async (resolve, reject) => {
+    return new Promise<Setting>(async (resolve) => {
       await setting.saveValue(value);
       this.callChangeListeners(setting);
       resolve(setting);
@@ -284,8 +284,8 @@ export class Setting extends AppModel {
         // clear prefs even if something went wrong
         // (E.g. Else, if we converted half the prefs to Settings before an error occurred,
         // next time we would overwrite those settings again):
-        SharedPreferences.clear(() => resolve(), clearError => resolve());
-      }, error => resolve());
+        SharedPreferences.clear(() => resolve(), () => resolve());
+      }, () => resolve());
     });
   }
 

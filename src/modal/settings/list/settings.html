@@ -25,7 +25,7 @@
         </ion-item>
         <ion-item *ngIf="setting.settingConfig.inlineEditableBoolean" [disabled]="setting.settingConfig.disabled">
           <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
-          <ion-checkbox [checked]="setting.value == '1'" (ionChange)="booleanValueChanged(setting)"></ion-checkbox>
+          <ion-checkbox [checked]="setting.value == '1'" (ionChange)="booleanValueChanged(setting, $event)"></ion-checkbox>
         </ion-item>
         <ion-item class="time" *ngIf="setting.settingConfig.timeButton" [disabled]="setting.settingConfig.disabled">
           <ion-label><setting-label [setting]="setting"></setting-label></ion-label>
