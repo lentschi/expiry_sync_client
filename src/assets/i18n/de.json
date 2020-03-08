@@ -175,5 +175,6 @@
     "Failed to export spreadsheet": "Fehler beim Exportieren der Tabellendaten",
     "Backup successfully imported": "Backup erfolgreich importiert",
     "An unexpected error occurred when trying to import the backup.": "Beim Versuch das Backup zu importieren ist ein unerwarteter Fehler aufgetreten.",
-    "entry created": "Eintrag erstellt"
+    "entry created": "Eintrag erstellt",
+    "Do you want to show a notification when products expire? (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)": "Wollen Sie Erinnerungen beim Ablaufen von Produkten anzeigen? (Wenn Sie 'ja' wählen, wird ihnen im nächsten Schritt ein Android-Berechtigungs-Dialog angezeigt, den Sie bestätigen müssen.)"
 }

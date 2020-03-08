@@ -476,7 +476,9 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     if (Setting.cached('askedForOverlaysPermission') !== '1') {
-      if (!await this.uiHelper.confirm('Do you want notifications?')) {
+      const question = await this.translate('Do you want to show a notification when products expire?'
+        + ' (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)');
+      if (!await this.uiHelper.confirm(question)) {
         return false;
       }
     }

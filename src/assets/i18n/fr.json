@@ -175,5 +175,6 @@
     "Failed to export spreadsheet": "Échec de l'exportation de la feuille de calcul",
     "Backup successfully imported": "Sauvegarde importée avec succès",
     "An unexpected error occurred when trying to import the backup.": "Une erreur inattendue s'est produite lors de la tentative d'importation de la sauvegarde.",
-    "entry created": "entrée créée"
+    "entry created": "entrée créée",
+    "Do you want to show a notification when products expire? (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)": "Voulez-vous afficher une notification lorsque les produits expirent? (Si vous choisissez oui, vous devrez accorder à ExpirySync les autorisations nécessaires à l'étape suivante.)"
 }

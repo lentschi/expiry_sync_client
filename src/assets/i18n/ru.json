@@ -192,5 +192,6 @@
   "Failed to export spreadsheet": "Не удалось экспортировать электронную таблицу",
   "Backup successfully imported": "Резервное копирование успешно импортировано",
   "An unexpected error occurred when trying to import the backup.": "Произошла непредвиденная ошибка при попытке импортировать резервную копию.",
-  "entry created": "запись создана"
+  "entry created": "запись создана",
+  "Do you want to show a notification when products expire? (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)": "Хотите показать уведомление, когда продукты истекают? (Если вы выберете «да», вам потребуется предоставить ExpirySync необходимые разрешения на следующем шаге.)"
 }

@@ -176,5 +176,6 @@
   "Failed to export spreadsheet": "Failed to export spreadsheet",
   "Backup successfully imported": "Backup successfully imported",
   "An unexpected error occurred when trying to import the backup.": "An unexpected error occurred when trying to import the backup.",
-  "entry created": "entry created"
+  "entry created": "entry created",
+  "Do you want to show a notification when products expire? (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)": "Do you want to show a notification when products expire? (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)"
 }
