@@ -1,4 +1,4 @@
-import { Component, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 import { ModalController, Events, IonInput } from '@ionic/angular';
@@ -12,6 +12,8 @@ import { ProductEntryFormModal } from 'src/modal/product-entries/form/product-en
 import { RecipeSearchModal } from 'src/modal/recipes/search/recipe-search';
 import { ProductEntryMoveFormModal } from 'src/modal/product-entries/move-form/product-entry-move-form';
 import { SynchronizationHandler } from '../services/synchronization-handler.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -35,8 +37,7 @@ import { SynchronizationHandler } from '../services/synchronization-handler.serv
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductEntriesPage extends ExpirySyncController {
-
+export class ProductEntriesPage extends ExpirySyncController implements OnDestroy {
   constructor(
     private modalCtrl: ModalController,
     private uiHelper: UiHelper,
@@ -53,7 +54,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     ExpirySync.ready().then(async () => {
       await this.showListAndFilters();
       this.enableDisableMenuPoints();
-      Setting.onChange('lastSync', async (setting: Setting) => {
+      Setting.onChange('lastSync').pipe(takeUntil(this.destroyed)).subscribe(async (setting: Setting) => {
         if (setting.value === '') {
           // Happens if the user is changed -> show an empty list until the new one has been pulled:
           await this.showListAndFilters();
@@ -93,6 +94,7 @@ export class ProductEntriesPage extends ExpirySyncController {
     // });
   }
   private currentProductEntries: ProductEntriesListAdapter;
+  private destroyed = new Subject<void>();
   locations: Array<Location>;
   selectedLocationId: string;
   selectedLocation: Location;
@@ -104,6 +106,10 @@ export class ProductEntriesPage extends ExpirySyncController {
   @ViewChild('filterField', { static: false }) filterField: IonInput;
 
   private deregisterBackButtonHandler: Function;
+
+  ngOnDestroy() {
+    this.destroyed.next();
+  }
 
   get productEntries(): ProductEntriesListAdapter {
     return this.currentProductEntries;

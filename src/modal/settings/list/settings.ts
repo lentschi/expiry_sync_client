@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, OnDestroy } from '@angular/core';
 
 import { NavController, NavParams, ModalController } from '@ionic/angular';
 import { SettingEditModal } from '../edit/setting-edit';
@@ -7,15 +7,19 @@ import { SettingWeekdaysElement } from '../edit/types/weekdays/setting-weekdays'
 import * as moment from 'moment';
 import 'moment/min/locales';
 import { ExpirySync } from 'src/app/app.expiry-sync';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   templateUrl: 'settings.html',
   styleUrls: ['settings.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class SettingsModal {
+export class SettingsModal implements OnDestroy {
   settings: Array<Setting>;
   allDaysTranslation: string;
+
+  private destroyed = new Subject<void>();
 
   constructor(
     public navCtrl: NavController,
@@ -32,9 +36,13 @@ export class SettingsModal {
     });
 
     ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);
-    Setting.onChange('localeId', _ => {
+    Setting.onChange('localeId').pipe(takeUntil(this.destroyed)).subscribe(_ => {
       ExpirySync.getInstance().translate('on all').then(translation => this.allDaysTranslation = translation);
     });
+  }
+
+  ngOnDestroy() {
+    this.destroyed.next();
   }
 
   async settingTapped(_: MouseEvent, item: Setting) {

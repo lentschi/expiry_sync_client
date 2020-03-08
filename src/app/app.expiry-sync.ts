@@ -26,6 +26,8 @@ import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { DateAdapter } from '@angular/material';
 import { ImportExportModal } from 'src/modal/import-export/import-export';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 declare var window: any;
 declare var cordova: any;
@@ -500,11 +502,11 @@ export class ExpirySync extends ExpirySyncController {
    */
   private async setupReminder() {
     await this.scheduleReminder();
-    Setting.onChange('reminderTime', () => {
+    Setting.onChange('reminderTime').subscribe(() => {
       this.scheduleReminder();
     });
 
-    Setting.onChange('showReminder', (setting: Setting) => {
+    Setting.onChange('showReminder').subscribe(setting => {
       if (setting.value === '1') {
         this.scheduleReminder();
       }
@@ -762,7 +764,7 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     // when the host setting is changed, the db has to be cleaned:
-    Setting.onChange('host', async () => {
+    Setting.onChange('host').subscribe(async () => {
       await this.closeAnyOverlay();
       await this.synchronizationHandler.syncMutex.acquire();
       await User.clearUserRelatedData();
@@ -774,7 +776,7 @@ export class ExpirySync extends ExpirySyncController {
     });
 
     // when offline mode is changed, login/logout has to be performed:
-    Setting.onChange('offlineMode', async (setting: Setting) => {
+    Setting.onChange('offlineMode').subscribe(async (setting: Setting) => {
       await this.closeAnyOverlay();
       if (setting.value !== '1') {
         await this.autoLogin();
@@ -943,11 +945,11 @@ export class ExpirySync extends ExpirySyncController {
 
     await this.switchLanguage(localeId, (Setting.cached('useSystemLocaleForDates') === '1') ? navigator.language : localeId);
 
-    Setting.onChange('localeId', (setting: Setting) => {
+    Setting.onChange('localeId').subscribe(setting => {
       this.switchLanguage(setting.value, (Setting.cached('useSystemLocaleForDates') === '1') ? navigator.language : setting.value);
     });
 
-    Setting.onChange('useSystemLocaleForDates', (setting: Setting) => {
+    Setting.onChange('useSystemLocaleForDates').subscribe(setting => {
       localeId = Setting.cached('localeId');
       this.switchLanguage(localeId, (setting.value === '1') ? navigator.language : localeId);
     });

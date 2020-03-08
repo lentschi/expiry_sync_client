@@ -11,6 +11,7 @@ import { Type } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import * as moment from 'moment';
 import 'moment/min/locales';
+import { Subscribable, Subject, Observable } from 'rxjs';
 
 declare var SharedPreferences: any;
 declare var cordova: any;
@@ -129,7 +130,7 @@ export class Setting extends AppModel {
 
   private static settingsCache: { [settingKey: string]: string } = {};
 
-  static changeListeners = [];
+  static changeSubjects: {[settingKey: string]: Subject<Setting>} = {};
 
   @Column()
   key: string;
@@ -137,21 +138,17 @@ export class Setting extends AppModel {
   @Column()
   value: string;
 
-  static onChange(key: string, callback: Function) {
-    if (!this.changeListeners[key]) {
-      this.changeListeners[key] = [];
+  static onChange(key: string): Subject<Setting> {
+    if (!this.changeSubjects[key]) {
+      this.changeSubjects[key] = new Subject<Setting>();
     }
 
-    this.changeListeners[key].push(callback);
+    return this.changeSubjects[key];
   }
 
   static callChangeListeners(setting: Setting) {
-    if (!this.changeListeners[setting.key]) {
-      return;
-    }
-
-    for (const changeListener of this.changeListeners[setting.key]) {
-      changeListener(setting);
+    if (this.changeSubjects[setting.key]) {
+      this.changeSubjects[setting.key].next(setting);
     }
   }
 
