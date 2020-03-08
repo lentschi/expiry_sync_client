@@ -102,7 +102,8 @@ export class Setting extends AppModel {
     lastUserId: { default: '' },
     syncInterval: { default: '5000' },
     notificationTappedLocationId: { default: ''},
-    keyboardDatepickerMode: { default: '0' }
+    keyboardDatepickerMode: { default: '0' },
+    askedForOverlaysPermission: { default: '0' }
   };
 
   get settingConfig(): SettingConfiguration {

@@ -445,12 +445,61 @@ export class ExpirySync extends ExpirySyncController {
     return false;
   }
 
+  private get isAndroid10OrGreater(): boolean {
+    if (this.device.platform.toLowerCase() !== 'android') {
+      return false;
+    }
+
+    const version = this.device.version;
+    if (!version) {
+      return false;
+    }
+
+    const versionParts = version.split('.');
+    if (versionParts.length < 1) {
+      return false;
+    }
+
+    return parseInt(versionParts[0], 10) >= 10;
+  }
+
+  private async requestWakeupPermissions(): Promise<boolean> {
+    if (!this.isAndroid10OrGreater) {
+      return true;
+    }
+
+    await new Promise(resolve => setTimeout(() => resolve(), 1000));
+    if (this.loader) {
+      await this.loader.dismiss();
+    }
+
+    if (Setting.cached('askedForOverlaysPermission') !== '1') {
+      if (!await this.uiHelper.confirm('Do you want notifications?')) {
+        return false;
+      }
+    }
+
+    Setting.set('askedForOverlaysPermission', '1');
+
+    const granted = await new Promise<boolean>(resolve => {
+      window.wakeuptimer.requestPermissions(response => {
+        resolve(response.canDrawOverlays);
+      }, () => resolve(false));
+    });
+
+    if (this.loader) {
+      await this.loader.present();
+    }
+
+    return granted;
+  }
+
 
   /**
    * Sets up the daily reminder
    */
   private async setupReminder() {
-    this.scheduleReminder();
+    await this.scheduleReminder();
     Setting.onChange('reminderTime', () => {
       this.scheduleReminder();
     });
@@ -497,7 +546,15 @@ export class ExpirySync extends ExpirySyncController {
         console.log('Wakeup intent received at startup -> showing reminder (if required) & exiting');
         // the app has not been running and a wakeup occurred
         // -> show the reminder and then exit the app again:
+
+        // Note: Cannot use this.backgroundMode.moveToBackground here,
+        // because that moves ANY app into the background (and the fact whether we
+        // are in the foreground seems random)
+
         await this.showReminder();
+        if (this.isAndroid10OrGreater) {
+          await new Promise(resolve => setTimeout(() => resolve(), 3000));
+        }
         window.navigator.app.exitApp();
       } else {
         console.log('Normal startup (no wakeup intent received) - leaving the app open and in the foreground');
@@ -509,14 +566,11 @@ export class ExpirySync extends ExpirySyncController {
    * Schedules a reminder to be trigger at the time configured by the 'reminderTime' setting
    * @see ExpirySync.showReminder
    */
-  private scheduleReminder() {
+  private async scheduleReminder(performWakeupPermissionCheck = true) {
     if (typeof (window.wakeuptimer) === 'undefined') {
       console.error('Cordova plugin wakeuptimer missing - no reminder scheduled');
       return;
     }
-
-    console.log('REQPERM');
-    window.wakeuptimer.requestPermissions();
 
     const showReminderSetting = Setting.cached('showReminder');
     if (showReminderSetting !== '1') {
@@ -529,6 +583,13 @@ export class ExpirySync extends ExpirySyncController {
       console.error('Invalid reminder time setting: ' + reminderTimeSetting);
       return;
     }
+
+    if (performWakeupPermissionCheck && !(await this.requestWakeupPermissions())) {
+      await Setting.set('showReminder', '0');
+      return;
+    }
+
+    console.log('Scheduling wakeup call');
 
     window.wakeuptimer.wakeup((p: any) => {
       if (typeof (p.type) !== 'undefined' && p.type === 'wakeup' && !this.active) {
@@ -609,7 +670,7 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     // setup the reminder due in one day:
-    this.scheduleReminder();
+    this.scheduleReminder(false);
   }
 
 
@@ -691,12 +752,6 @@ export class ExpirySync extends ExpirySyncController {
     // now show the loader in the correct languange:
     this.loadingDone(task);
     task = this.loadingStarted('Initializing app');
-    const permission = this.androidPermissions.PERMISSION.SYSTEM_ALERT_WINDOW;
-    console.log('+++ Checking perm', permission);
-    if (!(await this.androidPermissions.checkPermission(permission)).hasPermission) {
-      const ret = await this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.SYSTEM_ALERT_WINDOW);
-      console.log('++++ HasPerm', JSON.stringify(ret.hasPermission));
-    }
 
     // show server choice dialog if this hasn't happened before:
     let justChoseAServer = false;
@@ -732,7 +787,7 @@ export class ExpirySync extends ExpirySyncController {
     });
 
     // configure the daily reminder about expired/expiring products
-    this.setupReminder();
+    await this.setupReminder();
 
     // allow access even before user login has completed (changes should sync later):
     resolve();
