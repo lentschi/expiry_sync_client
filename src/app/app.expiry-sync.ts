@@ -476,14 +476,13 @@ export class ExpirySync extends ExpirySyncController {
     }
 
     if (Setting.cached('askedForOverlaysPermission') !== '1') {
+      await Setting.set('askedForOverlaysPermission', '1');
       const question = await this.translate('Do you want to show a notification when products expire?'
         + ' (If you choose yes, you will have to grant ExpirySync the necessary permissions on the next screen.)');
       if (!await this.uiHelper.confirm(question)) {
         return false;
       }
     }
-
-    Setting.set('askedForOverlaysPermission', '1');
 
     const granted = await new Promise<boolean>(resolve => {
       window.wakeuptimer.requestPermissions(response => {
@@ -551,14 +550,8 @@ export class ExpirySync extends ExpirySyncController {
         // the app has not been running and a wakeup occurred
         // -> show the reminder and then exit the app again:
 
-        // Note: Cannot use this.backgroundMode.moveToBackground here,
-        // because that moves ANY app into the background (and the fact whether we
-        // are in the foreground seems random)
-
         await this.showReminder();
-        if (this.isAndroid10OrGreater) {
-          await new Promise(resolve => setTimeout(() => resolve(), 3000));
-        }
+        await new Promise(resolve => setTimeout(() => resolve(), 3000));
         window.navigator.app.exitApp();
       } else {
         console.log('Normal startup (no wakeup intent received) - leaving the app open and in the foreground');
