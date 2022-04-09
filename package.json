@@ -63,7 +63,7 @@
     "escape-string-regexp": "~1.0.5",
     "hammerjs": "^2.0.8",
     "ionic-plugin-keyboard": "^2.2.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "ngx-ellipsis": "^2.0.7",
     "ngx-moment": "^3.4.0",
     "org.nypr.cordova.wakeupplugin": "git://github.com/lentschi/cordova-plugin-wakeuptimer.git#cb644ad571d8218b1fe956b64d0d3c23784fb1d7",
